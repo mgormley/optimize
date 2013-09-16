@@ -1,0 +1,20 @@
+# File types
+*.pyc
+*~
+.#*
+\#*\#
+
+# Special files
+java.hprof.txt 
+.project
+.classpath
+.settings
+
+# Root
+
+/bin
+/classes
+/target
+/tests
+
+
