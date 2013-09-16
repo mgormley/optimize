@@ -1,4 +1,5 @@
-package edu.jhu.hlt.phylo.optimize;
+package edu.jhu.hlt.optimize;
+
 
 /**
  * All stochastic scalar function optimizers extend this class.

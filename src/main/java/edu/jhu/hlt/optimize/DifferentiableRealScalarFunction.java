@@ -1,4 +1,4 @@
-package edu.jhu.hlt.phylo.optimize;
+package edu.jhu.hlt.optimize;
 
 /**
  * @author Nicholas Andrews

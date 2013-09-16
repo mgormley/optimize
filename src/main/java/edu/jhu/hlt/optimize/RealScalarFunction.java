@@ -1,11 +1,12 @@
-package edu.jhu.hlt.phylo.optimize;
+package edu.jhu.hlt.optimize;
+
 
 /**
  * Interface for functions of many variables which evaluate to a single scalar
  * 
  * @author Nicholas Andrews
  */
-public interface RealScalarFunction {
+public interface RealScalarFunction extends Function {
 	
 	/**
 	 * @return Return the value of the function at the current value of its parameters

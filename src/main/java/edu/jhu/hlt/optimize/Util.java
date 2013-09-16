@@ -1,4 +1,4 @@
-package edu.jhu.hlt.phylo.optimize;
+package edu.jhu.hlt.optimize;
 
 public class Util {
 	static double nanoToSec(long elapsed) {

@@ -1,4 +1,5 @@
-package edu.jhu.hlt.phylo.optimize;
+package edu.jhu.hlt.optimize;
+
 
 public class StochasticGradientDescent extends StochasticRealScalarFunctionOptimizer {
 	

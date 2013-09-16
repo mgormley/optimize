@@ -1,4 +1,5 @@
-package edu.jhu.hlt.phylo.optimize;
+package edu.jhu.hlt.optimize;
+
 
 /**
  * Interface for multi-variate functions whose value is approximate 
