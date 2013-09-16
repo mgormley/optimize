@@ -1,17 +1,19 @@
 package edu.jhu.hlt.optimize;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
-
 import junit.framework.Assert;
 
+/**
+ * A function wrapper with expected results and tolerances.
+ * 
+ * @author Nicholas Andrews
+ */
 public class TestFunction {
 	double value_at_optima;
 	double value_tolerance;
 	double [] param_at_optima;
 	double param_tolerance;
 	Function f;
+	
 	public TestFunction(Function f, double value_at_optima, double value_tolerance, double [] param_at_optima, double param_tolerance) {
 		this.f = f;
 		this.value_at_optima = value_at_optima;

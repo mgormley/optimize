@@ -1,17 +1,35 @@
 package edu.jhu.hlt.optimize;
 
 
+/**
+ * @author nico
+ *
+ */
 public class StochasticGradientDescent extends StochasticRealScalarFunctionOptimizer {
 	
 	double total_time;
 	double a;     // initial step size
 	double alpha; // decay \in (0.5,1]
 	
+	/**
+	 * 
+	 * @param f		Function to optimize
+	 * @param t		Time in seconds to optimize
+	 * @param a		Initial step size
+	 * @param alpha	Decay \in (0.5,1]
+	 */
 	public StochasticGradientDescent(DifferentiableRealScalarFunction f, double t, double a, double alpha) {
 		super(f);
 		this.total_time = t;
 		this.a = a;
 		this.alpha = alpha;
+	}
+	
+	public StochasticGradientDescent(DifferentiableRealScalarFunction f, double t) {
+		super(f);
+		this.total_time = t;
+		this.a = 0.1;
+		this.alpha = 0.501;
 	}
 
 	@Override
@@ -24,9 +42,12 @@ public class StochasticGradientDescent extends StochasticRealScalarFunctionOptim
 			double [] g = fdif.grad();
 			double [] param = fdif.get();
 			double rate = a / Math.pow(1d+i, alpha);
+			System.err.println("rate =  " + rate);
 			for(int k=0; k<fdif.dim(); k++) {
 				param[k] = param[k] - rate*g[k];
 			}
+			fdif.set(param);
+			System.err.println("val = " + fdif.val());
 			i ++;
 			curr_t += Util.nanoToSec(System.nanoTime() - startTime);
 		} while(curr_t < total_time);
