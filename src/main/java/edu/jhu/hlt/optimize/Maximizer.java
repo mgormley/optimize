@@ -1,9 +1,10 @@
 package edu.jhu.hlt.optimize;
 
 /**
- * A first order optimization technique for maximization.
+ * An optimization technique for maximization.
  * 
  * @author mgormley
+ * @author noandrews
  *
  */
 public interface Maximizer<T extends Function> {

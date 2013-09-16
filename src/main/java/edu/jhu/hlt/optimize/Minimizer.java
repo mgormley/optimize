@@ -1,9 +1,10 @@
 package edu.jhu.hlt.optimize;
 
 /**
- * A first order optimization technique for minimization.
+ * An optimization technique for minimization.
  * 
  * @author mgormley
+ * @author noandrews
  *
  */
 public interface Minimizer<T extends Function> {
@@ -18,6 +19,7 @@ public interface Minimizer<T extends Function> {
      *            possibly the minimum.
      * @return True if the optimizer terminated at a local or global optima. False otherwise.
      */
+    // TODO: remove the point parameter.
     boolean minimize(T function, double[] initial);
     
 }
