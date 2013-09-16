@@ -25,7 +25,7 @@ public class OptimizeTester {
 	public void testStochasticGradientDescent() {
 		List<TestFunction> fs = getTestFunctions();
 		for(TestFunction f : fs) {
-			StochasticGradientDescent sgd = new StochasticGradientDescent((DifferentiableRealScalarFunction) f.getFunction(), 1e-1);
+			StochasticGradientDescent sgd = new StochasticGradientDescent((DifferentiableRealScalarFunction) f.getFunction(), 1);
 			f.checkValue(sgd.val());
 			f.checkParam(sgd.getFunction().get());
 		}
