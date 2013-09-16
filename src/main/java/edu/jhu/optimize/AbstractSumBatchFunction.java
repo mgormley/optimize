@@ -8,7 +8,7 @@ package edu.jhu.optimize;
  * @author mgormley
  * 
  */
-public abstract class AbstractSumBatchFunction implements BatchFunction {
+public abstract class AbstractSumBatchFunction implements DifferentiableBatchFunction {
 
     /* --------------- Implemented Methods from BatchFunction --------------- */
 

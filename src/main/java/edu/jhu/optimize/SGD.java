@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import org.apache.log4j.Logger;
 
-import edu.jhu.util.Prng;
 import edu.jhu.util.Utilities;
 
 /**
@@ -16,7 +15,7 @@ import edu.jhu.util.Utilities;
  * 
  * @author mgormley
  */
-public class SGD implements BatchMaximizer, BatchMinimizer {
+public class SGD implements Maximizer<DifferentiableBatchFunction>, Minimizer<DifferentiableBatchFunction> {
 
     /** Options for this optimizer. */
     public static class SGDPrm {
@@ -72,7 +71,7 @@ public class SGD implements BatchMaximizer, BatchMinimizer {
     /**
      * Initializes all the parameters for optimization.
      */
-    protected void init(BatchFunction function) {
+    protected void init(DifferentiableBatchFunction function) {
         int numExamples = function.getNumExamples();
 
         // Variables
@@ -101,18 +100,18 @@ public class SGD implements BatchMaximizer, BatchMinimizer {
      * Maximize the function starting at the given initial point.
      */
     @Override
-    public boolean maximize(BatchFunction function, double[] point) {
+    public boolean maximize(DifferentiableBatchFunction function, double[] point) {
         return optimize(function, point, true);
     }
 
     /**
      * Minimize the function starting at the given initial point.
      */
-    public boolean minimize(BatchFunction function, double[] point) {
+    public boolean minimize(DifferentiableBatchFunction function, double[] point) {
         return optimize(function, point, false);
     }
 
-    private boolean optimize(BatchFunction function, double[] point, final boolean maximize) {
+    private boolean optimize(DifferentiableBatchFunction function, double[] point, final boolean maximize) {
         init(function);
         
         assert (function.getNumDimensions() == point.length);
@@ -178,8 +177,4 @@ public class SGD implements BatchMaximizer, BatchMinimizer {
         // Do nothing. This is just for subclasses.
     }
     
-    @Override
-    public int getBatchSize() {
-        return prm.batchSize;
-    }
 }

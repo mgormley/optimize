@@ -44,7 +44,7 @@ public class AdaGrad extends SGD {
     /**
      * Initializes all the parameters for optimization.
      */
-    protected void init(BatchFunction function) {
+    protected void init(DifferentiableBatchFunction function) {
         super.init(function);
         gradSumSquares = new double[function.getNumDimensions()];
     }

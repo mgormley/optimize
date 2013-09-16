@@ -2,7 +2,7 @@ package edu.jhu.optimize;
 
 import edu.jhu.util.Utilities;
 
-public abstract class AbstractSlowFunction implements Function, SlowFunction {
+public abstract class AbstractSlowFunction implements DifferentiableFunction, SlowFunction {
 
     private double[] point;    
     

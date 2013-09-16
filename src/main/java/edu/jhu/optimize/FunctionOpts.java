@@ -5,21 +5,21 @@ import edu.jhu.util.math.Vectors;
 public class FunctionOpts {
 
     /** Wrapper which negates the input function. */
-    public static class NegateFunction extends ScaleFunction implements Function {
+    public static class NegateFunction extends ScaleFunction implements DifferentiableFunction {
     
-        public NegateFunction(Function function) {
+        public NegateFunction(DifferentiableFunction function) {
             super(function, -1.0);
         }
         
     }
     
     /** Wrapper which scales the input function. */
-    public static class ScaleFunction implements Function {
+    public static class ScaleFunction implements DifferentiableFunction {
     
-        private Function function;
+        private DifferentiableFunction function;
         private double multiplier;
         
-        public ScaleFunction(Function function, double multiplier) {
+        public ScaleFunction(DifferentiableFunction function, double multiplier) {
             this.function = function;
             this.multiplier = multiplier;
         }
@@ -48,13 +48,13 @@ public class FunctionOpts {
     }
     
     /** Wrapper which adds the input functions. */
-    public static class AddFunctions implements Function {
+    public static class AddFunctions implements DifferentiableFunction {
     
-        private Function[] functions;
+        private DifferentiableFunction[] functions;
         
-        public AddFunctions(Function... functions) {
+        public AddFunctions(DifferentiableFunction... functions) {
             int numDims = functions[0].getNumDimensions();
-            for (Function f : functions) {
+            for (DifferentiableFunction f : functions) {
                 if (numDims != f.getNumDimensions()) {
                     throw new IllegalArgumentException("Functions have different dimension.");
                 }
@@ -64,7 +64,7 @@ public class FunctionOpts {
         
         @Override
         public void setPoint(double[] point) {
-            for (Function function : functions) {
+            for (DifferentiableFunction function : functions) {
                 function.setPoint(point);
             }
         }
@@ -72,7 +72,7 @@ public class FunctionOpts {
         @Override
         public double getValue() {
             double sum = 0.0;
-            for (Function f : functions) {
+            for (DifferentiableFunction f : functions) {
                 sum += f.getValue();                
             }
             return sum;
@@ -81,7 +81,7 @@ public class FunctionOpts {
         @Override
         public void getGradient(double[] gradient) {
             double[] g = new double[getNumDimensions()];
-            for (Function f : functions) {
+            for (DifferentiableFunction f : functions) {
                 f.getGradient(g);
                 Vectors.add(gradient, g);
             }

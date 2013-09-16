@@ -15,7 +15,7 @@ import edu.jhu.util.Utilities;
  * 
  * @author mgormley
  */
-public class GradientDescent implements Maximizer, Minimizer {
+public class GradientDescent implements Maximizer<DifferentiableFunction>, Minimizer<DifferentiableFunction> {
 
     /** Options for this optimizer. */
     public static class GradientDescentPrm {
@@ -89,18 +89,18 @@ public class GradientDescent implements Maximizer, Minimizer {
      * Maximize the function starting at the given initial point.
      */
     @Override
-    public boolean maximize(Function function, double[] point) {
+    public boolean maximize(DifferentiableFunction function, double[] point) {
         return optimize(function, point, true);
     }
 
     /**
      * Minimize the function starting at the given initial point.
      */
-    public boolean minimize(Function function, double[] point) {
+    public boolean minimize(DifferentiableFunction function, double[] point) {
         return optimize(function, point, false);
     }
 
-    private boolean optimize(Function function, double[] point, final boolean maximize) {        
+    private boolean optimize(DifferentiableFunction function, double[] point, final boolean maximize) {        
         assert (function.getNumDimensions() == point.length);
         double[] gradient = new double[point.length];
         

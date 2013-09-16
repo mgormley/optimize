@@ -6,7 +6,7 @@ package edu.jhu.optimize;
  * @author mgormley
  *
  */
-public interface Minimizer {
+public interface Minimizer<T extends Function> {
 
     /**
      * Minimizes a function starting from some initial point.
@@ -18,6 +18,6 @@ public interface Minimizer {
      *            possibly the minimum.
      * @return True if the optimizer terminated at a local or global optima. False otherwise.
      */
-    boolean minimize(Function function, double[] initial);
+    boolean minimize(T function, double[] initial);
     
 }

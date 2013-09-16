@@ -5,21 +5,21 @@ import edu.jhu.util.math.Vectors;
 public class BatchFunctionOpts {
 
     /** Wrapper which negates the input function. */
-    public static class NegateFunction extends ScaleFunction implements BatchFunction {
+    public static class NegateFunction extends ScaleFunction implements DifferentiableBatchFunction {
         
-        public NegateFunction(BatchFunction function) {
+        public NegateFunction(DifferentiableBatchFunction function) {
             super(function, -1.0);
         }
     
     }
 
     /** Wrapper which scales the input function. */
-    public static class ScaleFunction implements BatchFunction {
+    public static class ScaleFunction extends AbstractDifferentiableBatchFunction implements DifferentiableBatchFunction {
     
-        private BatchFunction function;
+        private DifferentiableBatchFunction function;
         private double multiplier;
         
-        public ScaleFunction(BatchFunction function, double multiplier) {
+        public ScaleFunction(DifferentiableBatchFunction function, double multiplier) {
             this.function = function;
             this.multiplier = multiplier;
         }
@@ -53,14 +53,14 @@ public class BatchFunctionOpts {
     }
     
     /** Wrapper which adds the input functions. */
-    public static class AddFunctions implements BatchFunction {
+    public static class AddFunctions extends AbstractDifferentiableBatchFunction implements DifferentiableBatchFunction {
     
-        private BatchFunction[] functions;
+        private DifferentiableBatchFunction[] functions;
         
-        public AddFunctions(BatchFunction... functions) {
+        public AddFunctions(DifferentiableBatchFunction... functions) {
             int numDims = functions[0].getNumDimensions();
             int numExs = functions[0].getNumExamples();
-            for (BatchFunction f : functions) {
+            for (DifferentiableBatchFunction f : functions) {
                 if (numDims != f.getNumDimensions()) {
                     throw new IllegalArgumentException("Functions have different dimension.");
                 }
@@ -73,7 +73,7 @@ public class BatchFunctionOpts {
         
         @Override
         public void setPoint(double[] point) {
-            for (BatchFunction function : functions) {
+            for (DifferentiableBatchFunction function : functions) {
                 function.setPoint(point);
             }
         }
@@ -81,7 +81,7 @@ public class BatchFunctionOpts {
         @Override
         public double getValue(int[] batch) {
             double sum = 0.0;
-            for (BatchFunction f : functions) {
+            for (DifferentiableBatchFunction f : functions) {
                 sum += f.getValue(batch);                
             }
             return sum;
@@ -90,7 +90,7 @@ public class BatchFunctionOpts {
         @Override
         public void getGradient(int[] batch, double[] gradient) {
             double[] g = new double[getNumDimensions()];
-            for (BatchFunction f : functions) {
+            for (DifferentiableBatchFunction f : functions) {
                 f.getGradient(batch, g);
                 Vectors.add(gradient, g);
             }

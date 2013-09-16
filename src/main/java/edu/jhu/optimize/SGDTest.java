@@ -65,11 +65,11 @@ public class SGDTest {
         return new SGD(prm);
     }
     
-    public static BatchFunction bf(Function f) {
+    public static DifferentiableBatchFunction bf(DifferentiableFunction f) {
         return new FunctionAsBatchFunction(f, 10);
     }
     
-    public static BatchFunction negate(BatchFunction bf) {
+    public static DifferentiableBatchFunction negate(DifferentiableBatchFunction bf) {
         return new BatchFunctionOpts.NegateFunction(bf);
     }
 }

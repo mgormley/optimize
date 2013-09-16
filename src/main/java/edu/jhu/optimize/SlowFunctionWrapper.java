@@ -2,7 +2,7 @@ package edu.jhu.optimize;
 
 import edu.jhu.util.Utilities;
 
-public class SlowFunctionWrapper implements Function {
+public class SlowFunctionWrapper implements DifferentiableFunction {
 
     private SlowFunction fn;
     private double[] point;    

@@ -48,7 +48,7 @@ public class AdaDelta extends SGD {
     /**
      * Initializes all the parameters for optimization.
      */
-    protected void init(BatchFunction function) {
+    protected void init(DifferentiableBatchFunction function) {
         super.init(function);
         gradAccum = new double[function.getNumDimensions()];
         lr = new double[function.getNumDimensions()];

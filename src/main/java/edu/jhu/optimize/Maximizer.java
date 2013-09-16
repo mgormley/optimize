@@ -6,7 +6,7 @@ package edu.jhu.optimize;
  * @author mgormley
  *
  */
-public interface Maximizer {
+public interface Maximizer<T extends Function> {
 
     /**
      * Maximizes a function starting from some initial point.
@@ -18,6 +18,7 @@ public interface Maximizer {
      *            possibly the maximum.
      * @return True if the optimizer terminated at a local or global optima. False otherwise.
      */
-    boolean maximize(Function function, double[] point);
+    // TODO: remove the point parameter.
+    boolean maximize(T function, double[] point);
     
 }

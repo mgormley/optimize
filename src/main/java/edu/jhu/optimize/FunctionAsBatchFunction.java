@@ -1,11 +1,11 @@
 package edu.jhu.optimize;
 
-public class FunctionAsBatchFunction implements BatchFunction {
+public class FunctionAsBatchFunction extends AbstractDifferentiableBatchFunction implements DifferentiableBatchFunction {
 
-    private Function fn;
+    private DifferentiableFunction fn;
     private int numExamples;
     
-    public FunctionAsBatchFunction(Function fn, int numExamples) {
+    public FunctionAsBatchFunction(DifferentiableFunction fn, int numExamples) {
         this.fn = fn;
         this.numExamples = numExamples;
     }
