@@ -11,6 +11,6 @@ public abstract class RealScalarFunctionOptimizer {
 	public RealScalarFunctionOptimizer(RealScalarFunction f) {
 		this.f = f;
 	}
-	
+	public RealScalarFunction getFunction() { return f; }
 	public abstract void optimize();
 }

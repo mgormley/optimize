@@ -7,9 +7,10 @@ package edu.jhu.hlt.optimize;
  * @author Nicholas Andrews
  */
 public abstract class StochasticRealScalarFunctionOptimizer implements StochasticRealScalarFunction {
-	StochasticRealScalarFunction f;
-	public StochasticRealScalarFunctionOptimizer(StochasticRealScalarFunction f) {
+	RealScalarFunction f;
+	public StochasticRealScalarFunctionOptimizer(RealScalarFunction f) {
 		this.f = f;
 	}
+	public RealScalarFunction getFunction() { return f; }
 	public abstract void optimize();
 }

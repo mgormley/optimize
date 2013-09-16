@@ -32,5 +32,5 @@ public interface RealScalarFunction extends Function {
 	/**
 	 * @return		The number of (free) variables
 	 */
-	double dim();
+	int dim();
 }

@@ -1,35 +1,46 @@
 package edu.jhu.hlt.optimize;
 
-public class XSquared implements RealScalarFunction {
+public class XSquared implements DifferentiableRealScalarFunction {
 
+	double x;
+	
+	public XSquared(double x) {
+		this.x = x;
+	}
+	
 	@Override
 	public double val() {
-		// TODO Auto-generated method stub
-		return 0;
+		return x*x;
 	}
 
 	@Override
 	public double val(double[] param) {
-		// TODO Auto-generated method stub
-		return 0;
+		return param[0]*param[0];
 	}
 
 	@Override
 	public void set(double[] param) {
-		// TODO Auto-generated method stub
-		
+		x = param[0];
 	}
 
 	@Override
 	public double[] get() {
-		// TODO Auto-generated method stub
-		return null;
+		return new double[] {x};
 	}
 
 	@Override
-	public double dim() {
-		// TODO Auto-generated method stub
-		return 0;
+	public int dim() {
+		return 1;
+	}
+
+	@Override
+	public double[] grad(double[] param) {
+		return new double [] {2d*param[0]};
+	}
+
+	@Override
+	public double[] grad() {
+		return new double [] {2d*x};
 	}
 	
 }

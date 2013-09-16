@@ -20,6 +20,8 @@ public class TestFunction {
 		this.param_tolerance = param_tolerance;
 	}
 	
+	public Function getFunction() { return f; }
+	
 	public void checkValue(double value) {
 		Assert.assertEquals(value, value_at_optima, value_tolerance);
 	}

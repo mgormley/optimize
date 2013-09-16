@@ -7,18 +7,18 @@ public class StochasticGradientDescent extends StochasticRealScalarFunctionOptim
 	double a;     // initial step size
 	double alpha; // decay \in (0.5,1]
 	
-	public StochasticGradientDescent(StochasticRealScalarFunction f, double t, double a, double alpha) {
+	public StochasticGradientDescent(DifferentiableRealScalarFunction f, double t, double a, double alpha) {
 		super(f);
 		this.total_time = t;
 		this.a = a;
 		this.alpha = alpha;
 	}
-	
+
 	@Override
 	public void optimize() {
 		double curr_t = 0d;
 		int i = 0;
-		DifferentiableStochasticRealScalarFunction fdif = (DifferentiableStochasticRealScalarFunction)f;
+		DifferentiableRealScalarFunction fdif = (DifferentiableRealScalarFunction)f;
 		do {
 			long startTime = System.nanoTime();
 			double [] g = fdif.grad();
@@ -32,6 +32,7 @@ public class StochasticGradientDescent extends StochasticRealScalarFunctionOptim
 		} while(curr_t < total_time);
 	}
 
+	// FIXME: not using the argument
 	@Override
 	public double val(double t) {
 		optimize();
@@ -48,7 +49,7 @@ public class StochasticGradientDescent extends StochasticRealScalarFunctionOptim
 	}
 
 	@Override
-	public double dim() {
+	public int dim() {
 		return get().length;
 	}
 
@@ -66,7 +67,8 @@ public class StochasticGradientDescent extends StochasticRealScalarFunctionOptim
 
 	@Override
 	public double val() {
-		throw new UnsupportedOperationException();
+		optimize();
+		return f.val();
 	}
 
 	@Override
