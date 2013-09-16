@@ -1,5 +1,7 @@
 package edu.jhu.hlt.optimize;
 
+import edu.jhu.hlt.optimize.temp.DifferentiableRealScalarFunction;
+
 public class XSquared implements DifferentiableRealScalarFunction {
 
 	double x;

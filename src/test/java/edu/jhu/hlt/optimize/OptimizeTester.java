@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.junit.Test;
 
+import edu.jhu.hlt.optimize.temp.DifferentiableRealScalarFunction;
+import edu.jhu.hlt.optimize.temp.StochasticGradientDescent;
+
 /**
  * Basic test class -- should be replaced with something more flexible.
  * 
