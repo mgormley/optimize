@@ -34,8 +34,8 @@ public class SGDQN extends    Optimizer<DifferentiableFunction>
 	}
 
 	public void updateFunction(int t, double [] B) {
-		double [] pt = ;
-		f.setPoint(point);
+		double [] pt = f.getPoint();
+		// TODO
 	}
 	
 	@Override
@@ -79,5 +79,17 @@ public class SGDQN extends    Optimizer<DifferentiableFunction>
 	public boolean maximize(DifferentiableFunction function, double[] point) {
 		// TODO Auto-generated method stub
 		return true;
+	}
+
+	@Override
+	public boolean minimize() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean maximize() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

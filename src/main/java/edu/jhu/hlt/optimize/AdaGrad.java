@@ -1,11 +1,6 @@
 package edu.jhu.hlt.optimize;
 
-import java.util.Arrays;
-
 import org.apache.log4j.Logger;
-
-import edu.jhu.hlt.util.Prng;
-import edu.jhu.hlt.util.Utilities;
 
 /**
  * AdaGrad (Duchi et al., 2010) -- a first order stochastic gradient method with

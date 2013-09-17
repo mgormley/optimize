@@ -39,4 +39,10 @@ public class FunctionAsBatchFunction extends AbstractDifferentiableBatchFunction
         this.numExamples = numExamples;
     }
 
+	@Override
+	public double[] getPoint() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

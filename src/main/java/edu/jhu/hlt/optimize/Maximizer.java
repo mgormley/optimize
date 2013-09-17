@@ -20,6 +20,7 @@ public interface Maximizer<T extends Function> {
      * @return True if the optimizer terminated at a local or global optima. False otherwise.
      */
     // TODO: remove the point parameter.
+	@Deprecated
     boolean maximize(T function, double[] point);
-    
+	boolean maximize();
 }
