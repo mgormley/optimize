@@ -44,6 +44,12 @@ public class FunctionOpts {
         public int getNumDimensions() {
             return function.getNumDimensions();
         }
+
+		@Override
+		public double[] getPoint() {
+			// TODO Auto-generated method stub
+			return null;
+		}
     
     }
     
@@ -91,6 +97,12 @@ public class FunctionOpts {
         public int getNumDimensions() {
             return functions[0].getNumDimensions();
         }
+
+		@Override
+		public double[] getPoint() {
+			// TODO Auto-generated method stub
+			return null;
+		}
     
     }
 

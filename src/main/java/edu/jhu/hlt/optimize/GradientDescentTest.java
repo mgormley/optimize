@@ -26,6 +26,12 @@ public class GradientDescentTest {
         public int getNumDimensions() {
             return 1;
         }
+
+		@Override
+		public double[] getPoint() {
+			// TODO Auto-generated method stub
+			return null;
+		}
         
     }
     
@@ -67,6 +73,12 @@ public class GradientDescentTest {
         public int getNumDimensions() {
             return dim;
         }
+
+		@Override
+		public double[] getPoint() {
+			// TODO Auto-generated method stub
+			return null;
+		}
         
     }
     

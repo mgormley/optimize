@@ -32,4 +32,10 @@ public class SlowFunctionWrapper implements DifferentiableFunction {
         return fn.getNumDimensions();
     }
 
+	@Override
+	public double[] getPoint() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

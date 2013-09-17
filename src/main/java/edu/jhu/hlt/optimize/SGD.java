@@ -176,5 +176,17 @@ public class SGD implements Maximizer<DifferentiableBatchFunction>, Minimizer<Di
     protected void takeNoteOfGradient(double[] gradient) {
         // Do nothing. This is just for subclasses.
     }
+
+	@Override
+	public boolean minimize() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean maximize() {
+		// TODO Auto-generated method stub
+		return false;
+	}
     
 }

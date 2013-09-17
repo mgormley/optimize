@@ -7,8 +7,7 @@ package edu.jhu.hlt.optimize;
  * @author noandrews
  */
 public class StochasticGradientDescentQuasiNewton extends    Optimizer<DifferentiableFunction>
-                                                  implements Maximizer<DifferentiableFunction>, 
-															 Minimizer<DifferentiableFunction>,
+                                                  implements Minimizer<DifferentiableFunction>,
 															 TimedFunction {
 	
 	double T;
@@ -33,45 +32,49 @@ public class StochasticGradientDescentQuasiNewton extends    Optimizer<Different
 	}
 
 	@Override
-	public boolean minimize(DifferentiableFunction function,
-			double[] initial) {
+	public boolean minimize() {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+	
 	@Override
-	public boolean maximize(DifferentiableFunction function, double[] point) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean minimize(DifferentiableFunction function, double[] initial) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void setPoint(double[] point) {
-		// TODO Auto-generated method stub
-		
+		this.T      = point[0];
+		this.lambda = point[1];
+		this.t0     = point[2];
+		this.skip   = (int)point[3];
 	}
 
 	@Override
 	public double getValue() {
-		// TODO Auto-generated method stub
-		return 0;
+		minimize();
+		return f.getValue();
 	}
 
 	@Override
 	public int getNumDimensions() {
-		// TODO Auto-generated method stub
-		return 0;
+		return getPoint().length;
 	}
 
 	@Override
 	public double getValue(double seconds) {
-		// TODO Auto-generated method stub
-		return 0;
+		this.T = seconds;
+		minimize();
+		return f.getValue();
 	}
 
 	@Override
 	public double getTime() {
-		// TODO Auto-generated method stub
-		return 0;
+		return T;
+	}
+
+	@Override
+	public double[] getPoint() {
+		return new double [] {T, lambda, t0, skip};
 	}
 }

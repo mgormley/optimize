@@ -4,8 +4,6 @@ import java.util.Arrays;
 
 import org.apache.log4j.Logger;
 
-import edu.jhu.hlt.util.Utilities;
-
 /**
  * Stochastic gradient descent.
  * 
@@ -136,5 +134,17 @@ public class GradientDescent implements Maximizer<DifferentiableFunction>, Minim
         // We don't test for convergence.
         return false;
     }
+
+	@Override
+	public boolean minimize() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean maximize() {
+		// TODO Auto-generated method stub
+		return false;
+	}
     
 }

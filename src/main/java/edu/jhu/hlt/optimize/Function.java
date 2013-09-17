@@ -4,6 +4,7 @@ package edu.jhu.hlt.optimize;
  * A real scalar function.
  * 
  * @author mgormley
+ * @author noandrews
  */
 public interface Function {
 
@@ -13,6 +14,11 @@ public interface Function {
      */
     void setPoint(double[] point);
 
+    /**
+     * @return Current setting of the free variables of the function
+     */
+    double [] getPoint();
+    
     /**
      * The value of this function at the current point.
      * @return The value of the function.

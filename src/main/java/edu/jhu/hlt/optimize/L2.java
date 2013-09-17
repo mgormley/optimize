@@ -64,4 +64,10 @@ public class L2 implements Regularizer {
         this.numParams = numParams ;
     }
 
+	@Override
+	public double[] getPoint() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -49,6 +49,12 @@ public class BatchFunctionOpts {
         public int getNumExamples() {
             return function.getNumExamples();
         }
+
+		@Override
+		public double[] getPoint() {
+			// TODO Auto-generated method stub
+			return null;
+		}
     
     }
     
@@ -105,6 +111,12 @@ public class BatchFunctionOpts {
         public int getNumExamples() {
             return functions[0].getNumExamples();
         }
+
+		@Override
+		public double[] getPoint() {
+			// TODO Auto-generated method stub
+			return null;
+		}
     
     }
 
