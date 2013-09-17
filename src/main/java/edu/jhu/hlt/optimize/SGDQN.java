@@ -35,7 +35,9 @@ public class SGDQN extends    Optimizer<DifferentiableFunction>
 
 	public void updateFunction(int t, double [] B) {
 		double [] pt = f.getPoint();
-		// TODO
+		for(int i=0; i<pt.length; i++) {
+			pt[i] -= 1.0/(t+t0)*B[i];
+		}
 	}
 	
 	@Override
@@ -49,27 +51,38 @@ public class SGDQN extends    Optimizer<DifferentiableFunction>
 		for(int i=0; i<B.length; i++) {
 			B[i] = lambda;
 		}
-		
 		double [] p = new double[f.getNumDimensions()];
 		
+		double [] gradient = new double[f.getNumDimensions()];
+		double [] new_gradient = new double[f.getNumDimensions()];
 		
 		while(t <= T) {
 			
 			if(updateB) {
-				double [] gradient = null;
+				double [] pt = f.getPoint();
 				f.getGradient(gradient);
-				
-				// Update parameters
-				
-				double [] new_gradient = null;
-				
+				updateFunction(t, B);
+				double [] new_pt = f.getPoint();
+				f.getGradient(new_gradient);
+				for(int i=0; i<p.length; i++) {
+					p[i] = new_gradient[i] - gradient[i];
+					B[i] += (2.0/r)*(new_pt[i]-pt[i])*(1.0/p[i]-B[i]);
+					B[i] = Math.max(B[i], 1e-2*(1.0/lambda));
+				}
+				r += 1;
 			} else {
-				
-				// Update parameters
-				
-				
+				updateFunction(t, B);
 			}
-			
+			count -= 1;
+			if(count <= 0) {
+				double [] pt = f.getPoint();
+				for(int i=0; i<pt.length; i++) {
+					pt[i] -= (double)skip/(double)(t+t0)*lambda*B[i];
+				}
+				count = skip;
+				updateB = true;
+			}
+			t += 1;
 		}
 		
 		return true;
