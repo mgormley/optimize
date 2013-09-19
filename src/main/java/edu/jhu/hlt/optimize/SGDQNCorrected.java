@@ -12,11 +12,11 @@ import org.apache.log4j.Logger;
  * 
  * @author noandrews
  */
-public class SGDQN extends    Optimizer<DifferentiableFunction>
-                   implements Maximizer<DifferentiableFunction>, 
-                              Minimizer<DifferentiableFunction> {
+public class SGDQNCorrected extends    Optimizer<DifferentiableFunction>
+                            implements Maximizer<DifferentiableFunction>, 
+                                       Minimizer<DifferentiableFunction> {
 	
-    private static final Logger log = Logger.getLogger(SGDQN.class);
+    private static final Logger log = Logger.getLogger(SGDQNCorrected.class);
 	
 	int T;
 	double lambda;
@@ -26,7 +26,7 @@ public class SGDQN extends    Optimizer<DifferentiableFunction>
 	// Work storage
 	double [] prev_gradient;
 	
-	public SGDQN(DifferentiableFunction f, double lambda, double t0, int T, int skip) {
+	public SGDQNCorrected(DifferentiableFunction f, double lambda, double t0, int T, int skip) {
 		super(f);
 		this.lambda = lambda;
 		this.t0 = t0;
@@ -34,16 +34,17 @@ public class SGDQN extends    Optimizer<DifferentiableFunction>
 		this.skip = skip;
 	}
 	
-	public SGDQN(DifferentiableFunction f, int T) {
+	public SGDQNCorrected(DifferentiableFunction f, int T) {
 		super(f);
 		this.T = T;
 		this.lambda = 1e-4;
-		this.t0 = 1e4;
-		this.skip = 16;
+		this.t0 = 1000;
+		this.skip = 1;
 	}
 
 	public void updateFunction(int t, double [] B, boolean maximize) {
 		double [] pt = f.getPoint();
+		assert( pt != null );
 		for(int i=0; i<pt.length; i++) {
 			if(maximize) {
 				pt[i] += 1.0/(t+t0)*B[i];
@@ -51,6 +52,7 @@ public class SGDQN extends    Optimizer<DifferentiableFunction>
 				pt[i] -= 1.0/(t+t0)*B[i];
 			}
 		}
+		f.setPoint(pt);
 	}
 	
 	public boolean optimize(boolean maximize) {
@@ -116,13 +118,11 @@ public class SGDQN extends    Optimizer<DifferentiableFunction>
 
 	@Override
 	public boolean minimize() {
-		// TODO Auto-generated method stub
-		return false;
+		return optimize(false);
 	}
 
 	@Override
 	public boolean maximize() {
-		// TODO Auto-generated method stub
-		return false;
+		return optimize(true);
 	}
 }
