@@ -4,7 +4,7 @@ import edu.jhu.hlt.util.Utilities;
 
 public abstract class AbstractSlowFunction implements DifferentiableFunction, SlowFunction {
 
-    private double[] point;    
+    protected double[] point;    
     
     public AbstractSlowFunction() {
     }

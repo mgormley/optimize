@@ -11,7 +11,7 @@ import edu.jhu.hlt.util.math.Vectors;
 public class GradientDescentTest {
     
     public static class XSquared extends AbstractSlowFunction {
-        
+    	
         @Override
         public double getValue(double[] point) {
             return point[0]*point[0];
@@ -29,8 +29,7 @@ public class GradientDescentTest {
 
 		@Override
 		public double[] getPoint() {
-			// TODO Auto-generated method stub
-			return null;
+			return new double [] { point[0] };
 		}
         
     }
@@ -76,8 +75,7 @@ public class GradientDescentTest {
 
 		@Override
 		public double[] getPoint() {
-			// TODO Auto-generated method stub
-			return null;
+			return point;
 		}
         
     }

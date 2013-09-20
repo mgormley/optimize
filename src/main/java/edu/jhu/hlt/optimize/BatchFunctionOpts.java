@@ -52,8 +52,7 @@ public class BatchFunctionOpts {
 
 		@Override
 		public double[] getPoint() {
-			// TODO Auto-generated method stub
-			return null;
+			return function.getPoint();
 		}
     
     }
@@ -114,8 +113,8 @@ public class BatchFunctionOpts {
 
 		@Override
 		public double[] getPoint() {
-			// TODO Auto-generated method stub
-			return null;
+			// FIXME: This should probably return both points?
+			return functions[0].getPoint();
 		}
     
     }
