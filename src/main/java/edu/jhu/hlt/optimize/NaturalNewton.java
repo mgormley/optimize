@@ -57,9 +57,7 @@ public class NaturalNewton extends    Optimizer<DifferentiableFunction>
 			if(count==0) {
 				count = param.skip;
 			}
-			
-			SGDQN
-			
+						
 		}
 		
 		return true;
