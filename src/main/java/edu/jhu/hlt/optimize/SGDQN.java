@@ -6,8 +6,9 @@ import org.apache.log4j.Logger;
  *  SGD-QN: Careful Quasi-Newton Stochastic Gradient Descent
  *  Antoine Bordes, Léon Bottou, Patrick Gallinari; 10(Jul):1737--1754, 2009. JMLR.
  * 
- * TODO: This paper is very careful about taking advantage of sparsity in the online updates.
- *       The current implementation however uses dense updates. All occurences of double [] need to be replaced
+ * TODO: This paper is very careful about taking advantage of sparsity.
+ *       The current implementation, however, uses dense updates. 
+ *       This should be fixed; all occurences of double [] need to be replaced
  *       with abstract vector operations that can then use sparse math under the hood. 
  * 
  * @author noandrews
@@ -51,6 +52,7 @@ public class SGDQN extends    Optimizer<DifferentiableFunction>
 				pt[i] -= 1.0/(t+t0)*B[i];
 			}
 		}
+		f.setPoint(pt);
 	}
 	
 	public boolean optimize(boolean maximize) {
