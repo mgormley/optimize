@@ -8,6 +8,13 @@ public class Vectors {
         // private constructor
     }
     
+    public static double norm2(double [] vector) {
+    	double sum = 0d;
+    	for(double v : vector) {
+    		sum += v*v;
+    	}
+    	return Math.sqrt(sum);
+    }
 
     public static double sum(double[] vector) {
         double sum = 0.0;

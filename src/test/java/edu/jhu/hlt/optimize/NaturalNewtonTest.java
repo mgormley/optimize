@@ -1,20 +1,11 @@
 package edu.jhu.hlt.optimize;
 
-import static org.junit.Assert.assertEquals;
-
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
-import edu.jhu.hlt.optimize.GradientDescentTest.SumSquares;
-import edu.jhu.hlt.optimize.GradientDescentTest.XSquared;
-import edu.jhu.hlt.util.JUnitUtils;
-import edu.jhu.hlt.util.math.Vectors;
-
-public class SGDQNCorrectedTest extends OptimizeTester {
-
-	static Logger log = Logger.getLogger(SGDQNCorrectedTest.class);
+public class NaturalNewtonTest extends OptimizeTester {
 	
 	@Test
 	public void simpleTest() {
@@ -25,7 +16,7 @@ public class SGDQNCorrectedTest extends OptimizeTester {
 		for(TestFunction test : this.getTestFunctions()) {
 			
 			DifferentiableFunction f = (DifferentiableFunction) test.f;
-			SGDQNCorrected opt       = new SGDQNCorrected(f);
+			NaturalNewton opt        = new NaturalNewton(f);
 			
 			if(test.maximize) {
 				opt.maximize();
@@ -39,4 +30,5 @@ public class SGDQNCorrectedTest extends OptimizeTester {
 		}
 		
 	}
+	
 }

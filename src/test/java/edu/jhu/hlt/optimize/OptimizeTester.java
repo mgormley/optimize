@@ -5,9 +5,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import edu.jhu.hlt.optimize.temp.DifferentiableRealScalarFunction;
-import edu.jhu.hlt.optimize.temp.StochasticGradientDescent;
-
 /**
  * Basic test class -- should be replaced with something more flexible.
  * 
@@ -15,23 +12,20 @@ import edu.jhu.hlt.optimize.temp.StochasticGradientDescent;
  */
 public class OptimizeTester {
 
-	public List<TestFunction> getTestFunctions() {
-		List<TestFunction> fs = new ArrayList<TestFunction>();
-		
-		fs.add(new TestFunction(new XSquared(+1d), 0d, 1e-4, new double[] {0d}, 1e-3));
-		fs.add(new TestFunction(new XSquared(-1d), 0d, 1e-4, new double[] {0d}, 1e-3));
-		
-		return fs;
+	protected static Function negate(Function f) {
+		return new FunctionOpts.NegateFunction((DifferentiableFunction) f);
 	}
 	
-	@Test
-	public void testStochasticGradientDescent() {
-		List<TestFunction> fs = getTestFunctions();
-		for(TestFunction f : fs) {
-			StochasticGradientDescent sgd = new StochasticGradientDescent((DifferentiableRealScalarFunction) f.getFunction(), 1);
-			f.checkValue(sgd.val());
-			f.checkParam(sgd.getFunction().get());
-		}
+	protected List<TestFunction> getTestFunctions() {
+		List<TestFunction> fs = new ArrayList<TestFunction>();
+		
+		// FIXME: These bounds are probably too forgiving
+		fs.add(new TestFunction(new XSquared(+1d), false, 0d, 1e-2, new double[] {0d}, 1e-2));
+		fs.add(new TestFunction(new XSquared(-1d), false, 0d, 1e-2, new double[] {0d}, 1e-2));
+		fs.add(new TestFunction(negate(new XSquared(+1d)), false, 0d, 1e-2, new double[] {0d}, 1e-2));
+		fs.add(new TestFunction(negate(new XSquared(-1d)), false, 0d, 1e-2, new double[] {0d}, 1e-2));
+				
+		return fs;
 	}
 
 }

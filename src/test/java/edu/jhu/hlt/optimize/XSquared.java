@@ -1,8 +1,6 @@
 package edu.jhu.hlt.optimize;
 
-import edu.jhu.hlt.optimize.temp.DifferentiableRealScalarFunction;
-
-public class XSquared implements DifferentiableRealScalarFunction {
+public class XSquared implements DifferentiableFunction {
 
 	double x;
 	
@@ -11,38 +9,29 @@ public class XSquared implements DifferentiableRealScalarFunction {
 	}
 	
 	@Override
-	public double val() {
+	public void setPoint(double[] point) {
+		x = point[0];
+	}
+
+	@Override
+	public double[] getPoint() {
+		return new double [] {x};
+	}
+
+	@Override
+	public double getValue() {
 		return x*x;
 	}
 
 	@Override
-	public double val(double[] param) {
-		return param[0]*param[0];
+	public int getNumDimensions() {
+		return getPoint().length;
 	}
 
 	@Override
-	public void set(double[] param) {
-		x = param[0];
+	public void getGradient(double[] gradient) {
+		gradient[0] = 2*x;
 	}
 
-	@Override
-	public double[] get() {
-		return new double[] {x};
-	}
-
-	@Override
-	public int dim() {
-		return 1;
-	}
-
-	@Override
-	public double[] grad(double[] param) {
-		return new double [] {2d*param[0]};
-	}
-
-	@Override
-	public double[] grad() {
-		return new double [] {2d*x};
-	}
 	
 }
