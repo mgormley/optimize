@@ -3,7 +3,7 @@ package edu.jhu.hlt.optimize;
 import edu.jhu.hlt.util.math.Vectors;
 
 public class FunctionOpts {
-
+	
     /** Wrapper which negates the input function. */
     public static class NegateFunction extends ScaleFunction implements DifferentiableFunction {
     

@@ -1,0 +1,42 @@
+package edu.jhu.hlt.optimize;
+
+import static org.junit.Assert.assertEquals;
+
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.junit.Test;
+
+import edu.jhu.hlt.optimize.GradientDescentTest.SumSquares;
+import edu.jhu.hlt.optimize.GradientDescentTest.XSquared;
+import edu.jhu.hlt.util.JUnitUtils;
+import edu.jhu.hlt.util.math.Vectors;
+
+public class SGDQNCorrectedTest extends OptimizeTester {
+
+	static Logger log = Logger.getLogger(SGDQNCorrectedTest.class);
+	
+	@Test
+	public void simpleTest() {
+		
+    	BasicConfigurator.configure();
+    	Logger.getRootLogger().setLevel(Level.DEBUG);
+		
+		for(TestFunction test : this.getTestFunctions()) {
+			
+			DifferentiableFunction f = (DifferentiableFunction) test.f;
+			SGDQNCorrected opt       = new SGDQNCorrected(f);
+			
+			if(test.maximize) {
+				opt.maximize();
+			} else {
+				opt.minimize();
+			}
+			
+			test.checkValue(f.getValue());
+			test.checkParam(f.getPoint());
+			
+		}
+		
+	}
+}
