@@ -84,51 +84,57 @@ public class SGDQNCorrected extends    Optimizer<DifferentiableFunction>
 		}
 	}
 	
-	public boolean optimize(boolean maximize) {
+	public boolean optimize(boolean minimize) {
 		int t = 0;
 		int count = param.skip;
-		boolean updateB = false;
-		int r = 2;
-		double [] B = new double[f.getNumDimensions()];
-		for(int i=0; i<B.length; i++) {
-			B[i] = param.lambda;
-		}
-		double [] p = new double[f.getNumDimensions()];
 		
-		double [] gradient     = new double[f.getNumDimensions()];
-		double [] new_gradient = new double[f.getNumDimensions()];
+		double [] theta      = new double[f.getNumDimensions()];
+		double [] prev_theta = new double[f.getNumDimensions()];
+		double [] g          = new double[f.getNumDimensions()];
+		double [] prev_g     = new double[f.getNumDimensions()];
+		double [] H          = new double[f.getNumDimensions()];
+		
+		// Initialization
+		for(int k=0; k<H.length; k++) {
+			H[k] = 1d/(param.lambda*param.t0);
+		}
 		
 		log.debug("starting optimization");
 		
 		while(t <= param.T) {
 			
-			if(updateB) {
-				double [] pt = f.getPoint();
-				f.getGradient(gradient);
-				updateFunction(t, B, maximize);
-				double [] new_pt = f.getPoint();
-				f.getGradient(new_gradient);
-				for(int i=0; i<p.length; i++) {
-					p[i] = new_gradient[i] - gradient[i];
-					B[i] += (2.0/r)*(new_pt[i]-pt[i])*(1.0/p[i]-B[i]);
-					B[i] = Math.max(B[i], 1e-2*(1.0/param.lambda));
-				}
-				r += 1;
-			} else {
-				updateFunction(t, B, maximize);
-			}
-			count -= 1;
-			if(count <= 0) {
-				double [] pt = f.getPoint();
-				for(int i=0; i<pt.length; i++) {
-					pt[i] -= (double)param.skip/(double)(t+param.t0)*param.lambda*B[i];
-				}
-				count = param.skip;
-				updateB = true;
-			}
-			t += 1;
+			log.debug("value @ iter " + t + " = " + f.getValue());
 			
-			log.debug("ll @ iter " + t + " = " + f.getValue());
+			f.getGradient(g);
+			theta = f.getPoint();
+			
+			if(minimize) {
+				for(int k=0; k<f.getNumDimensions(); k++) {
+					theta[k] = theta[k] - 1d/(double)(t+param.t0)*H[k]*g[k];
+				}
+			} else {
+				for(int k=0; k<f.getNumDimensions(); k++) {
+					theta[k] = theta[k] + 1d/(double)(t+param.t0)*H[k]*g[k];
+				}
+			}
+			f.setPoint(theta);
+			
+			if(count==0) {
+				// Update the Hessian
+				count = param.skip;
+				
+				SGDQNCorrected.approxDiagHessian(g, prev_g, 
+											     theta, prev_theta, 
+											     param.lambda, 
+											     param.skip, 
+											     H);
+				
+				// Save the gradient and the point at which it was evaluated
+				prev_g = g;
+				prev_theta = theta;
+			}
+			
+			t ++;
 		}
 		
 		return true;
@@ -136,12 +142,16 @@ public class SGDQNCorrected extends    Optimizer<DifferentiableFunction>
 	
 	@Override
 	public boolean minimize(DifferentiableFunction f, double[] initial) {
+		this.f = f;
+		this.f.setPoint(initial);
 		return optimize(false);
 	
 	}
 
 	@Override
 	public boolean maximize(DifferentiableFunction function, double[] point) {
+		this.f = function;
+		this.f.setPoint(point);
 		return optimize(true);
 	}
 
