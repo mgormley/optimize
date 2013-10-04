@@ -9,77 +9,7 @@ import edu.jhu.hlt.util.Utilities;
 import edu.jhu.hlt.util.math.Vectors;
 
 public class GradientDescentTest {
-    
-    public static class XSquared extends AbstractSlowFunction {
-    	
-        @Override
-        public double getValue(double[] point) {
-            return point[0]*point[0];
-        }
 
-        @Override
-        public double[] getGradientAtPoint(double[] point) {
-            return new double[] { 2*point[0] };
-        }
-
-        @Override
-        public int getNumDimensions() {
-            return 1;
-        }
-
-		@Override
-		public double[] getPoint() {
-			return new double [] { point[0] };
-		}
-        
-    }
-    
-    /** The function \sum_i x_i^2. */
-    public static class SumSquares extends AbstractSlowFunction {
-        
-        private int dim;
-        private double[] offsets;
-        
-        public SumSquares(int dim) {
-            this.dim = dim;
-            this.offsets = new double[dim];
-        }
-        
-        public SumSquares(double[] offsets) {
-            this.dim = offsets.length;
-            this.offsets = offsets;
-        }
-        
-        @Override
-        public double getValue(double[] point) {
-            point = Utilities.copyOf(point);
-            for (int i=0; i<point.length; i++) {
-                point[i] += offsets[i];
-            }
-            return Vectors.dotProduct(point, point);
-        }
-
-        @Override
-        public double[] getGradientAtPoint(double[] point) {
-            double[] gradient = new double[point.length];
-            for (int i=0; i<gradient.length; i++) {
-                gradient[i] = 2*(point[i] + offsets[i]);
-            }
-            return gradient;
-        }
-
-        @Override
-        public int getNumDimensions() {
-            return dim;
-        }
-
-		@Override
-		public double[] getPoint() {
-			return point;
-		}
-        
-    }
-    
     @Test
     public void testNegXSquared() {
         GradientDescent opt = new GradientDescent(0.1, 100);

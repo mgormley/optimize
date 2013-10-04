@@ -6,8 +6,6 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 
 import edu.jhu.hlt.optimize.AdaGrad.AdaGradPrm;
-import edu.jhu.hlt.optimize.GradientDescentTest.SumSquares;
-import edu.jhu.hlt.optimize.GradientDescentTest.XSquared;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.math.Vectors;
 

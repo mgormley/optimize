@@ -13,7 +13,7 @@ public class BatchSamplerTest {
 
     @Before
     public void setUp() {
-        Prng.seed(1);
+        Prng.seed(2);
     }
     
     @Test
@@ -80,6 +80,7 @@ public class BatchSamplerTest {
             }
         }
         
+        System.out.println(Arrays.toString(histogram));
         for (int i=0; i<histogram.length; i++) {
             double scaledProportion = (double) histogram[i] * numExamples / batchSize / trials;
             assertEquals(1.0, scaledProportion, 1e-1);
