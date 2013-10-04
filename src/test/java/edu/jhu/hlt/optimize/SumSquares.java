@@ -54,5 +54,11 @@ public class SumSquares implements DifferentiableFunction {
 	public double[] getPoint() {
 		return point;
 	}
+
+	@Override
+	public double getValue(double[] point) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
     
 }
