@@ -1,9 +1,15 @@
 package edu.jhu.hlt.optimize;
 
+/** The function x^2. */
 public class XSquared implements DifferentiableFunction {
 
 	double x;
-	
+    
+	/** Constructor with 0 as the initial point. */
+	public XSquared() {
+        this.x = 0;
+    }
+	   
 	public XSquared(double x) {
 		this.x = x;
 	}

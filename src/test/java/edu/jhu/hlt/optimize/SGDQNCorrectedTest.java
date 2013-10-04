@@ -1,16 +1,9 @@
 package edu.jhu.hlt.optimize;
 
-import static org.junit.Assert.assertEquals;
-
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Test;
-
-import edu.jhu.hlt.optimize.GradientDescentTest.SumSquares;
-import edu.jhu.hlt.optimize.GradientDescentTest.XSquared;
-import edu.jhu.hlt.util.JUnitUtils;
-import edu.jhu.hlt.util.math.Vectors;
 
 public class SGDQNCorrectedTest extends OptimizeTester {
 
