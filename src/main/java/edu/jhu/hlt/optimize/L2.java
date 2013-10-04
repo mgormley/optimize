@@ -70,4 +70,10 @@ public class L2 implements Regularizer {
 		return null;
 	}
 
+	@Override
+	public double getValue(double[] point) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

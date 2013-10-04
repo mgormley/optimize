@@ -7,7 +7,7 @@ public class Vectors {
     private Vectors() {
         // private constructor
     }
-    
+   
     public static double norm2(double [] vector) {
     	double sum = 0d;
     	for(double v : vector) {

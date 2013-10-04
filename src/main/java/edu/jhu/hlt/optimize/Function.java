@@ -20,6 +20,12 @@ public interface Function {
     double [] getPoint();
     
     /**
+     * Get the value of this function at the specified point (no side effects).
+     * @param point The point at which the function is evaluated.
+     */
+    double getValue(double [] point);
+    
+    /**
      * The value of this function at the current point.
      * @return The value of the function.
      */

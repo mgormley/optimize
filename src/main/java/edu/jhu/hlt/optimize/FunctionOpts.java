@@ -50,6 +50,12 @@ public class FunctionOpts {
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+		@Override
+		public double getValue(double[] point) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
     
     }
     
@@ -102,6 +108,12 @@ public class FunctionOpts {
 		public double[] getPoint() {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		@Override
+		public double getValue(double[] point) {
+			// TODO Auto-generated method stub
+			return 0;
 		}
     
     }

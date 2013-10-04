@@ -33,5 +33,10 @@ public class XSquared implements DifferentiableFunction {
 		gradient[0] = 2*x;
 	}
 
+	@Override
+	public double getValue(double[] point) {
+		return point[0]*point[0];
+	}
+
 	
 }
