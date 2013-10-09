@@ -35,7 +35,7 @@ public class SquaredExpKernel implements Kernel {
 		RealMatrix K = MatrixUtils.createRealMatrix(X.getColumnDimension(), X.getColumnDimension());
 		for(int i=0; i<X.getColumnDimension(); i++) {
 			for(int j=0; j<X.getColumnDimension(); j++) {
-				K.setEntry(i,j,k(X.getColumnVector(i), X.getColumnVector(j)));
+				K.setEntry(i,j, k(X.getColumnVector(i), X.getColumnVector(j)));
 			}
 		}
 		return K;
