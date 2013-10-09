@@ -135,7 +135,7 @@ public class GPRegression {
 		  errorBars1.add(pred.var);
 		}
 		
-		double [][] xs2 = {{-4},{-2.5},{-1.5}, {-0.5}, {0.5}, {1.5}, {2.5}, {4}};
+		double [][] xs2 = {{-6},{-4},{-2.5},{-1.5}, {-0.5}, {0.5}, {1.5}, {2.5}, {4}, {-6}};
 		RealMatrix X2 = MatrixUtils.createRealMatrix(xs2).transpose();
 		List<Number> xData2 = new ArrayList<Number>();
 		List<Number> yData2 = new ArrayList<Number>();
