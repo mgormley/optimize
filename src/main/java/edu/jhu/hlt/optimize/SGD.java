@@ -131,7 +131,7 @@ public class SGD implements Maximizer<DifferentiableBatchFunction>, Minimizer<Di
             // Get the gradient of the function.
             Arrays.fill(gradient, 0.0);
             function.getGradient(batch, gradient);
-            assert (gradient.length == point.length);                             
+            assert (gradient.length == point.length);                          
             takeNoteOfGradient(gradient);
             
             // Take a step in the direction of the gradient.

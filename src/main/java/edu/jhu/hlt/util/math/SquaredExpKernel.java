@@ -20,14 +20,15 @@ public class SquaredExpKernel implements Kernel {
 		this.len_scale = 1d;
 	}
 	
-	// TODO: unfinished
 	@Override
 	public DerivativeStructure k(RealVector x, DerivativeStructure [] x_star) {
-		DerivativeStructure res = new DerivativeStructure(x_star[0].getFreeParameters(), x_star[0].getOrder(), 0);
+		DerivativeStructure res = new DerivativeStructure(x_star[0].getFreeParameters(), x_star[0].getOrder(), 0d);
 		for(int i=0; i<x.getDimension(); i++) {
-			res.add( x_star[i].negate().add(x.getEntry(i)) );
+			res = res.add( x_star[i].negate().add(x.getEntry(i)).pow(2).divide(len_scale*len_scale) );
 		}
-		return res;
+		res = res.multiply(-0.5);
+		res = res.exp();
+		return res.multiply(var*var);
 	}
 	
 	@Override

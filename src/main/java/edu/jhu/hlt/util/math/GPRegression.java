@@ -23,6 +23,9 @@ import com.xeiam.xchart.StyleManager.ChartType;
  * 
  * 	Gaussian Processes for Machine Learning, Carl Edward Rasmussen and Chris Williams, the MIT Press, 2006
  * 
+ * Wishlist:
+ * 	- Rank 1 updates (update an existing Cholesky decomposition in O(n^2) after observing a new x) 
+ * 
  * @author noandrews
  */
 
@@ -64,6 +67,10 @@ public class GPRegression {
 		
 		public RealMatrix getL() {
 			return L;
+		}
+		
+		public RealVector getAlpha() {
+			return alpha;
 		}
 	}
 	

@@ -7,8 +7,12 @@ import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
+import edu.jhu.hlt.util.math.GPRegression.GPRegressor;
+
 /**
- * Gaussian process optimization. This implementation is based on:
+ * Gaussian Process Global Optimization (GPGO). 
+ * 
+ * This implementation is based on:
  * 
  *  Bayesian Gaussian processes for sequential prediction, optimisation and quadrature.
  *  M. A. Osborne (2010).  
@@ -32,8 +36,7 @@ public class GPGO<T> extends    Optimizer<Function>
 	RealMatrix K;
 	
 	// Posterior
-	RealMatrix C;
-	RealVector mu;
+	GPRegressor reg;
 	
 	public GPGO(Function f) {
 		super(f);
@@ -76,7 +79,7 @@ public class GPGO<T> extends    Optimizer<Function>
 	        while(!done) {
 	        	sum.add(term);
 	        	term.multiply(z).multiply(z).divide(i);
-	        	if(sum.getReal()+term.getReal() != sum.getReal()) 
+	        	if(sum.getReal()+term.getReal() == sum.getReal()) 
 	        		done = true;
 	        }
 	        return phi(z).multiply(sum).add(0.5);
@@ -93,8 +96,34 @@ public class GPGO<T> extends    Optimizer<Function>
 	        return Phi(z.subtract(mu).divide(sigma));
 	    }
 	    
+	    public DerivativeStructure predictive_mean(DerivativeStructure [] x_star) {
+	    	RealVector alpha = gp.reg.getAlpha();
+	    	
+	    	
+	    	return null;
+	    }
+	    
 	    /**
-	     * Compute the expected loss of evaluating at x and keeping f(x) if it is our last function evaluation.
+	     * Solve Lx = b
+	     * 
+	     * @param L	Lower-triangular matrix
+	     * @param x	Initially b; x on return
+	     */
+	    public void forward_substitute(RealMatrix L, DerivativeStructure [] x) {
+	    	for(int i=0; i<x.length; i++) {
+	    		for(int j=0; j<i; j++) {
+	    			x[i].subtract(x[j].multiply(L.getEntry(i, j)));
+	    		}
+	    		x[i].divide(L.getEntry(i, i));
+	    	}
+	    }
+	    
+	    public DerivativeStructure predictive_var(DerivativeStructure [] x_star) {
+	    	return null;
+	    }
+	    
+	    /**
+	     * Compute the expected loss of evaluating at x and keeping y=f(x) if it is our last function evaluation.
 	     * 
 	     * @param x	The input vector
 	     * @return 	The expected loss (along with its first and second derivatives wrt x)
