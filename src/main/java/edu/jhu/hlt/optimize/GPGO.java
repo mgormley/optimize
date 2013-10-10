@@ -60,25 +60,48 @@ public class GPGO<T> extends    Optimizer<Function>
 	    }
 
 	    // return phi(x, mu, signma) = Gaussian pdf with mean mu and stddev sigma
-	    public DerivativeStructure phi(double x, double mu, double sigma) {
-	        return phi((x - mu) / sigma) / sigma;
+	    public DerivativeStructure phi(DerivativeStructure x, DerivativeStructure mu, DerivativeStructure sigma) {
+	        return phi(x.subtract(mu).divide(sigma));
 	    }
 		
 		// return Phi(z) = standard Gaussian cdf using a Taylor approximation
 	    public DerivativeStructure Phi(DerivativeStructure z) {
-	        if (z. < -8.0) return 0.0;
-	        if (z >  8.0) return 1.0;
-	        double sum = 0.0, term = z;
-	        for (int i = 3; sum + term != sum; i += 2) {
-	            sum  = sum + term;
-	            term = term * z * z / i;
+	        if (z.getReal() < -8.0) return new DerivativeStructure(z.getFreeParameters(), z.getOrder(), 0d);
+	        if (z.getReal() >  8.0) return new DerivativeStructure(z.getFreeParameters(), z.getOrder(), 1d);
+	        DerivativeStructure sum  = new DerivativeStructure(z.getFreeParameters(), z.getOrder(), 0);
+	        DerivativeStructure term = new DerivativeStructure(z.getFreeParameters(), z.getOrder(), z.getReal());
+	     
+	        int i=3;
+	        boolean done = false;
+	        while(!done) {
+	        	sum.add(term);
+	        	term.multiply(z).multiply(z).divide(i);
+	        	if(sum.getReal()+term.getReal() != sum.getReal()) 
+	        		done = true;
 	        }
-	        return 0.5 + sum * phi(z);
+	        return phi(z).multiply(sum).add(0.5);
+	        
+	        //for (int i = 3; sum + term != sum; i += 2) {
+	        //    sum  = sum + term;
+	        //    term = term * z * z / i;
+	        //}
+	        //return 0.5 + sum * phi(z);
 	    }
 
 	    // return Phi(z, mu, sigma) = Gaussian cdf with mean mu and stddev sigma
-	    public DerivativeStructure Phi(double z, double mu, double sigma) {
-	        return Phi((z - mu) / sigma);
+	    public DerivativeStructure Phi(DerivativeStructure z, DerivativeStructure mu, DerivativeStructure sigma) {
+	        return Phi(z.subtract(mu).divide(sigma));
+	    }
+	    
+	    /**
+	     * Compute the expected loss of evaluating at x and keeping f(x) if it is our last function evaluation.
+	     * 
+	     * @param x	The input vector
+	     * @return 	The expected loss (along with its first and second derivatives wrt x)
+	     */
+	    public DerivativeStructure computeExpectedLoss(RealVector x) {
+	    	// TODO
+	    	return null;
 	    }
 		
 		public ExpectedMyopicLoss(GPGO<T> gp) {

@@ -51,6 +51,7 @@ public class GPRegression {
 			this.alpha = alpha;
 			this.kernel = kernel;
 		}
+		
 		public RegressionResult predict(RealVector x_star) {
 			double x_star_covar = kernel.k(x_star, x_star);
 			RealVector k_star = vectorCovar(X, x_star, kernel);
@@ -59,6 +60,10 @@ public class GPRegression {
 			MatrixUtils.solveLowerTriangularSystem(L, v);
 			double predicted_var = x_star_covar - v.dotProduct(v);
 			return new RegressionResult(predicted_mean, predicted_var);
+		}
+		
+		public RealMatrix getL() {
+			return L;
 		}
 	}
 	

@@ -1,5 +1,6 @@
 package edu.jhu.hlt.util.math;
 
+import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
@@ -17,6 +18,16 @@ public class SquaredExpKernel implements Kernel {
 	public SquaredExpKernel() {
 		this.var = 1d;
 		this.len_scale = 1d;
+	}
+	
+	// TODO: unfinished
+	@Override
+	public DerivativeStructure k(RealVector x, DerivativeStructure [] x_star) {
+		DerivativeStructure res = new DerivativeStructure(x_star[0].getFreeParameters(), x_star[0].getOrder(), 0);
+		for(int i=0; i<x.getDimension(); i++) {
+			res.add( x_star[i].negate().add(x.getEntry(i)) );
+		}
+		return res;
 	}
 	
 	@Override
