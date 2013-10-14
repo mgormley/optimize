@@ -34,8 +34,8 @@ public class GPRegression {
 	static Logger log = Logger.getLogger(GPRegression.class);
 	
 	public static class RegressionResult {
-		double mean;
-		double var;
+		public double mean;
+		public double var;
 		public RegressionResult(double mean, double var) {
 			this.mean = mean;
 			this.var = var;
@@ -71,6 +71,10 @@ public class GPRegression {
 		
 		public RealVector getAlpha() {
 			return alpha;
+		}
+		
+		public RealVector getInput(int i) {
+			return X.getColumnVector(i);
 		}
 	}
 	

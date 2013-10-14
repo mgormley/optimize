@@ -1,5 +1,7 @@
 package edu.jhu.hlt.util.math;
 
+import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
+
 import edu.jhu.hlt.util.Utilities;
 
 public class Vectors {
@@ -160,6 +162,18 @@ public class Vectors {
         return argmin;
     }
 
+    public static DerivativeStructure dotProduct(DerivativeStructure[] array1,
+    											 DerivativeStructure[] array2) {
+    	if (array1.length != array2.length) {
+            throw new IllegalStateException("array1.length != array2.length");
+        }
+        DerivativeStructure dotProduct = new DerivativeStructure(array1[0].getFreeParameters(), array1[0].getOrder(), 0.0);
+        for (int i=0; i<array1.length; i++) {
+            dotProduct = dotProduct.add(array1[i].multiply(array2[i]));
+        }
+        return dotProduct;
+    }
+    
     public static double dotProduct(double[] array1, double[] array2) {
         if (array1.length != array2.length) {
             throw new IllegalStateException("array1.length != array2.length");
