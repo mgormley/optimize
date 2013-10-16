@@ -70,7 +70,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 	
 	// Estimates starting temperature according to desired acceptance rate
 	private double estimateStartingTemp() {
-		// TODO
+		// TODO using the Ben-Ameur method
 		return 1d;
 	}
 	

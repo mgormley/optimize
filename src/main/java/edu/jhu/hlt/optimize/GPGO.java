@@ -33,7 +33,7 @@ public class GPGO extends    Optimizer<Function>
 	static Logger log = Logger.getLogger(GPGO.class);
 	
 	// Settings
-	static final int order = 1; // up to what order derivatives to compute
+	static final int order = 1; // up to what order derivatives to compute for the expected loss
 	
 	// Observations
 	RealMatrix X;
@@ -89,39 +89,92 @@ public class GPGO extends    Optimizer<Function>
 	
 	public class ExpectedMyopicLoss implements TwiceDifferentiableFunction {
 		
+		public ExpectedMyopicLoss() {
+			// Select a few input values
+		    double x[] = 
+		    {
+		        -3, 
+		        -1, 
+		        0.0, 
+		        0.5, 
+		        2.1 
+		    };
+		    
+		    // Output computed by Mathematica
+		    // y = Phi[x]
+		    double y[] = 
+		    { 
+		        0.00134989803163, 
+		        0.158655253931, 
+		        0.5, 
+		        0.691462461274, 
+		        0.982135579437 
+		    };
+		    
+		    // Output computed by Mathematica
+		    // y = normal[x]
+		    double z[] = 
+		    	{
+		    		0.00443185,
+		    		0.241971,
+		    		0.398942,
+		    		0.352065,
+		    		0.0439836
+		    	};
+
+		    double maxErrorPDF = 0.0;
+		    double maxErrorCDF = 0.0;
+		    for (int i = 0; i < x.length; ++i)
+		    {
+		    	DerivativeStructure struct = new DerivativeStructure(1,1,0,x[i]);
+		    	double pdf_error = Math.abs(z[i] - phi(struct).getValue());
+		        double cdf_error = Math.abs(y[i] - Phi(struct).getValue());
+		        
+		        if (cdf_error > maxErrorCDF) {
+		            maxErrorCDF = cdf_error;
+		    	}
+		    
+		    	if (pdf_error > maxErrorPDF)
+		    		maxErrorPDF = pdf_error;
+	    		}
+
+		    	log.info("max PDF error = " + maxErrorPDF);
+		    	log.info("max CDF error = " + maxErrorCDF);
+		}
+		
 		// return phi(x) = standard Gaussian pdf
 	    public DerivativeStructure phi(DerivativeStructure x) {
-	    	DerivativeStructure numer = x.pow(2d).negate().divide(2d).exp();
-	        return numer.divide(2d * Math.PI);
+	    	DerivativeStructure numer = x.pow(2).negate().divide(2).exp();
+	        return numer.divide(Math.sqrt(2d * Math.PI));
 	    }
 
 	    // return phi(x, mu, signma) = Gaussian pdf with mean mu and stddev sigma
 	    public DerivativeStructure phi(DerivativeStructure x, DerivativeStructure mu, DerivativeStructure sigma) {
-	        return phi(x.subtract(mu).divide(sigma));
+	        return phi(x.subtract(mu).divide(sigma)).divide(sigma);
 	    }
 		
-		// return Phi(z) = standard Gaussian cdf using a Taylor approximation
+		// return Phi(z) = standard Gaussian cdf
 	    public DerivativeStructure Phi(DerivativeStructure z) {
-	        if (z.getValue() < -8.0) return new DerivativeStructure(z.getFreeParameters(), z.getOrder(), 0d);
-	        if (z.getValue() >  8.0) return new DerivativeStructure(z.getFreeParameters(), z.getOrder(), 1d);
-	        DerivativeStructure sum  = new DerivativeStructure(z.getFreeParameters(), z.getOrder(), 0);
-	        DerivativeStructure term = new DerivativeStructure(z.getFreeParameters(), z.getOrder(), z.getValue());
-	     
-	        int i=3;
-	        boolean done = false;
-	        while(!done) {
-	        	sum = sum.add(term);
-	        	term = term.multiply(z).multiply(z).divide(i);
-	        	if(sum.getValue()+term.getValue() == sum.getValue()) 
-	        		done = true;
-	        }
-	        return phi(z).multiply(sum).add(0.5);
-	        
-	        //for (int i = 3; sum + term != sum; i += 2) {
-	        //    sum  = sum + term;
-	        //    term = term * z * z / i;
-	        //}
-	        //return 0.5 + sum * phi(z);
+	    	// constants
+	        double a1 =  0.254829592;
+	        double a2 = -0.284496736;
+	        double a3 =  1.421413741;
+	        double a4 = -1.453152027;
+	        double a5 =  1.061405429;
+	        double p  =  0.3275911;
+
+	        // Save the sign of x
+	        int sign = 1;
+	        if (z.getValue() < 0)
+	            sign = -1;
+	        z = z.abs().divide(Math.sqrt(2.0));
+
+	        // A&S formula 7.1.26
+	        DerivativeStructure t = z.multiply(p).add(1.0).pow(-1);
+	        DerivativeStructure c = t.multiply(a5).add(a4).multiply(t).add(a3).multiply(t).add(a2).multiply(t).add(a1);
+	        DerivativeStructure y = z.pow(2).negate().exp().multiply(t).multiply(c).negate().add(1);
+
+	        return y.multiply(sign).add(1).multiply(0.5);
 	    }
 
 	    // return Phi(z, mu, sigma) = Gaussian cdf with mean mu and stddev sigma
@@ -212,8 +265,10 @@ public class GPGO extends    Optimizer<Function>
 	    	double c2             = new NormalDistribution(mean.getValue(), var.getValue()).density(min.getValue());
 	    	DerivativeStructure p = phi(min, mean, var);
 	    	double p2             = new NormalDistribution(mean.getValue(), var.getValue()).cumulativeProbability(min.getValue());
-	    	log.info("P1="+c.getValue()+" P2="+c2);
-	    	log.info("p1="+p.getValue()+" p2="+p2);
+	    	log.info("C1="+c.getValue()+" C2="+c2);
+	    	log.info("P1="+p.getValue()+" P2="+p2);
+	    	
+	    	// Return the expected myopic loss
 	    	return min.add(c.multiply(mean.subtract(min))).subtract(var.multiply(p));
 	    }
 		
