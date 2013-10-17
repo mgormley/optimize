@@ -3,35 +3,39 @@ package edu.jhu.hlt.optimize;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
 /**
- * Test area is usually restricted to hyper-cube −5.12 ≤ xi ≤ 5.12, i = 1, ..., n. 
- * Its global minimum equal f(x) = 0 is obtainable for x_i = 0 for i = 1, ..., n.
+ * Three global optima equal f(x1, x2) = 0.397887
  * 
+ * 	(x1, x2) = (-pi, 12.275)
+ * 	(x1, x2) = (+pi, 2.475)
+ *  (x1, x2) = (9.42478, 2.475)
+ *  
  * @author noandrews
  */
-public class Rastrigins implements DifferentiableFunction {
+public class Branins implements DifferentiableFunction {
 
+	static final double a = 1;
+	static final double b = 5.1/4.0*Math.pow(Math.PI,2);
+	static final double c = 5.0/Math.PI;
+	static final double d = 6.0;
+	static final double e = 10.0;
+	static final double f = 1.0/8.0*Math.PI;
+	
 	int n;
 	int order = 1; // 1st derivatives only
 	double [] point;
 	
-	public Rastrigins(int dimension) {
-		this.n = dimension;
+	public Branins() {
+		n = 3;
 	}
 	
-	DerivativeStructure AD_getValue(double [] pt) {
+	DerivativeStructure AD_getValue(double [] point) {
 		
 		DerivativeStructure [] x = new DerivativeStructure[n];
 		for(int i=0; i<x.length; i++) {
-			x[i] = new DerivativeStructure(n, order, i, pt[i]);
+			x[i] = new DerivativeStructure(n, order, i, point[i]);
 		}
 		
-		DerivativeStructure value = new DerivativeStructure(n, order, 10d*n);
-		
-		for(int i=0; i<n; i++) {
-			value = value.add(x[i].pow(2).subtract(x[i].multiply(2*Math.PI).cos().multiply(10)));
-		}
-		
-		return value;
+		return x[0].cos().multiply(e*(1-f)).add(x[1].subtract(x[0].pow(2).multiply(b)).add(x[0].multiply(c)).subtract(d).pow(2).multiply(a));		
 	}
 	
 	@Override
@@ -69,6 +73,5 @@ public class Rastrigins implements DifferentiableFunction {
 			gradient[i] = value.getPartialDerivative(orders);
 		}
 	}
-
 	
 }

@@ -29,6 +29,8 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 	int a_k;        // number of accepted points
 	
 	// Variable-specific schedule parameters (to generate proposals)
+	double [] A;  // minimum value of each dimension
+	double [] B;  // maximum value of each dimension
 	double [] L;  // characteristic length of each dimension
 				  // e.g. upper bound of dim i - lower bound of dim i
 	double [] T;  // temperature of each dimension	
@@ -47,15 +49,21 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 	double desired_accept = 2d/3d;   // desired acceptance rate
 	double a_T1 = 1d;                // T0 for trial SA run used in setting actual T0 adaptively for desired_accept
 	
-	public VFSAOptimizer(DifferentiableFunction f, double [] L) {
+	public VFSAOptimizer(DifferentiableFunction f, double [] A, double [] B) {
 		super(f);
-		this.L = L;
+		this.A = A;
+		this.B = B;
+		this.L = new double[f.getNumDimensions()];
+		for(int i=0; i<A.length; i++) {
+			this.L[i] = B[i]-A[i];
+		}
 		
 		samples_per_temp = (int) (0.1 * f.getNumDimensions());
 		
 		// Initialize the temperatures to 1 initially
 		a_T0 = estimateStartingTemp();
 		T0 = new double[f.getNumDimensions()];
+		T = new double[f.getNumDimensions()];
 		for(int i=0; i<T0.length; i++) {
 			T0[i] = 1d;
 		}
@@ -118,7 +126,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 		double s_max = Vectors.max(s);
 		double [] Tbar = new double[f.getNumDimensions()];
 		for(int i=0; i<s.length; i++) {
-			Tbar[i] = T[i] * (s_max/s[i]) ;
+			Tbar[i] = T[i] * (s_max/s[i]);
 		}
 		
 		// Step 3: Update the iteration counters for the desired temperatures
@@ -166,6 +174,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 		//  - Temperature becomes sufficiently close to 0
 		int cntr = 0;
 		a_k = 0;
+		k = new int[f.getNumDimensions()];
 		for(int i=0; i<f.getNumDimensions(); i++) {
 			k[i] = 0;
 		}
