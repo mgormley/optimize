@@ -21,10 +21,8 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
-import edu.jhu.hlt.optimize.GPGO.ExpectedMyopicLoss;
 import edu.jhu.hlt.util.math.Kernel;
 import edu.jhu.hlt.util.math.SquaredExpKernel;
-import edu.jhu.hlt.util.math.GPRegression.GPRegressor;
 import edu.jhu.hlt.util.math.GPRegression.RegressionResult;
 
 public class GPGOTest {
@@ -61,8 +59,12 @@ public class GPGOTest {
 		}
 
 		// Initialize the GPGO instance
-		//FIXME: pass in bounds
-		GPGO opt = new GPGO(f, kernel, null, X, y, 0d);
+		double [] A = new double[1];
+		double [] B = new double[1];
+		A[0] = -10.0;
+		B[0] = +10.0;
+		Bounds bounds = new Bounds(A, B);
+		GPGO opt = new GPGO(f, kernel, bounds, X, y, 0d);
 		
 		// Estimate the GP posterior
 		opt.estimatePosterior();

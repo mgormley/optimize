@@ -61,6 +61,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 		this.A = bounds.A;
 		this.B = bounds.B;
 		this.L = new double[f.getNumDimensions()];
+		log.info("dim(f) = " + f.getNumDimensions());
 		for(int i=0; i<A.length; i++) {
 			this.L[i] = B[i]-A[i];
 			log.info("L["+i+"]="+L[i]);

@@ -1,5 +1,8 @@
 package edu.jhu.hlt.optimize;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.ArrayRealVector;
@@ -7,6 +10,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.GPRegression;
 import edu.jhu.hlt.util.math.GPRegression.GPRegressor;
 import edu.jhu.hlt.util.math.GPRegression.RegressionResult;
@@ -49,7 +53,7 @@ public class GPGO extends    Optimizer<Function>
 	GPRegressor reg;
 	
 	// Loss function
-	ExpectedMyopicLoss loss = new ExpectedMyopicLoss();
+	ExpectedMyopicLoss loss;
 	
 	// Loss function optimizers
 	VFSAOptimizer sa;
@@ -57,13 +61,18 @@ public class GPGO extends    Optimizer<Function>
 	// Magic numbers
 	double min_delta = 1e-2; // don't allow observations too close to each other
 	                         // otherwise you get singular matrices
-	int budget = 100;        // number of function evaluations
+	int budget = 100;        
+
+	// Introspection
+	long [] times;
+	double [] guesses;
 	
 	public GPGO(Function f, Kernel prior, Bounds bounds) {
 		super(f);
 		this.prior = prior;
 		
 		// Initialize the optimizers
+		loss = new ExpectedMyopicLoss(f.getNumDimensions());
 		sa = new VFSAOptimizer(loss, bounds);
 	}
 	
@@ -85,8 +94,17 @@ public class GPGO extends    Optimizer<Function>
 	 * @return
 	 */
 	boolean optimize(boolean minimize) {
+			
+		// Initialization
+		double [] curr_point = new double[f.getNumDimensions()];
+		getInitialPoint(curr_point);
 		
-		// FIXME: loss definition changes based on if minimize is true or not
+		// Initialize storage for introspection purposes
+		times = new long[budget];
+		guesses = new double[budget];
+
+		long startTime = System.currentTimeMillis();
+		long currTime;
 		
 		for(int iter=0; iter<budget; iter++) {
 			
@@ -96,9 +114,45 @@ public class GPGO extends    Optimizer<Function>
 			// Pick the next point to evaluate
 			sa.minimize();
 			
+			// Take (x,y) and add it to observations
+			ArrayRealVector x = new ArrayRealVector(f.getPoint());
+			double y = f.getValue();
+			
+			currTime = System.currentTimeMillis();
+			times[iter] = currTime - startTime;
+			guesses[iter] = minimumSoFar();
+			
+			updateObservations(x, y);
 		}
 		
 		return true;
+	}
+	
+	// This is needlessly inefficient: should just store a list of vectors
+	private void updateObservations(RealVector x, double fx) {
+		//RealMatrix new_X = new RealMatrix(X.getColumnDimension()+1, X.getRowDimension());
+		RealMatrix X_new = X.createMatrix(X.getColumnDimension()+1, X.getRowDimension());
+		for(int i=0; i<X.getColumnDimension(); i++) {
+			X_new.setColumnVector(i, X.getColumnVector(i));
+		}
+		X_new.setColumnVector(X.getColumnDimension(), x);
+		y.append(fx);
+	}
+	
+	private void getInitialPoint(double [] pt) {
+		// Random starting location
+		for(int i=0; i<pt.length; i++) {
+			pt[i] = Prng.nextDouble();
+		}
+	}
+	
+	// Introspection
+	public double [] getBestGuessPerIteration() {
+		return guesses;
+	}
+	
+	public long [] getCumulativeMillisPerIteration() {
+		return times;
 	}
 	
 	public void estimatePosterior() {
@@ -106,6 +160,7 @@ public class GPGO extends    Optimizer<Function>
 	}
 	
 	public GPRegressor getPosterior() {
+		assert(X.getColumnDimension() == y.getDimension());
 		return GPRegression.trainRegressor(X, y, prior, noise);
 	}
 	
@@ -132,7 +187,11 @@ public class GPGO extends    Optimizer<Function>
 		int n;           // dimensionality
 		double [] point; // storage for the current input point
 		
-		public ExpectedMyopicLoss() {
+		public ExpectedMyopicLoss(int n) {
+			
+			this.n = n;
+			this.point = new double[n];
+			
 			// Select a few input values
 		    double x[] = 
 		    {
@@ -342,14 +401,14 @@ public class GPGO extends    Optimizer<Function>
 
 		@Override
 		public void setPoint(double[] point) {
-			// TODO Auto-generated method stub
-			
+			for(int i=0; i<point.length; i++) {
+				this.point[i] = point[i];
+			}
 		}
 
 		@Override
 		public double[] getPoint() {
-			// TODO Auto-generated method stub
-			return null;
+			return point;
 		}
 
 		@Override
@@ -363,14 +422,12 @@ public class GPGO extends    Optimizer<Function>
 
 		@Override
 		public double getValue() {
-			// TODO Auto-generated method stub
-			return 0;
+			return getValue(point);
 		}
 
 		@Override
 		public int getNumDimensions() {
-			// TODO Auto-generated method stub
-			return 0;
+			return n;
 		}
 
 		@Override
