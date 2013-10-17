@@ -16,6 +16,7 @@ import org.junit.Test;
 import com.xeiam.xchart.Chart;
 import com.xeiam.xchart.ChartBuilder;
 import com.xeiam.xchart.Series;
+import com.xeiam.xchart.SeriesLineStyle;
 import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
@@ -37,68 +38,104 @@ public class GPGOTest {
     	Logger.getRootLogger().setLevel(Level.DEBUG);
 		
     	// Parameters
-    	Kernel kernel = new SquaredExpKernel(1d, 1d);
+    	Kernel kernel = new SquaredExpKernel(5, 0.1);
     	Function f = new XSquared(0);
-    	double noise = 0d;
     	
     	// Training data:
     	//   X	inputs
     	//   y  ouputs
-    	double [][] xs = {{-3},{-2},{-1}, {1}, {2}, {3}};
+    	double [][] xs = {{-0.5}, {0.3}, {0.7}, {0.9}};
 		RealMatrix X = MatrixUtils.createRealMatrix(xs).transpose();
 		double [] ys = new double[xs.length];
 		for(int i=0; i<ys.length; i++) {
 			ys[i] = f.getValue(xs[i]);
 		}
 		RealVector y = new ArrayRealVector(ys);
+		
+		List<Number> training_x = new ArrayList<Number>();
+		List<Number> training_y = new ArrayList<Number>();
+		
+		for(int i=0; i<X.getColumnDimension(); i++) {
+			training_x.add(xs[i][0]);
+			training_y.add(ys[i]);
+		}
 
 		// Initialize the GPGO instance
 		GPGO opt = new GPGO(f, kernel, X, y, 0d);
-		opt.estimatePosterior();
-		ExpectedMyopicLoss loss = opt.getExpectedLoss();
 		
-		double [][] xs2 = {{-4},{-2.5},{-1.5}, {-0.5}, {0.5}, {1.5}, {2.5}, {4}};
-		RealMatrix X2 = MatrixUtils.createRealMatrix(xs2).transpose();
-		List<Number> xData = new ArrayList<Number>();
-		List<Number> yData1 = new ArrayList<Number>();
-		List<Number> yData2 = new ArrayList<Number>();
-		List<Number> errorBars1 = new ArrayList<Number>();
-		for (int i=0; i<X2.getColumnDimension(); i++) {
-		  xData.add(xs2[i][0]);
-		  RegressionResult pred = opt.getRegressor().predict(X2.getColumnVector(i));
-		  double obj = loss.getValue(xs2[i]);
-		  
-		  // GP predictions
-		  yData1.add(pred.mean);
-		  errorBars1.add(pred.var);
-		  
-		  // loss
-		  yData2.add(obj);
+		// Estimate the GP posterior
+		opt.estimatePosterior();
+		
+		List<Number> posterior_mean = new ArrayList<Number>();
+		List<Number> posterior_var = new ArrayList<Number>();
+		List<Number> eloss = new ArrayList<Number>();
+		
+		double grid_min = -1;
+		double grid_max = 1;
+		double range = grid_max - grid_min;
+		int npts = 50;
+		double increment = range/(double)npts; 
+		List<Number> grid = new ArrayList<Number>();
+		
+		// Series 3 (actual function)
+		List<Number> fvals = new ArrayList<Number>();
+		for(double x=grid_min; x<grid_max; x+=increment) {
+			log.info("x = " + x);
+			
+			grid.add(x);
+			fvals.add(f.getValue(new double[] {x}));
+			RegressionResult pred = opt.getRegressor().predict(new ArrayRealVector(new double[] {x}));
+			double obj = opt.getExpectedLoss().computeExpectedLoss(new ArrayRealVector(new double[] {x}));
+			//double obj = 0;
+			log.info("loss("+x+")="+obj);
+			  
+			// GP predictions
+			posterior_mean.add(pred.mean);
+			posterior_var.add(pred.var);
+			  
+			// Loss
+			eloss.add(obj);
 		}
 		
 		// Create Chart
-		Chart chart = new ChartBuilder().width(800).height(600).title("ScatterChart04").xAxisTitle("X").yAxisTitle("Y").chartType(ChartType.Scatter).build();
-		 
+		//Chart chart = new ChartBuilder().width(800).height(600).title("ScatterChart04").xAxisTitle("X").yAxisTitle("Y").chartType(ChartType.Scatter).build();
+		Chart chart = new ChartBuilder().width(800).height(600).title("ScatterChart04").xAxisTitle("X").yAxisTitle("Y").chartType(ChartType.Line).build();
+		
 		// Customize Chart
 		chart.getStyleManager().setChartTitleVisible(false);
-		chart.getStyleManager().setLegendVisible(false);
+		chart.getStyleManager().setLegendVisible(true);
 		chart.getStyleManager().setAxisTitlesVisible(false);
 		 
+		// Series 0 (observations)
+		Series series0 = chart.addSeries("Observations", training_x, training_y);
+		series0.setLineStyle(SeriesLineStyle.NONE);
+		series0.setMarker(SeriesMarker.SQUARE);
+		series0.setMarkerColor(Color.BLACK);
+		
 		// Series 1 (GP posterior)
-		Series series1 = chart.addSeries("Observations", xData, yData1, errorBars1);
+		Series series1 = chart.addSeries("Posterior", grid, posterior_mean, posterior_var);
 		series1.setMarkerColor(Color.RED);
-		series1.setMarker(SeriesMarker.SQUARE);
+		series1.setMarker(SeriesMarker.NONE);
 		
 		// Series 2 (expected loss)
-		Series series2 = chart.addSeries("Predictions", xData, yData2);
+		Series series2 = chart.addSeries("Expected loss", grid, eloss);
 		series2.setMarkerColor(Color.GREEN);
-		series2.setMarker(SeriesMarker.DIAMOND);
+		series2.setMarker(SeriesMarker.NONE);
+		
+		Series series3 = chart.addSeries("Function", grid, fvals);
+		series3.setMarkerColor(Color.BLACK);
+		series3.setMarker(SeriesMarker.NONE);
 		
 		// Show it
 	    new SwingWrapper(chart).displayChart();
 	    
 	    log.info("done!");
 		
+	}
+	
+	public static void main(String [] args) {
+		GPGOTest tester = new GPGOTest();
+		tester.myopicLossTest();
 	}
 	
 }

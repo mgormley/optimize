@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.util.math.GPRegression;
 import edu.jhu.hlt.util.math.GPRegression.GPRegressor;
+import edu.jhu.hlt.util.math.GPRegression.RegressionResult;
 import edu.jhu.hlt.util.math.Kernel;
 import edu.jhu.hlt.util.math.Vectors;
 
@@ -235,9 +236,9 @@ public class GPGO extends    Optimizer<Function>
 	    /**
 	     * Compute the expected loss of evaluating at x and keeping y=f(x) if it is our last function evaluation.
 	     * 
-	     * @param x	The input vector
-	     * @param order The order of the input
-	     * @return 	The expected loss (along with its first and second derivatives wrt x)
+	     * @param x		The input vector
+	     * @param order Up to what order derivatives to compute
+	     * @return 		The expected loss (along with its first and second derivatives wrt x)
 	     */
 	    public DerivativeStructure computeExpectedLoss(RealVector x, int order) {
 	    	
@@ -247,29 +248,48 @@ public class GPGO extends    Optimizer<Function>
 	    		vars[k] = new DerivativeStructure(x.getDimension(), order, k, x.getEntry(k));
 	    	}
 	    	
+	    	// Compute GP posterior mean and variance at x
 	    	DerivativeStructure mean = predictive_mean(vars);
 	    	DerivativeStructure var = predictive_var(vars);
 	    		  
-	    	// noa: these checked out, so the AD code at least matches the non-AD version
-	    	log.info("AD mean (value) = " + mean.getValue());
-	    	log.info("AD mean (real) = " + mean.getReal());
-	    	log.info("AD var (value) = " + var.getValue());
-	    	log.info("AD var (real); = " + var.getReal());
-	    	
-	    	log.info("reg mean = " + reg.predict(x).mean);
-	    	log.info("reg var = " + reg.predict(x).var);
-	    	
+	    	// Get function minimum found so far
 	    	DerivativeStructure min = new DerivativeStructure(x.getDimension(), order, minimumSoFar());
-	    	log.info("min="+min.getValue());
-	    	DerivativeStructure c = Phi(min, mean, var);
-	    	double c2             = new NormalDistribution(mean.getValue(), var.getValue()).density(min.getValue());
-	    	DerivativeStructure p = phi(min, mean, var);
-	    	double p2             = new NormalDistribution(mean.getValue(), var.getValue()).cumulativeProbability(min.getValue());
-	    	log.info("C1="+c.getValue()+" C2="+c2);
-	    	log.info("P1="+p.getValue()+" P2="+p2);
-	    	
+
+	    	// Compute CDF and PDF at the minimum
+	    	DerivativeStructure cdf = Phi(min, mean, var);
+	    	DerivativeStructure pdf = phi(min, mean, var);
+
 	    	// Return the expected myopic loss
-	    	return min.add(c.multiply(mean.subtract(min))).subtract(var.multiply(p));
+	    	return min.add(cdf.multiply(mean.subtract(min))).subtract(var.multiply(pdf));
+	    }
+	    
+	    public double computeExpectedLoss(RealVector x) {
+	    	
+	    	// Compute GP posterior mean and variance at x
+	    	RegressionResult res = reg.predict(x);
+	    	double mean = res.mean;
+	    	double var = res.var;
+	    	
+	    	log.info("mean = " + mean);
+	    	log.info("var = " + var);
+	    	
+	    	assert(var > 0);
+	    	
+	    	// Get function minimum found so far
+	    	double min = minimumSoFar();
+	    	
+	    	log.info("min = " + min);
+	    	
+	    	// Compute CDF and PDF
+	    	NormalDistribution N = new NormalDistribution(mean, var);
+	    	double cdf = N.cumulativeProbability(min);
+	    	double pdf = N.density(min);
+	    	
+	    	log.info("cdf = " + cdf);
+	    	log.info("pdf = " + pdf);
+	    	log.info("mean - min = " + (mean-min));
+	    	
+	    	return min + (mean-min)*cdf - var*pdf;
 	    }
 		
 		@Override

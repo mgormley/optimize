@@ -62,6 +62,7 @@ public class GPRegression {
 			RealVector v = k_star.copy();
 			MatrixUtils.solveLowerTriangularSystem(L, v);
 			double predicted_var = x_star_covar - v.dotProduct(v);
+			assert(predicted_var > 0) : "variance not strictly positive";
 			return new RegressionResult(predicted_mean, predicted_var);
 		}
 		
