@@ -96,8 +96,10 @@ public class GPGO extends    Optimizer<Function>
 	boolean optimize(boolean minimize) {
 			
 		// Initialization
-		double [] curr_point = new double[f.getNumDimensions()];
-		getInitialPoint(curr_point);
+		RealVector x = getInitialPoint();
+		f.setPoint(x.toArray());
+		double y = f.getValue(x.toArray());
+		updateObservations(x, y);
 		
 		// Initialize storage for introspection purposes
 		times = new long[budget];
@@ -115,8 +117,8 @@ public class GPGO extends    Optimizer<Function>
 			sa.minimize();
 			
 			// Take (x,y) and add it to observations
-			ArrayRealVector x = new ArrayRealVector(f.getPoint());
-			double y = f.getValue();
+			x = new ArrayRealVector(f.getPoint());
+			y = f.getValue();
 			
 			currTime = System.currentTimeMillis();
 			times[iter] = currTime - startTime;
@@ -139,11 +141,13 @@ public class GPGO extends    Optimizer<Function>
 		y.append(fx);
 	}
 	
-	private void getInitialPoint(double [] pt) {
+	private RealVector getInitialPoint() {
+		double [] pt = new double[f.getNumDimensions()];
 		// Random starting location
 		for(int i=0; i<pt.length; i++) {
 			pt[i] = Prng.nextDouble();
 		}
+		return new ArrayRealVector(pt);
 	}
 	
 	// Introspection
