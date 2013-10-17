@@ -39,7 +39,9 @@ public class GPGO extends    Optimizer<Function>
 	static Logger log = Logger.getLogger(GPGO.class);
 	
 	// Settings
-	static final int order = 1; // up to what order derivatives to compute for the expected loss
+	static final int order = 1;           // up to what order derivatives to compute for the expected loss
+	static final boolean use_VFSA = true;
+	int nstart_pts;                       // currently set equal to dimensionality of problem
 	
 	// Observations
 	RealMatrix X;
@@ -57,6 +59,7 @@ public class GPGO extends    Optimizer<Function>
 	ExpectedMyopicLoss loss;
 	
 	// Loss function optimizers
+	GradientDescentWithLineSearch gd;
 	VFSAOptimizer sa;
 	
 	// Magic numbers
@@ -217,6 +220,24 @@ public class GPGO extends    Optimizer<Function>
 			if(d<min) min=d;
 		}
 		return min;
+	}
+	
+	public List<RealVector> getPointsToProbe() {
+		List<RealVector> points = new ArrayList<RealVector>();
+		
+		if(use_VFSA) {
+			
+			// FIXME
+			
+		} else {
+			
+			for(int i=0; i<nstart_pts; i++) {
+				
+			}
+			
+		}
+		
+		return points;
 	}
 	
 	public class ExpectedMyopicLoss implements TwiceDifferentiableFunction {
