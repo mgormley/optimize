@@ -24,7 +24,7 @@ public class VFSAOptimizerTest {
 		// Low dimensions
 		D = 2;
 		DifferentiableFunction f = new Rastrigins(D);
-		// Optima at vec(0)
+		// The rastrigin optimum is at vec(0)
 		
 		// Optimization bounds: −5.12 ≤ xi ≤ 5.12
 		double [] L = new double[D];
@@ -36,8 +36,9 @@ public class VFSAOptimizerTest {
 			start[i] = Prng.nextDouble();
 		}
 		f.setPoint(start);
+		Bounds b = new Bounds(L, U);
 		
-		VFSAOptimizer opt = new VFSAOptimizer(f, L, U);
+		VFSAOptimizer opt = new VFSAOptimizer(f, b);
 		opt.minimize();
 		
 		double [] opt_point = f.getPoint();

@@ -61,7 +61,8 @@ public class GPGOTest {
 		}
 
 		// Initialize the GPGO instance
-		GPGO opt = new GPGO(f, kernel, X, y, 0d);
+		//FIXME: pass in bounds
+		GPGO opt = new GPGO(f, kernel, null, X, y, 0d);
 		
 		// Estimate the GP posterior
 		opt.estimatePosterior();

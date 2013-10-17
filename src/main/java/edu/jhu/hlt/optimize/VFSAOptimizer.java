@@ -40,7 +40,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 	double [] T0; // initial temperatures
 	
 	// Convergence parameters
-	final int eps = 100;
+	final int eps = 1000;
 	final double min_T = 1e-3;
 	
 	// Other magic numbers
@@ -49,30 +49,39 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 	double desired_accept = 2d/3d;   // desired acceptance rate
 	double a_T1 = 1d;                // T0 for trial SA run used in setting actual T0 adaptively for desired_accept
 	
-	public VFSAOptimizer(DifferentiableFunction f, double [] A, double [] B) {
+	// Options
+	boolean reanneal = false;
+	
+	// Diagnostics
+	int naccept;
+	int nsamples;
+	
+	public VFSAOptimizer(DifferentiableFunction f, Bounds bounds) {
 		super(f);
-		this.A = A;
-		this.B = B;
+		this.A = bounds.A;
+		this.B = bounds.B;
 		this.L = new double[f.getNumDimensions()];
 		for(int i=0; i<A.length; i++) {
 			this.L[i] = B[i]-A[i];
+			log.info("L["+i+"]="+L[i]);
 		}
 		
-		samples_per_temp = (int) (0.1 * f.getNumDimensions());
+		samples_per_temp = (int) (2.0 * f.getNumDimensions());
+		log.info("Samples at each temperature: " + samples_per_temp);
 		
 		// Initialize the temperatures to 1 initially
-		a_T0 = estimateStartingTemp();
+		a_T0 = 100d;
 		T0 = new double[f.getNumDimensions()];
 		T = new double[f.getNumDimensions()];
 		for(int i=0; i<T0.length; i++) {
-			T0[i] = 1d;
+			T0[i] = 100d;
 		}
 		
 		// Initialize control parameters
-		a_c = 1d;
+		a_c = 0.25;
 		c = new double[f.getNumDimensions()];
 		for(int i=0; i<c.length; i++) {
-			c[i] = 1d;
+			c[i] = 0.25;
 		}
 	}
 	
@@ -82,7 +91,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 		return 1d;
 	}
 	
-	private void nextPoint(double [] curr, double [] T, double [] next) {
+	private void nextPoint(double [] curr, double [] next) {
 		
 		// Perform a random walk along each dimension
 		for(int i=0; i<curr.length; i++) {
@@ -92,9 +101,9 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 		
 	}
 	
-	private double getCauchy(double T) {
+	private double getCauchy(double t) {
 		double u = Prng.nextDouble();
-		return Math.signum(u-0.5d)*T*(Math.pow(1d+1d/T, Math.abs(2d*u-1d))-1d);
+		return Math.signum(u-0.5d)*t*(Math.pow(1d+1d/t, Math.abs(2d*u-1d))-1d);
 	}
 	
 	// Update T for the acceptance rate and for each input variable
@@ -149,6 +158,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 		if(minimize) {
 			if(delta < 0) return true;
 			double Tprob = Math.exp(-delta/a_T);
+			log.info("Accept prob = " + Tprob);
 			if(Tprob > Prng.nextDouble()) return true;
 		} else {
 			if(delta > 0) return true;
@@ -163,10 +173,19 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 		double curr_E = f.getValue();
 		double next_E;
 		
+		log.info("initial energy = " + curr_E);
+		
 		// Optimum so far
 		double [] next_point = new double[f.getNumDimensions()];
-		double [] curr_point = f.getPoint();
-		double [] best_point = f.getPoint();
+		double [] curr_point = new double[f.getNumDimensions()];
+		double [] best_point = new double[f.getNumDimensions()];
+		
+		// Initialize current and best points to starting point
+		for(int i=0; i<f.getNumDimensions(); i++) {
+			curr_point[i] = f.getPoint()[i];
+			best_point[i] = curr_point[i];
+		}
+		
 		double best_E = curr_E;
 		
 		// Stopping criteria: 
@@ -184,46 +203,87 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 			// Set the temperatures
 			updateSchedules();
 			
+			// Try to make samples_per_temp moves
 			for(int m=0; m<samples_per_temp; m++) {
+				
 				// Jump
-				nextPoint(curr_point, T, next_point);
+				log.info("curr point = (" + curr_point[0] + ", " + curr_point[1] + ")");
+				nextPoint(curr_point, next_point);
+				nsamples += 1;
 			
 				// Update objective function
-				next_E = f.getValue(curr_point);
+				next_E = f.getValue(next_point);
+				
+				log.info("next E = " + next_E + " (best="+best_E+")");
 			
 				// Compute objective function delta
 				double delta = next_E - curr_E;
+				log.info("delta = " + delta);
 			
 				// Accept/reject
 				if(accept(delta, minimize)) {
+					
+					log.info("\t======= accepted! new pt = (" + next_point[0] + ", " + next_point[1] + ")   =======\t");
+					
 					a_k += 1;
 					
-					curr_point = next_point;
+					for(int i=0; i<f.getNumDimensions(); i++) {
+						curr_point[i] = next_point[i];
+					}
+					
 					curr_E = next_E;
 				
+					naccept += 1;
+					
 					// Update optimum so far
-					if(next_E > best_E) {
-						best_point = curr_point;
-						best_E = next_E;
-						cntr = 0;
+					if(minimize) {
+						if(curr_E < best_E) {
+							best_point = curr_point;
+							best_E = curr_E;
+							cntr = 0;
+						} else {
+							cntr ++;
+						}
+					} 
+					else {
+						if(curr_E > best_E) {
+							best_point = curr_point;
+							best_E = curr_E;
+							cntr = 0;
+						} else {
+							cntr ++;
+						}
 					}
 				}
 			}
-		
-			cntr ++;
 			
 			// Check for convergence
-			if(cntr > eps) break; // No change in optimum
-			if(a_T<min_T)  break; // Negligible temperature
+			if(cntr > eps) {
+				log.info("CONVERGED: no change in optimum");
+				break; // No change in optimum
+			}
+			if(a_T<min_T) {
+				log.info("CONVERGED: negligible temperature");
+				break; // Negligible temperature
+			}
 			
 			if(++iter % temps_between_reanneal == 0) {
-				reAnneal(best_point);
+				if(reanneal) {
+					reAnneal(best_point);
+				}
 			}
 			
 			// Increment k's for the T schedules
 			for(int i=0; i<f.getNumDimensions(); i++) {
 				k[i] += 1;
 			}
+			
+			// XX Debug XX
+			for(int i=0; i<f.getNumDimensions(); i++) {
+				log.info("T["+i+"]="+T[i]);
+			}
+			log.info("Acceptance temperature: " + a_T);
+			log.info("Acceptance rate: " + (1.0*naccept/nsamples));
 		}
 		
 		// Set the function to its optimum

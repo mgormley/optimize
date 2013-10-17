@@ -51,15 +51,54 @@ public class GPGO extends    Optimizer<Function>
 	// Loss function
 	ExpectedMyopicLoss loss = new ExpectedMyopicLoss();
 	
-	public GPGO(Function f, Kernel prior) {
+	// Loss function optimizers
+	VFSAOptimizer sa;
+	
+	// Magic numbers
+	double min_delta = 1e-2; // don't allow observations too close to each other
+	                         // otherwise you get singular matrices
+	int budget = 100;        // number of function evaluations
+	
+	public GPGO(Function f, Kernel prior, Bounds bounds) {
 		super(f);
 		this.prior = prior;
+		
+		// Initialize the optimizers
+		sa = new VFSAOptimizer(loss, bounds);
 	}
 	
-	public GPGO(Function f, Kernel prior, RealMatrix X, RealVector y, double noise) {
-		this(f, prior);
+	public GPGO(Function f, Kernel prior, Bounds bounds, int budget) {
+		this(f, prior, bounds);
+		this.budget = budget;
+	}
+	
+	public GPGO(Function f, Kernel prior, Bounds bounds, RealMatrix X, RealVector y, double noise) {
+		this(f, prior, bounds);
 		this.X = X;
 		this.y = y;
+	}
+	
+	/**
+	 * Main method with the optimization loop
+	 * 
+	 * @param minimize
+	 * @return
+	 */
+	boolean optimize(boolean minimize) {
+		
+		// FIXME: loss definition changes based on if minimize is true or not
+		
+		for(int iter=0; iter<budget; iter++) {
+			
+			// Compute the GP posterior
+			estimatePosterior();
+			
+			// Pick the next point to evaluate
+			sa.minimize();
+			
+		}
+		
+		return true;
 	}
 	
 	public void estimatePosterior() {
@@ -74,7 +113,7 @@ public class GPGO extends    Optimizer<Function>
 		return reg;
 	}
 	
-	// TODO: this should just return a Function; its mostly here for debugging
+	// TODO: mostly here for debugging
 	public ExpectedMyopicLoss getExpectedLoss() {
 		return loss;
 	}
@@ -89,6 +128,9 @@ public class GPGO extends    Optimizer<Function>
 	}
 	
 	public class ExpectedMyopicLoss implements TwiceDifferentiableFunction {
+		
+		int n;           // dimensionality
+		double [] point; // storage for the current input point
 		
 		public ExpectedMyopicLoss() {
 			// Select a few input values
@@ -341,25 +383,30 @@ public class GPGO extends    Optimizer<Function>
 	
 	@Override
 	public boolean minimize(Function function, double[] initial) {
-		// TODO Auto-generated method stub
-		return false;
+		
+		this.f = function;
+		this.f.setPoint(initial);
+		
+		return optimize(true);
 	}
 
 	@Override
 	public boolean minimize() {
-		// TODO Auto-generated method stub
-		return false;
+		return optimize(true);
 	}
 
 	@Override
 	public boolean maximize(Function function, double[] point) {
-		// TODO Auto-generated method stub
-		return false;
+		
+		this.f = function;
+		this.f.setPoint(point);
+		
+		return optimize(false);
 	}
 
 	@Override
 	public boolean maximize() {
 		// TODO Auto-generated method stub
-		return false;
+		return optimize(false);
 	}
 }

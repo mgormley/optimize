@@ -16,6 +16,7 @@ public class Rastrigins implements DifferentiableFunction {
 	
 	public Rastrigins(int dimension) {
 		this.n = dimension;
+		point = new double[n];
 	}
 	
 	DerivativeStructure AD_getValue(double [] pt) {
@@ -36,8 +37,9 @@ public class Rastrigins implements DifferentiableFunction {
 	
 	@Override
 	public void setPoint(double[] point) {
-		this.point = point;
-		
+		for(int i=0; i<n; i++) {
+			this.point[i] = point[i];
+		}
 	}
 
 	@Override
