@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.log4j.Logger;
@@ -67,24 +68,49 @@ public class GPGO extends    Optimizer<Function>
 	long [] times;
 	double [] guesses;
 	
+	/**
+	   WARNING: this will not initialize X. This is because without data,
+	   X will be filled in automatically. optimize accounts for this.
+	   This constructor will safely initialize y though.
+	 */
 	public GPGO(Function f, Kernel prior, Bounds bounds) {
 		super(f);
 		this.prior = prior;
-		
 		// Initialize the optimizers
 		loss = new ExpectedMyopicLoss(f.getNumDimensions());
 		sa = new VFSAOptimizer(loss, bounds);
+		furtherInit();
 	}
-	
+
+	/**
+	   WARNING: this will not initialize X. This is because without data,
+	   X will be filled in automatically. optimize accounts for this.
+	   This constructor will safely initialize y though.
+	 */	
 	public GPGO(Function f, Kernel prior, Bounds bounds, int budget) {
 		this(f, prior, bounds);
 		this.budget = budget;
+		furtherInit();
 	}
 	
 	public GPGO(Function f, Kernel prior, Bounds bounds, RealMatrix X, RealVector y, double noise) {
 		this(f, prior, bounds);
 		this.X = X;
 		this.y = y;
+	}
+
+	private void furtherInit(){
+	    //note that we can't create X yet, because it will be filled in automatically
+	    //with zeros, thus giving us off-by-one errors (it will seem as though we have
+	    //one more observation than we actually do!!!
+	    // if(this.X==null){
+	    // 	//X is a matrix of (numDimensions X numDataPoints)
+
+	    // 	X = MatrixUtils.createRealMatrix(this.f.getNumDimensions(),1);
+	    // }
+	    if(this.y==null){
+		this.y=new ArrayRealVector();
+	    }
 	}
 	
 	/**
@@ -94,13 +120,17 @@ public class GPGO extends    Optimizer<Function>
 	 * @return
 	 */
 	boolean optimize(boolean minimize) {
-			
 		// Initialization
 		RealVector x = getInitialPoint();
-		f.setPoint(x.toArray());
-		double y = f.getValue(x.toArray());
-		updateObservations(x, y);
-		
+		double[] xarr = x.toArray();
+		f.setPoint(xarr);
+		double y = f.getValue(xarr);
+		if(X==null){
+		    X = MatrixUtils.createRealMatrix(new double[][]{xarr}).transpose();
+		    this.y = this.y.append(y);
+		} else {
+		    updateObservations(x, y);
+		}
 		// Initialize storage for introspection purposes
 		times = new long[budget];
 		guesses = new double[budget];
@@ -117,7 +147,8 @@ public class GPGO extends    Optimizer<Function>
 			sa.minimize();
 			
 			// Take (x,y) and add it to observations
-			x = new ArrayRealVector(f.getPoint());
+			x = new ArrayRealVector(loss.getPoint());
+			f.setPoint(loss.getPoint());
 			y = f.getValue();
 			
 			currTime = System.currentTimeMillis();
@@ -132,13 +163,15 @@ public class GPGO extends    Optimizer<Function>
 	
 	// This is needlessly inefficient: should just store a list of vectors
 	private void updateObservations(RealVector x, double fx) {
-		//RealMatrix new_X = new RealMatrix(X.getColumnDimension()+1, X.getRowDimension());
-		RealMatrix X_new = X.createMatrix(X.getRowDimension(), X.getRowDimension()+1);
-		for(int i=0; i<X.getColumnDimension(); i++) {
+		RealMatrix X_new = X.createMatrix(X.getRowDimension(), X.getColumnDimension()+1);
+		final int numCols = X.getColumnDimension();
+		for(int i=0; i<numCols; i++) {
 			X_new.setColumnVector(i, X.getColumnVector(i));
 		}
-		X_new.setColumnVector(X.getColumnDimension(), x);
-		y.append(fx);
+		X_new.setColumnVector(numCols, x);
+		this.y = this.y.append(fx);
+		this.X = null;
+		this.X=X_new;
 	}
 	
 	private RealVector getInitialPoint() {
