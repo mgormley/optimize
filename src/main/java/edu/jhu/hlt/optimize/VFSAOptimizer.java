@@ -20,7 +20,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
                            implements Maximizer<DifferentiableFunction>,
                                       Minimizer<DifferentiableFunction> {
 	
-	static Logger log = Logger.getLogger(VFSAOptimizerTest.class);
+	static Logger log = Logger.getLogger(VFSAOptimizer.class);
 	
 	// Acceptance-rate schedule parameters (to accept/reject proposals)
 	double a_T;     // acceptance rate parameter
