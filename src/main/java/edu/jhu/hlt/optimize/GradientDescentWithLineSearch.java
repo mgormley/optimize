@@ -21,7 +21,7 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
         
         // Magic linesearch parameters
         public int max_linesearch_iter = 100;
-        public double initial_step = 1.0;
+        public double initial_step = 0.5;
         public double tau = 0.5;
         public double c1 = 0.5;
         public double c2 = 1e-4;
@@ -67,14 +67,13 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
         assert (function.getNumDimensions() == point.length);
         double[] gradient = new double[point.length];
         
-        int passCount = 0;
         double passCountFrac = 0;
         for (iterCount=0; iterCount < prm.iterations; iterCount++) {
             function.setPoint(point);
             
             // Get the current value of the function.
             double value = function.getValue();
-            log.info(String.format("Function value on batch = %g at iteration = %d", value, iterCount));
+            log.info(String.format("Function value = %g at iteration = %d", value, iterCount));
             
             // Get the gradient of the function.
             Arrays.fill(gradient, 0.0);
@@ -83,6 +82,7 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
             
             // Take a step in the direction of the gradient.
             double lr = lineSearch(function, maximize, point, gradient);
+            log.info("step size = " + lr);
             for (int i=0; i<point.length; i++) {
                 if (maximize) {
                     point[i] += lr * gradient[i];
@@ -90,11 +90,12 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
                     point[i] -= lr * gradient[i];
                 }
             }
+            log.info("function value = " + function.getValue(point));
         }
         
         // Get the final value of the function on all the examples.
         double value = function.getValue();
-        log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
+        log.info(String.format("Final function value = %g", value));
         
         // We don't test for convergence.
         return false;
