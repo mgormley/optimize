@@ -12,4 +12,10 @@ public class Bounds {
 		this.A = A;
 		this.B = B;
 	}
+    public double getLower(int i){
+	return A[i];
+    }
+    public double getUpper(int i){
+	return B[i];
+    }
 }
