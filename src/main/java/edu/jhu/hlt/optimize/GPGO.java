@@ -133,7 +133,7 @@ public class GPGO extends    Optimizer<Function>
 	// This is needlessly inefficient: should just store a list of vectors
 	private void updateObservations(RealVector x, double fx) {
 		//RealMatrix new_X = new RealMatrix(X.getColumnDimension()+1, X.getRowDimension());
-		RealMatrix X_new = X.createMatrix(X.getColumnDimension()+1, X.getRowDimension());
+		RealMatrix X_new = X.createMatrix(X.getRowDimension(), X.getRowDimension()+1);
 		for(int i=0; i<X.getColumnDimension(); i++) {
 			X_new.setColumnVector(i, X.getColumnVector(i));
 		}
@@ -177,7 +177,7 @@ public class GPGO extends    Optimizer<Function>
 		return loss;
 	}
 
-	private double minimumSoFar() {
+	public double minimumSoFar() {
 		double min = Double.POSITIVE_INFINITY;
 		for(int i=0; i<y.getDimension(); i++) {
 			double d = y.getEntry(i);
@@ -375,24 +375,24 @@ public class GPGO extends    Optimizer<Function>
 	    	double mean = res.mean;
 	    	double var = res.var;
 	    	
-	    	log.info("mean = " + mean);
-	    	log.info("var = " + var);
+	    	//log.info("mean = " + mean);
+	    	//log.info("var = " + var);
 	    	
 	    	assert(var > 0);
 	    	
 	    	// Get function minimum found so far
 	    	double min = minimumSoFar();
 	    	
-	    	log.info("min = " + min);
+	    	//log.info("min = " + min);
 	    	
 	    	// Compute CDF and PDF
 	    	NormalDistribution N = new NormalDistribution(mean, var);
 	    	double cdf = N.cumulativeProbability(min);
 	    	double pdf = N.density(min);
 	    	
-	    	log.info("cdf = " + cdf);
-	    	log.info("pdf = " + pdf);
-	    	log.info("mean - min = " + (mean-min));
+	    	//log.info("cdf = " + cdf);
+	    	//log.info("pdf = " + pdf);
+	    	//log.info("mean - min = " + (mean-min));
 	    	
 	    	return min + (mean-min)*cdf - var*pdf;
 	    }

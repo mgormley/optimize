@@ -21,6 +21,8 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
+import edu.jhu.hlt.optimize.GPGO.ExpectedMyopicLoss;
+import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.Kernel;
 import edu.jhu.hlt.util.math.SquaredExpKernel;
 import edu.jhu.hlt.util.math.GPRegression.RegressionResult;
@@ -32,17 +34,21 @@ public class GPGOTest {
 	@Test
 	public void myopicLossTest() {
 		
+		Prng.seed(42);
+		
     	BasicConfigurator.configure();
     	Logger.getRootLogger().setLevel(Level.DEBUG);
 		
     	// Parameters
     	Kernel kernel = new SquaredExpKernel(5, 0.1);
-    	Function f = new XSquared(0);
+    	
+    	//Function f = new XSquared(0);
+    	Function f = new Franks();
     	
     	// Training data:
     	//   X	inputs
     	//   y  ouputs
-    	double [][] xs = {{-0.5}, {0.3}, {0.7}, {0.9}};
+    	double [][] xs = {{-1.0}, {-0.5}, {0.3}, {0.7}, {0.9}};
 		RealMatrix X = MatrixUtils.createRealMatrix(xs).transpose();
 		double [] ys = new double[xs.length];
 		for(int i=0; i<ys.length; i++) {
@@ -69,12 +75,26 @@ public class GPGOTest {
 		// Estimate the GP posterior
 		opt.estimatePosterior();
 		
+		// Try optimizing the expected loss given this posterior
+		ExpectedMyopicLoss loss = opt.getExpectedLoss();
+		VFSAOptimizer sa = new VFSAOptimizer(loss, bounds);
+		sa.minimize();
+		double xguess = loss.getPoint()[0];
+		double yguess = loss.getValue();
+		List<Number> next_x = new ArrayList<Number>();
+		next_x.add(xguess);
+		List<Number> next_y = new ArrayList<Number>();
+		next_y.add(yguess);
+		
+		log.info("guess input = " + loss.getPoint()[0]);
+		log.info("guess output = " + loss.getValue());
+		
 		List<Number> posterior_mean = new ArrayList<Number>();
 		List<Number> posterior_var = new ArrayList<Number>();
 		List<Number> eloss = new ArrayList<Number>();
 		
-		double grid_min = -1;
-		double grid_max = 1;
+		double grid_min = -2;
+		double grid_max = 2;
 		double range = grid_max - grid_min;
 		int npts = 50;
 		double increment = range/(double)npts; 
@@ -128,6 +148,10 @@ public class GPGOTest {
 		Series series3 = chart.addSeries("Function", grid, fvals);
 		series3.setMarkerColor(Color.BLACK);
 		series3.setMarker(SeriesMarker.NONE);
+		
+		//Series series4 = chart.addSeries("Next eval", next_x, next_y);
+		//series4.setMarker(SeriesMarker.TRIANGLE_DOWN);
+		//series4.setMarkerColor(Color.CYAN);
 		
 		// Show it
 	    new SwingWrapper(chart).displayChart();
