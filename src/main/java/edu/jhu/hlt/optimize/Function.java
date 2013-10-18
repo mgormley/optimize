@@ -25,6 +25,8 @@ public interface Function {
      * Get the value of this function at the specified point (no side effects).
      * @param point The point at which the function is evaluated.
      */
+    // TODO: Remove this method.
+    @Deprecated    
     double getValue(double [] point);
     
     /**
