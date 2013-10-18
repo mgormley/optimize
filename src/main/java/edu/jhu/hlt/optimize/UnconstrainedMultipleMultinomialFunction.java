@@ -58,11 +58,13 @@ public class UnconstrainedMultipleMultinomialFunction implements Function {
                 logProbs[i][j] = point[idx];
                 idx++;
             }
+            // Subtract off the log-sum of the real values.
             Multinomials.normalizeLogProps(logProbs[i]);
         }
     }
     
     private void updateRealsFromLogProbs() {
+        // Copy the log-probs into the real values array.
         int idx=0;
         for (int i=0; i<logProbs.length; i++) {
             for (int j=0; j<logProbs[i].length; j++) {
