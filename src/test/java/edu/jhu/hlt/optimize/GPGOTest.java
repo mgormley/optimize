@@ -40,7 +40,7 @@ public class GPGOTest {
     	Logger.getRootLogger().setLevel(Level.DEBUG);
 		
     	// Parameters
-    	Kernel kernel = new SquaredExpKernel(5, 0.1);
+    	Kernel kernel = new SquaredExpKernel(1, 0.1);
     	
     	//Function f = new XSquared(0);
     	Function f = new Franks();
@@ -102,14 +102,14 @@ public class GPGOTest {
 		// Series 3 (actual function)
 		List<Number> fvals = new ArrayList<Number>();
 		for(double x=grid_min; x<grid_max; x+=increment) {
-			log.info("x = " + x);
+			//log.info("x = " + x);
 			
 			grid.add(x);
 			fvals.add(f.getValue(new double[] {x}));
 			RegressionResult pred = opt.getRegressor().predict(new ArrayRealVector(new double[] {x}));
 			double obj = opt.getExpectedLoss().computeExpectedLoss(new ArrayRealVector(new double[] {x}));
 			//double obj = 0;
-			log.info("loss("+x+")="+obj);
+			//log.info("loss("+x+")="+obj);
 			  
 			// GP predictions
 			posterior_mean.add(pred.mean);

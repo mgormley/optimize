@@ -4,6 +4,51 @@ import edu.jhu.hlt.util.math.Vectors;
 
 public class FunctionOpts {
 	
+	public static class FunctionWithConstraints implements ConstrainedDifferentiableFunction {
+		
+		private DifferentiableFunction f;
+		private Bounds b;
+		
+		public FunctionWithConstraints(DifferentiableFunction f, Bounds b) {
+			this.f = f;
+			this.b = b;
+		}
+		
+		@Override
+		public void getGradient(double[] gradient) {
+			f.getGradient(gradient);
+		}
+		@Override
+		public void setPoint(double[] point) {
+			f.setPoint(point);
+		}
+		@Override
+		public double[] getPoint() {
+			return f.getPoint();
+		}
+		@Override
+		public double getValue(double[] point) {
+			return f.getValue(point);
+		}
+		@Override
+		public double getValue() {
+			return f.getValue();
+		}
+		@Override
+		public int getNumDimensions() {
+			return f.getNumDimensions();
+		}
+		@Override
+		public Bounds getBounds() {
+			return b;
+		}
+		@Override
+		public void setBounds(Bounds b) {
+			this.b = b;
+		}
+		
+	}
+	
     /** Wrapper which negates the input function. */
     public static class NegateFunction extends ScaleFunction implements DifferentiableFunction {
     

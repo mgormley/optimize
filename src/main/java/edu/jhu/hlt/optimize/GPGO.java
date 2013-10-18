@@ -102,7 +102,7 @@ public class GPGO extends    Optimizer<Function>
 	}
 
 	private void furtherInit(){
-	    //note that we can't create X yet, because it will be filled in automatically
+	    //note that we can't created X yet, because it will be filled in automatically
 	    //with zeros, thus giving us off-by-one errors (it will seem as though we have
 	    //one more observation than we actually do!!!
 	    // if(this.X==null){
@@ -250,7 +250,7 @@ public class GPGO extends    Optimizer<Function>
 		
 		if(use_VFSA) {
 			
-			// FIXME: needs testing / debuggin
+			// FIXME: needs testing / debugging
 			VFSAOptimizer opt = new VFSAOptimizer(f, bounds);
 			opt.minimize();
 			double [] pt = f.getPoint();
