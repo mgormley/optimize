@@ -120,7 +120,8 @@ public class RandomFunctionSearch {
 	// Random starting location
 	for(int i=0; i<pt.length; i++) {
 	    double r  = Prng.nextDouble(); //r ~ U(0,1)
-	    pt[i] = (bounds.getUpper(i)-bounds.getLower(i))*(r-1.0) + bounds.getUpper(i);
+	    //pt[i] = (bounds.getUpper(i)-bounds.getLower(i))*(r-1.0) + bounds.getUpper(i);
+	    pt[i] = this.bounds.transformFromUnitInterval(i,r);
 	}
 	return pt;
     }

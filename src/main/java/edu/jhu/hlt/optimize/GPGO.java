@@ -200,8 +200,10 @@ public class GPGO extends    Optimizer<Function>
 	private RealVector getInitialPoint() {
 		double [] pt = new double[f.getNumDimensions()];
 		// Random starting location
+		double effective_upper, effective_lower;
 		for(int i=0; i<pt.length; i++) {
-			pt[i] = Prng.nextDouble();
+		    double r  = Prng.nextDouble(); //r ~ U(0,1)
+		    pt[i] = this.bounds.transformFromUnitInterval(i,r);
 		}
 		return new ArrayRealVector(pt);
 	}
