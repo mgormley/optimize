@@ -67,8 +67,8 @@ public class GPGOTest {
 		// Initialize the GPGO instance
 		double [] A = new double[1];
 		double [] B = new double[1];
-		A[0] = -10.0;
-		B[0] = +10.0;
+		A[0] = -3.0;
+		B[0] = +3.0;
 		Bounds bounds = new Bounds(A, B);
 		GPGO opt = new GPGO(f, kernel, bounds, X, y, 0d);
 		
@@ -76,25 +76,24 @@ public class GPGOTest {
 		opt.estimatePosterior();
 		
 		// Try optimizing the expected loss given this posterior
-		ExpectedMyopicLoss loss = opt.getExpectedLoss();
-		VFSAOptimizer sa = new VFSAOptimizer(loss, bounds);
-		sa.minimize();
-		double xguess = loss.getPoint()[0];
-		double yguess = loss.getValue();
+		RealVector min = opt.minimizeExpectedLoss();
+		double xguess = min.getEntry(0);
+		double yguess = opt.loss.getValue(min.toArray());
+		
+		log.info("xguess = " + xguess);
+		log.info("yguess = " + yguess);
+		
 		List<Number> next_x = new ArrayList<Number>();
 		next_x.add(xguess);
 		List<Number> next_y = new ArrayList<Number>();
 		next_y.add(yguess);
 		
-		log.info("guess input = " + loss.getPoint()[0]);
-		log.info("guess output = " + loss.getValue());
-		
 		List<Number> posterior_mean = new ArrayList<Number>();
 		List<Number> posterior_var = new ArrayList<Number>();
 		List<Number> eloss = new ArrayList<Number>();
 		
-		double grid_min = -2;
-		double grid_max = 2;
+		double grid_min = A[0];
+		double grid_max = B[0];
 		double range = grid_max - grid_min;
 		int npts = 50;
 		double increment = range/(double)npts; 
@@ -149,9 +148,15 @@ public class GPGOTest {
 		series3.setMarkerColor(Color.BLACK);
 		series3.setMarker(SeriesMarker.NONE);
 		
-		//Series series4 = chart.addSeries("Next eval", next_x, next_y);
-		//series4.setMarker(SeriesMarker.TRIANGLE_DOWN);
-		//series4.setMarkerColor(Color.CYAN);
+		Series series4 = chart.addSeries("Next eval", next_x, next_y);
+		series4.setMarker(SeriesMarker.TRIANGLE_DOWN);
+		series4.setMarkerColor(Color.CYAN);
+		
+		chart.getStyleManager().setYAxisMin(-3);
+		chart.getStyleManager().setYAxisMax(3);
+		 
+		chart.getStyleManager().setXAxisMin(A[0]);
+		chart.getStyleManager().setXAxisMax(B[0]);
 		
 		// Show it
 	    new SwingWrapper(chart).displayChart();

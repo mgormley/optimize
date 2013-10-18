@@ -39,9 +39,10 @@ public class GPGO extends    Optimizer<Function>
 	static Logger log = Logger.getLogger(GPGO.class);
 	
 	// Settings
-	static final int order = 1;           // up to what order derivatives to compute for the expected loss
-	static final boolean use_VFSA = true;
-	int nstart_pts;                       // currently set equal to dimensionality of problem
+	final int order = 1;            // up to what order derivatives to compute for the expected loss
+	final boolean use_VFSA = false; // if VFSA is used to pick starting points for local search
+	final int depth = 100;          // how many iterations of local optimization
+	final int width_mult = 2;       // do local searches from dim(f) * width_mult start locations
 	
 	// Observations
 	RealMatrix X;
@@ -49,6 +50,7 @@ public class GPGO extends    Optimizer<Function>
 	double noise;
 	
 	// Prior
+	Bounds bounds;
 	Kernel prior;
 	RealMatrix K;
 	
@@ -58,14 +60,12 @@ public class GPGO extends    Optimizer<Function>
 	// Loss function
 	ExpectedMyopicLoss loss;
 	
-	// Loss function optimizers
-	GradientDescentWithLineSearch gd;
-	VFSAOptimizer sa;
-	
 	// Magic numbers
 	double min_delta = 1e-2; // don't allow observations too close to each other
 	                         // otherwise you get singular matrices
-	int budget = 100;        
+	
+	// How many function evaluations we are allowed
+	int budget = 100;
 
 	// Introspection
 	long [] times;
@@ -79,9 +79,8 @@ public class GPGO extends    Optimizer<Function>
 	public GPGO(Function f, Kernel prior, Bounds bounds) {
 		super(f);
 		this.prior = prior;
-		// Initialize the optimizers
-		loss = new ExpectedMyopicLoss(f.getNumDimensions());
-		sa = new VFSAOptimizer(loss, bounds);
+		this.bounds = bounds;
+		this.loss = new ExpectedMyopicLoss(f.getNumDimensions());
 		furtherInit();
 	}
 
@@ -134,6 +133,7 @@ public class GPGO extends    Optimizer<Function>
 		} else {
 		    updateObservations(x, y);
 		}
+		
 		// Initialize storage for introspection purposes
 		times = new long[budget];
 		guesses = new double[budget];
@@ -147,21 +147,41 @@ public class GPGO extends    Optimizer<Function>
 			estimatePosterior();
 			
 			// Pick the next point to evaluate
-			sa.minimize();
+			RealVector min = minimizeExpectedLoss();
 			
 			// Take (x,y) and add it to observations
-			x = new ArrayRealVector(loss.getPoint());
-			f.setPoint(loss.getPoint());
+			f.setPoint(min.toArray());
 			y = f.getValue();
 			
 			currTime = System.currentTimeMillis();
 			times[iter] = currTime - startTime;
 			guesses[iter] = minimumSoFar();
 			
-			updateObservations(x, y);
+			updateObservations(min, y);
 		}
 		
 		return true;
+	}
+	
+	public RealVector minimizeExpectedLoss() {
+
+		double [] best_x = null;
+		double best_y = Double.POSITIVE_INFINITY;
+
+		List<RealVector> pts = getPointsToProbe(loss, bounds);
+		
+		for(RealVector pt : pts) {
+			Minimizer opt = new GradientDescentWithLineSearch(this.depth);
+			opt.minimize(loss, pt.toArray());
+			double [] x = loss.getPoint();
+			double y = loss.getValue();
+			if(y<best_y) {
+				best_x = x;
+				best_y = y;
+			}
+		}
+
+		return new ArrayRealVector(best_x);
 	}
 	
 	// This is needlessly inefficient: should just store a list of vectors
@@ -222,17 +242,30 @@ public class GPGO extends    Optimizer<Function>
 		return min;
 	}
 	
-	public List<RealVector> getPointsToProbe() {
+	/**
+	 * @return	A list of points. A local search will be initialized from each of the points.
+	 */
+	public List<RealVector> getPointsToProbe(DifferentiableFunction f, Bounds bounds) {
 		List<RealVector> points = new ArrayList<RealVector>();
 		
 		if(use_VFSA) {
 			
-			// FIXME
+			// FIXME: needs testing / debuggin
+			VFSAOptimizer opt = new VFSAOptimizer(f, bounds);
+			opt.minimize();
+			double [] pt = f.getPoint();
+			points.add( new ArrayRealVector(pt) );
 			
 		} else {
 			
-			for(int i=0; i<nstart_pts; i++) {
-				
+			for(int i=0; i<this.width_mult * f.getNumDimensions(); i++) {
+				double [] pt = new double[f.getNumDimensions()];
+				// Random starting location
+				for(int k=0; k<pt.length; k++) {
+				    double r  = Prng.nextDouble(); //r ~ U(0,1)
+				    pt[k] = (bounds.getUpper(k)-bounds.getLower(k))*(r-1.0) + bounds.getUpper(k);
+				}
+				points.add( new ArrayRealVector(pt) );
 			}
 			
 		}
@@ -453,8 +486,12 @@ public class GPGO extends    Optimizer<Function>
 		
 		@Override
 		public void getGradient(double[] gradient) {
-			// TODO Auto-generated method stub
-			
+			DerivativeStructure value = computeExpectedLoss(new ArrayRealVector(this.point), 1);
+			for(int i=0; i<n; i++) {
+				int [] orders = new int[n];
+				orders[i] = 1;
+				gradient[i] = value.getPartialDerivative(orders);
+			}
 		}
 
 		@Override
