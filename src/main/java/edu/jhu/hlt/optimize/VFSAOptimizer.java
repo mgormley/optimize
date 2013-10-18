@@ -208,7 +208,6 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 			for(int m=0; m<samples_per_temp; m++) {
 				
 				// Jump
-				log.info("curr point = (" + curr_point[0] + ", " + curr_point[1] + ")");
 				nextPoint(curr_point, next_point);
 				nsamples += 1;
 			
@@ -224,7 +223,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 				// Accept/reject
 				if(accept(delta, minimize)) {
 					
-					log.info("\t======= accepted! new pt = (" + next_point[0] + ", " + next_point[1] + ")   =======\t");
+					log.info("\t======= accepted! =======\t");
 					
 					a_k += 1;
 					

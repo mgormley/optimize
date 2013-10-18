@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.log4j.Logger;
@@ -38,7 +39,10 @@ public class GPGO extends    Optimizer<Function>
 	static Logger log = Logger.getLogger(GPGO.class);
 	
 	// Settings
-	static final int order = 1; // up to what order derivatives to compute for the expected loss
+	final int order = 1;            // up to what order derivatives to compute for the expected loss
+	final boolean use_VFSA = false; // if VFSA is used to pick starting points for local search
+	final int depth = 100;          // how many iterations of local optimization
+	final int width_mult = 2;       // do local searches from dim(f) * width_mult start locations
 	
 	// Observations
 	RealMatrix X;
@@ -46,6 +50,7 @@ public class GPGO extends    Optimizer<Function>
 	double noise;
 	
 	// Prior
+	Bounds bounds;
 	Kernel prior;
 	RealMatrix K;
 	
@@ -55,36 +60,59 @@ public class GPGO extends    Optimizer<Function>
 	// Loss function
 	ExpectedMyopicLoss loss;
 	
-	// Loss function optimizers
-	VFSAOptimizer sa;
-	
 	// Magic numbers
 	double min_delta = 1e-2; // don't allow observations too close to each other
 	                         // otherwise you get singular matrices
-	int budget = 100;        
+	
+	// How many function evaluations we are allowed
+	int budget = 100;
 
 	// Introspection
 	long [] times;
 	double [] guesses;
 	
+	/**
+	   WARNING: this will not initialize X. This is because without data,
+	   X will be filled in automatically. optimize accounts for this.
+	   This constructor will safely initialize y though.
+	 */
 	public GPGO(Function f, Kernel prior, Bounds bounds) {
 		super(f);
 		this.prior = prior;
-		
-		// Initialize the optimizers
-		loss = new ExpectedMyopicLoss(f.getNumDimensions());
-		sa = new VFSAOptimizer(loss, bounds);
+		this.bounds = bounds;
+		this.loss = new ExpectedMyopicLoss(f.getNumDimensions());
+		furtherInit();
 	}
-	
+
+	/**
+	   WARNING: this will not initialize X. This is because without data,
+	   X will be filled in automatically. optimize accounts for this.
+	   This constructor will safely initialize y though.
+	 */	
 	public GPGO(Function f, Kernel prior, Bounds bounds, int budget) {
 		this(f, prior, bounds);
 		this.budget = budget;
+		furtherInit();
 	}
 	
 	public GPGO(Function f, Kernel prior, Bounds bounds, RealMatrix X, RealVector y, double noise) {
 		this(f, prior, bounds);
 		this.X = X;
 		this.y = y;
+	}
+
+	private void furtherInit(){
+	    //note that we can't create X yet, because it will be filled in automatically
+	    //with zeros, thus giving us off-by-one errors (it will seem as though we have
+	    //one more observation than we actually do!!!
+	    // if(this.X==null){
+	    // 	//X is a matrix of (numDimensions X numDataPoints)
+
+	    // 	X = MatrixUtils.createRealMatrix(this.f.getNumDimensions(),1);
+	    // }
+	    if(this.y==null){
+		this.y=new ArrayRealVector();
+	    }
 	}
 	
 	/**
@@ -94,12 +122,17 @@ public class GPGO extends    Optimizer<Function>
 	 * @return
 	 */
 	boolean optimize(boolean minimize) {
-			
 		// Initialization
 		RealVector x = getInitialPoint();
-		f.setPoint(x.toArray());
-		double y = f.getValue(x.toArray());
-		updateObservations(x, y);
+		double[] xarr = x.toArray();
+		f.setPoint(xarr);
+		double y = f.getValue(xarr);
+		if(X==null){
+		    X = MatrixUtils.createRealMatrix(new double[][]{xarr}).transpose();
+		    this.y = this.y.append(y);
+		} else {
+		    updateObservations(x, y);
+		}
 		
 		// Initialize storage for introspection purposes
 		times = new long[budget];
@@ -114,38 +147,63 @@ public class GPGO extends    Optimizer<Function>
 			estimatePosterior();
 			
 			// Pick the next point to evaluate
-			sa.minimize();
+			RealVector min = minimizeExpectedLoss();
 			
 			// Take (x,y) and add it to observations
-			x = new ArrayRealVector(f.getPoint());
+			f.setPoint(min.toArray());
 			y = f.getValue();
 			
 			currTime = System.currentTimeMillis();
 			times[iter] = currTime - startTime;
 			guesses[iter] = minimumSoFar();
 			
-			updateObservations(x, y);
+			updateObservations(min, y);
 		}
 		
 		return true;
 	}
 	
+	public RealVector minimizeExpectedLoss() {
+
+		double [] best_x = null;
+		double best_y = Double.POSITIVE_INFINITY;
+
+		List<RealVector> pts = getPointsToProbe(loss, bounds);
+		
+		for(RealVector pt : pts) {
+			Minimizer opt = new GradientDescentWithLineSearch(this.depth);
+			opt.minimize(loss, pt.toArray());
+			double [] x = loss.getPoint();
+			double y = loss.getValue();
+			if(y<best_y) {
+				best_x = x;
+				best_y = y;
+			}
+		}
+
+		return new ArrayRealVector(best_x);
+	}
+	
 	// This is needlessly inefficient: should just store a list of vectors
 	private void updateObservations(RealVector x, double fx) {
-		//RealMatrix new_X = new RealMatrix(X.getColumnDimension()+1, X.getRowDimension());
-		RealMatrix X_new = X.createMatrix(X.getColumnDimension()+1, X.getRowDimension());
-		for(int i=0; i<X.getColumnDimension(); i++) {
+		RealMatrix X_new = X.createMatrix(X.getRowDimension(), X.getColumnDimension()+1);
+		final int numCols = X.getColumnDimension();
+		for(int i=0; i<numCols; i++) {
 			X_new.setColumnVector(i, X.getColumnVector(i));
 		}
-		X_new.setColumnVector(X.getColumnDimension(), x);
-		y.append(fx);
+		X_new.setColumnVector(numCols, x);
+		this.y = this.y.append(fx);
+		this.X = null;
+		this.X=X_new;
 	}
 	
 	private RealVector getInitialPoint() {
 		double [] pt = new double[f.getNumDimensions()];
 		// Random starting location
+		double effective_upper, effective_lower;
 		for(int i=0; i<pt.length; i++) {
-			pt[i] = Prng.nextDouble();
+		    double r  = Prng.nextDouble(); //r ~ U(0,1)
+		    pt[i] = this.bounds.transformFromUnitInterval(i,r);
 		}
 		return new ArrayRealVector(pt);
 	}
@@ -177,13 +235,44 @@ public class GPGO extends    Optimizer<Function>
 		return loss;
 	}
 
-	private double minimumSoFar() {
+	public double minimumSoFar() {
 		double min = Double.POSITIVE_INFINITY;
 		for(int i=0; i<y.getDimension(); i++) {
 			double d = y.getEntry(i);
 			if(d<min) min=d;
 		}
 		return min;
+	}
+	
+	/**
+	 * @return	A list of points. A local search will be initialized from each of the points.
+	 */
+	public List<RealVector> getPointsToProbe(DifferentiableFunction f, Bounds bounds) {
+		List<RealVector> points = new ArrayList<RealVector>();
+		
+		if(use_VFSA) {
+			
+			// FIXME: needs testing / debuggin
+			VFSAOptimizer opt = new VFSAOptimizer(f, bounds);
+			opt.minimize();
+			double [] pt = f.getPoint();
+			points.add( new ArrayRealVector(pt) );
+			
+		} else {
+			
+			for(int i=0; i<this.width_mult * f.getNumDimensions(); i++) {
+				double [] pt = new double[f.getNumDimensions()];
+				// Random starting location
+				for(int k=0; k<pt.length; k++) {
+				    double r  = Prng.nextDouble(); //r ~ U(0,1)
+				    pt[k] = (bounds.getUpper(k)-bounds.getLower(k))*(r-1.0) + bounds.getUpper(k);
+				}
+				points.add( new ArrayRealVector(pt) );
+			}
+			
+		}
+		
+		return points;
 	}
 	
 	public class ExpectedMyopicLoss implements TwiceDifferentiableFunction {
@@ -375,32 +464,36 @@ public class GPGO extends    Optimizer<Function>
 	    	double mean = res.mean;
 	    	double var = res.var;
 	    	
-	    	log.info("mean = " + mean);
-	    	log.info("var = " + var);
+	    	//log.info("mean = " + mean);
+	    	//log.info("var = " + var);
 	    	
 	    	assert(var > 0);
 	    	
 	    	// Get function minimum found so far
 	    	double min = minimumSoFar();
 	    	
-	    	log.info("min = " + min);
+	    	//log.info("min = " + min);
 	    	
 	    	// Compute CDF and PDF
 	    	NormalDistribution N = new NormalDistribution(mean, var);
 	    	double cdf = N.cumulativeProbability(min);
 	    	double pdf = N.density(min);
 	    	
-	    	log.info("cdf = " + cdf);
-	    	log.info("pdf = " + pdf);
-	    	log.info("mean - min = " + (mean-min));
+	    	//log.info("cdf = " + cdf);
+	    	//log.info("pdf = " + pdf);
+	    	//log.info("mean - min = " + (mean-min));
 	    	
 	    	return min + (mean-min)*cdf - var*pdf;
 	    }
 		
 		@Override
 		public void getGradient(double[] gradient) {
-			// TODO Auto-generated method stub
-			
+			DerivativeStructure value = computeExpectedLoss(new ArrayRealVector(this.point), 1);
+			for(int i=0; i<n; i++) {
+				int [] orders = new int[n];
+				orders[i] = 1;
+				gradient[i] = value.getPartialDerivative(orders);
+			}
 		}
 
 		@Override
