@@ -4,6 +4,11 @@ import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
 import edu.jhu.hlt.util.Utilities;
 
+/**
+ * Utility methods for primitive one-dimensional arrays.
+ * 
+ * @author mgormley
+ */
 public class Vectors {
 
     private Vectors() {
@@ -26,7 +31,7 @@ public class Vectors {
         return sum;
     }
 
-    public static double sum(int[] vector) {
+    public static int sum(int[] vector) {
         int sum = 0;
         for(int i=0; i<vector.length; i++) {
             sum += vector[i];
@@ -240,8 +245,7 @@ public class Vectors {
     public static double stdDev(double[] array) {
         return Math.sqrt(variance(array));
     }
-
-
+    
     public static double logSum(double[] logProps) {
         double logPropSum = Double.NEGATIVE_INFINITY;
         for (int d = 0; d < logProps.length; d++) {
