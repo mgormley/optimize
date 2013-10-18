@@ -1,7 +1,9 @@
 package edu.jhu.hlt.optimize;
 
 /**
- * A real scalar function.
+ * An unconstrained real scalar function.
+ * 
+ * f: \mathcal{R}^n --> \mathcal{R}
  * 
  * @author mgormley
  * @author noandrews
@@ -23,6 +25,8 @@ public interface Function {
      * Get the value of this function at the specified point (no side effects).
      * @param point The point at which the function is evaluated.
      */
+    // TODO: Remove this method.
+    @Deprecated    
     double getValue(double [] point);
     
     /**

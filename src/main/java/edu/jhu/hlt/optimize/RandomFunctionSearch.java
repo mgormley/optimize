@@ -14,7 +14,6 @@ import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.GPRegression;
 import edu.jhu.hlt.util.math.GPRegression.GPRegressor;
 import edu.jhu.hlt.util.math.GPRegression.RegressionResult;
-import edu.jhu.hlt.util.math.Kernel;
 import edu.jhu.hlt.util.math.Vectors;
 
 /**
@@ -54,19 +53,8 @@ public class RandomFunctionSearch {
 	this.function = f;
 	this.bounds = bounds;
     }
-	
-    public RandomFunctionSearch(Function f, Kernel prior, Bounds bounds, int budget) {
-	this(f, bounds);
-	this.numSamplesToTake = budget;
-    }
-	
-    public RandomFunctionSearch(Function f, Kernel prior, Bounds bounds, RealMatrix X, RealVector y) {
-	this(f, bounds);
-	this.X = X;
-	this.y = y;
-    }
-	
-    boolean sample(){
+		
+    public boolean sample(){
 	return sample(numSamplesToTake);
     }
 
@@ -76,7 +64,7 @@ public class RandomFunctionSearch {
      * @param numTimes
      * @return
      */
-    boolean sample(int numTimes){
+    public boolean sample(int numTimes){
 	// Initialization
 	RealVector x;	    
 	// Initialize storage for introspection purposes
@@ -120,7 +108,8 @@ public class RandomFunctionSearch {
 	// Random starting location
 	for(int i=0; i<pt.length; i++) {
 	    double r  = Prng.nextDouble(); //r ~ U(0,1)
-	    pt[i] = (bounds.getUpper(i)-bounds.getLower(i))*(r-1.0) + bounds.getUpper(i);
+	    //pt[i] = (bounds.getUpper(i)-bounds.getLower(i))*(r-1.0) + bounds.getUpper(i);
+	    pt[i] = this.bounds.transformFromUnitInterval(i,r);
 	}
 	return pt;
     }
