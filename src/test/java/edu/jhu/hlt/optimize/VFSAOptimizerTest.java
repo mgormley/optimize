@@ -37,8 +37,9 @@ public class VFSAOptimizerTest {
 		}
 		f.setPoint(start);
 		Bounds b = new Bounds(L, U);
+		ConstrainedDifferentiableFunction g = new FunctionOpts.DifferentiableFunctionWithConstraints(f, b);
 		
-		VFSAOptimizer opt = new VFSAOptimizer(f, b);
+		VFSAOptimizer opt = new VFSAOptimizer(g);
 		opt.minimize();
 		
 		double [] opt_point = f.getPoint();

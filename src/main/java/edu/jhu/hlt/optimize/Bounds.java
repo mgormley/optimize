@@ -14,14 +14,14 @@ public class Bounds {
 	}
 
     public Bounds(int dim){
-	this.A=new double[dim];
-	this.B = new double[dim];
+    	this.A=new double[dim];
+    	this.B = new double[dim];
     }
     public double getLower(int i){
-	return A[i];
+    	return A[i];
     }
     public double getUpper(int i){
-	return B[i];
+    	return B[i];
     }
 
     /**
@@ -30,6 +30,6 @@ public class Bounds {
        just a linear one. It does *NOT* check for +/- infinity.
      */
     public double transformFromUnitInterval(int i, double d){
-	return (B[i]-A[i])*(d-1.0)+B[i];
+    	return (B[i]-A[i])*(d-1.0)+B[i];
     }
 }

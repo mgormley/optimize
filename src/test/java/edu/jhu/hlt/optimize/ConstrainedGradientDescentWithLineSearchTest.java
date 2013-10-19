@@ -25,7 +25,7 @@ public class ConstrainedGradientDescentWithLineSearchTest {
 	       double[] upper = new double[]{100.0};
 	       Bounds b = new Bounds(lower, upper);
 	       DifferentiableFunction f = new FunctionOpts.NegateFunction(new XSquared());
-	       ConstrainedDifferentiableFunction g = new FunctionOpts.FunctionWithConstraints(f, b);
+	       ConstrainedDifferentiableFunction g = new FunctionOpts.DifferentiableFunctionWithConstraints(f, b);
 	       opt.maximize(g, max);
 	       log.info("found opt = " + max[0]);
 	       assertEquals(1.0, max[0], 1e-3);
@@ -42,7 +42,7 @@ public class ConstrainedGradientDescentWithLineSearchTest {
 		    double[] upper = new double[]{100.0};
 		    Bounds b = new Bounds(lower, upper);
 		    DifferentiableFunction f = new XSquared();
-		    ConstrainedDifferentiableFunction g = new FunctionOpts.FunctionWithConstraints(f, b);
+		    ConstrainedDifferentiableFunction g = new FunctionOpts.DifferentiableFunctionWithConstraints(f, b);
 		    opt.minimize(g, min);
 		    log.info("found opt = " + min[0]);
 		    assertEquals(1.0, min[0], 1e-3);

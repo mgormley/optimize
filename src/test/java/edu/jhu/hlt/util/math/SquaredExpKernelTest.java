@@ -1,5 +1,7 @@
 package edu.jhu.hlt.util.math;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.linear.ArrayRealVector;
@@ -14,7 +16,54 @@ import edu.jhu.hlt.optimize.SGDQNCorrectedTest;
 
 public class SquaredExpKernelTest {
 
-	static Logger log = Logger.getLogger(SGDQNCorrectedTest.class);
+	static Logger log = Logger.getLogger(SquaredExpKernelTest.class);
+	
+	@Test
+	public void ADmethods() {
+		
+		BasicConfigurator.configure();
+    	Logger.getRootLogger().setLevel(Level.DEBUG);
+		
+		double [] a1 = new double [] {1.1, 2.4};
+		double [] a2 = new double [] {0.5, 10.0};
+		double [] a3 = new double [] {0.1, -5.0};
+		
+		DerivativeStructure [] a1_ad = new DerivativeStructure[2];
+		DerivativeStructure [] a2_ad = new DerivativeStructure[2];
+		DerivativeStructure [] a3_ad = new DerivativeStructure[2];
+		
+		RealVector a1_v = new ArrayRealVector(a1);
+		RealVector a2_v = new ArrayRealVector(a2);
+		RealVector a3_v = new ArrayRealVector(a3);
+		
+		for(int i=0; i<a1.length; i++) {
+			a1_ad[i] = new DerivativeStructure(2, 1, i, a1[i]);
+			a2_ad[i] = new DerivativeStructure(2, 1, i, a2[i]);
+			a3_ad[i] = new DerivativeStructure(2, 1, i, a3[i]);
+		}
+		
+		double variance = 1d;
+		double len_scale = 0.1d;
+		SquaredExpKernel kernel = new SquaredExpKernel();
+		
+		double res1 = kernel.k(a1_ad, a2_ad).getValue();
+		double res2 = kernel.k(a1_v, a2_ad).getValue();
+		double res3 = kernel.k(a1_v, a2_v);
+		
+	    assertEquals(res1, res2, 1e-3);
+	    assertEquals(res2, res3, 1e-3);
+	    
+	    res1 = kernel.k(a2_ad, a3_ad).getValue();
+	    res2 = kernel.k(a2_v, a3_ad).getValue();
+	    res3 = kernel.k(a2_v, a3_v);
+	    
+	    log.info(res1);
+	    log.info(res2);
+	    log.info(res3);
+	    
+	    assertEquals(res1, res2, 1e-3);
+	    assertEquals(res2, res3, 1e-3);
+	}
 	
 	@Test
 	public void squaredExpKernelTest() {

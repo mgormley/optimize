@@ -58,6 +58,9 @@ public class GPRegression {
 		public RegressionResult predict(RealVector x_star) {
 			double x_star_covar = kernel.k(x_star, x_star);
 			RealVector k_star = vectorCovar(X, x_star, kernel);
+			for(int k=0; k<k_star.getDimension(); k++) {
+				log.info("k_star["+k+"]="+k_star.getEntry(k));
+			}
 			double predicted_mean = k_star.dotProduct(alpha);
 			RealVector v = k_star.copy();
 			MatrixUtils.solveLowerTriangularSystem(L, v);

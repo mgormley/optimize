@@ -9,6 +9,11 @@ import edu.jhu.hlt.util.math.Vectors;
 /**
  * Gradient descent. A line search is used at each iteration to pick the step size.
  * 
+ * WARNING:
+ * 	- This version is not thoroughly tested; used the "Constrained" version
+ * 	  of this class with (-inf, +inf) constraints instead. They will be
+ * 	  merged eventually.
+ * 
  * @author noandrews
  */
 public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFunction>, 

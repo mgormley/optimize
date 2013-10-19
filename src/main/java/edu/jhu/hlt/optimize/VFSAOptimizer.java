@@ -16,9 +16,9 @@ import edu.jhu.hlt.util.math.Vectors;
  * 
  * @author noandrews
  */
-public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
-                           implements Maximizer<DifferentiableFunction>,
-                                      Minimizer<DifferentiableFunction> {
+public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunction>
+                           implements Maximizer<ConstrainedDifferentiableFunction>,
+                                      Minimizer<ConstrainedDifferentiableFunction> {
 	
 	static Logger log = Logger.getLogger(VFSAOptimizer.class);
 	
@@ -56,14 +56,13 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 	int naccept;
 	int nsamples;
 	
-	public VFSAOptimizer(DifferentiableFunction f, Bounds bounds) {
+	public VFSAOptimizer(ConstrainedDifferentiableFunction f) {
 		super(f);
-		this.A = bounds.A;
-		this.B = bounds.B;
+
 		this.L = new double[f.getNumDimensions()];
 		log.info("dim(f) = " + f.getNumDimensions());
 		for(int i=0; i<A.length; i++) {
-			this.L[i] = B[i]-A[i];
+			this.L[i] = f.getBounds().getUpper(i)-f.getBounds().getLower(i);
 			log.info("L["+i+"]="+L[i]);
 		}
 		
@@ -147,7 +146,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 	}
 	
 	@Override
-	public boolean minimize(DifferentiableFunction function, double[] initial) {
+	public boolean minimize(ConstrainedDifferentiableFunction function, double[] initial) {
 		
 		this.f = function;
 		f.setPoint(initial);
@@ -298,7 +297,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 	}
 
 	@Override
-	public boolean maximize(DifferentiableFunction function, double[] point) {
+	public boolean maximize(ConstrainedDifferentiableFunction function, double[] point) {
 		
 		this.f = function;
 		f.setPoint(point);

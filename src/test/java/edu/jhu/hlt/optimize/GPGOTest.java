@@ -40,7 +40,7 @@ public class GPGOTest {
     	Logger.getRootLogger().setLevel(Level.DEBUG);
 		
     	// Parameters
-    	Kernel kernel = new SquaredExpKernel(1, 0.1);
+    	Kernel kernel = new SquaredExpKernel(1, 1);
     	
     	//Function f = new XSquared(0);
     	Function f = new Franks();
@@ -70,18 +70,26 @@ public class GPGOTest {
 		A[0] = -3.0;
 		B[0] = +3.0;
 		Bounds bounds = new Bounds(A, B);
-		GPGO opt = new GPGO(f, kernel, bounds, X, y, 0d);
+		ConstrainedFunction g = new FunctionOpts.FunctionWithConstraints(f, bounds);
+		GPGO opt = new GPGO(g, kernel, X, y, 0d);
 		
 		// Estimate the GP posterior
 		opt.estimatePosterior();
 		
 		// Try optimizing the expected loss given this posterior
 		RealVector min = opt.minimizeExpectedLoss();
+		log.info("min expected loss = " + min);
 		double xguess = min.getEntry(0);
 		double yguess = opt.loss.getValue(min.toArray());
 		
 		log.info("xguess = " + xguess);
 		log.info("yguess = " + yguess);
+		
+		// Test some other points of the loss function
+		double [] pt1 = {-1};
+		log.info("loss("+pt1[0]+")="+opt.loss.getValue(pt1));
+		double [] pt2 = {0};
+		log.info("loss("+pt2[0]+")="+opt.loss.getValue(pt2));
 		
 		List<Number> next_x = new ArrayList<Number>();
 		next_x.add(xguess);
@@ -107,16 +115,19 @@ public class GPGOTest {
 			grid.add(x);
 			fvals.add(f.getValue(new double[] {x}));
 			RegressionResult pred = opt.getRegressor().predict(new ArrayRealVector(new double[] {x}));
-			double obj = opt.getExpectedLoss().computeExpectedLoss(new ArrayRealVector(new double[] {x}));
+			double obj1 = opt.getExpectedLoss().computeExpectedLoss(new ArrayRealVector(new double[] {x}));
+			double obj2 = opt.loss.getValue(new double[] {x});
 			//double obj = 0;
-			//log.info("loss("+x+")="+obj);
+			
+			log.info("loss1("+x+")="+obj1);
+			log.info("loss2("+x+")="+obj2);
 			  
 			// GP predictions
 			posterior_mean.add(pred.mean);
 			posterior_var.add(pred.var);
 			  
 			// Loss
-			eloss.add(obj);
+			eloss.add(obj1);
 		}
 		
 		// Create Chart
