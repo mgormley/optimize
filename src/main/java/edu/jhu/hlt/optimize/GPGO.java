@@ -129,7 +129,7 @@ public class GPGO extends    Optimizer<Function>
 		RealVector x = getInitialPoint();
 		double[] xarr = x.toArray();
 		f.setPoint(xarr);
-		double y = f.getValue(xarr);
+		double y = f.getValue();
 		if(X==null){
 		    X = MatrixUtils.createRealMatrix(new double[][]{xarr}).transpose();
 		    this.y = this.y.append(y);
