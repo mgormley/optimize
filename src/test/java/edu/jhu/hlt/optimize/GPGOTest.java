@@ -40,7 +40,7 @@ public class GPGOTest {
     	Logger.getRootLogger().setLevel(Level.DEBUG);
 		
     	// Parameters
-    	Kernel kernel = new SquaredExpKernel(1, 1);
+    	Kernel kernel = new SquaredExpKernel(0.5, 0.1);
     	
     	//Function f = new XSquared(0);
     	Function f = new Franks();
@@ -76,25 +76,51 @@ public class GPGOTest {
 		// Estimate the GP posterior
 		opt.estimatePosterior();
 		
-		// Try optimizing the expected loss given this posterior
-		RealVector min = opt.minimizeExpectedLoss();
-		log.info("min expected loss = " + min);
-		double xguess = min.getEntry(0);
-		double yguess = opt.loss.getValue(min.toArray());
+		double [] start_pt = new double[] {-1.5};
+		opt.loss.setPoint(start_pt);
+		double start_loss = opt.loss.getValue();
+		List<Number> start_x = new ArrayList<Number>();
+		List<Number> start_y = new ArrayList<Number>();
 		
-		log.info("xguess = " + xguess);
+		start_x.add(start_pt[0]);
+		start_y.add(start_loss);
+		
+		log.info("Initial loss = l(" + start_pt[0] + ")="+start_loss);
+		
+		ConstrainedGradientDescentWithLineSearch local_opt = new ConstrainedGradientDescentWithLineSearch(25);
+		local_opt.minimize(opt.loss, start_pt);
+		double [] xguess = opt.loss.getPoint();
+		double yguess = opt.loss.getValue();
+		
+		log.info("xguess = " + xguess[0]);
 		log.info("yguess = " + yguess);
 		
 		// Test some other points of the loss function
-		double [] pt1 = {-1};
-		log.info("loss("+pt1[0]+")="+opt.loss.getValue(pt1));
-		double [] pt2 = {0};
-		log.info("loss("+pt2[0]+")="+opt.loss.getValue(pt2));
+		//double [] pt1 = {-1};
+		//opt.loss.setPoint(pt1);
+		//log.info("loss("+pt1[0]+")="+opt.loss.getValue());
+		//double [] pt2 = {0};
+		//opt.loss.setPoint(pt2);
+		//log.info("loss("+pt2[0]+")="+opt.loss.getValue());
 		
 		List<Number> next_x = new ArrayList<Number>();
-		next_x.add(xguess);
+		next_x.add(xguess[0]);
 		List<Number> next_y = new ArrayList<Number>();
 		next_y.add(yguess);
+		
+//		RealVector x_star = new ArrayRealVector(new double[] {-1.8});
+//		double [] loss_grad = opt.loss.computeExpectedLossGradient(x_star);
+//		
+//		double eps = 1e-6;
+//		RealVector x_plus_eps = x_star.copy();
+//		x_plus_eps.addToEntry(0, eps);
+//		RealVector x_minus_eps = x_star.copy();
+//		x_minus_eps.addToEntry(0, -eps);
+//		double approx_loss_grad = opt.loss.computeExpectedLoss(x_plus_eps) - opt.loss.computeExpectedLoss(x_minus_eps);
+//		approx_loss_grad /= 2*eps;
+		
+//		log.info("loss grad = " + loss_grad[0]);
+//		log.info("approx loss grad = " + approx_loss_grad);
 		
 		List<Number> posterior_mean = new ArrayList<Number>();
 		List<Number> posterior_var = new ArrayList<Number>();
@@ -114,6 +140,7 @@ public class GPGOTest {
 			
 			grid.add(x);
 			fvals.add(f.getValue(new double[] {x}));
+			RealVector x_star = new ArrayRealVector(new double[] {x});
 			RegressionResult pred = opt.getRegressor().predict(new ArrayRealVector(new double[] {x}));
 			double obj1 = opt.getExpectedLoss().computeExpectedLoss(new ArrayRealVector(new double[] {x}));
 			double obj2 = opt.loss.getValue(new double[] {x});
@@ -128,6 +155,20 @@ public class GPGOTest {
 			  
 			// Loss
 			eloss.add(obj1);
+			
+			// Gradient of loss
+			double [] loss_grad = opt.loss.computeExpectedLossGradient(x_star);
+	
+			double eps = 1e-6;
+			RealVector x_plus_eps = x_star.copy();
+			x_plus_eps.addToEntry(0, eps);
+			RealVector x_minus_eps = x_star.copy();
+			x_minus_eps.addToEntry(0, -eps);
+			double approx_loss_grad = opt.loss.computeExpectedLoss(x_plus_eps) - opt.loss.computeExpectedLoss(x_minus_eps);
+			approx_loss_grad /= 2*eps;
+			
+			log.info("loss grad = " + loss_grad[0]);
+			log.info("approx loss grad = " + approx_loss_grad);
 		}
 		
 		// Create Chart
@@ -162,6 +203,10 @@ public class GPGOTest {
 		Series series4 = chart.addSeries("Next eval", next_x, next_y);
 		series4.setMarker(SeriesMarker.TRIANGLE_DOWN);
 		series4.setMarkerColor(Color.CYAN);
+		
+		Series series5 = chart.addSeries("Start of local search", start_x, start_y);
+		series4.setMarker(SeriesMarker.TRIANGLE_DOWN);
+		series4.setMarkerColor(Color.GRAY);
 		
 		chart.getStyleManager().setYAxisMin(-3);
 		chart.getStyleManager().setYAxisMax(3);

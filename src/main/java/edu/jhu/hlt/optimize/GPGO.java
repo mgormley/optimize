@@ -42,11 +42,10 @@ public class GPGO extends    Optimizer<Function>
 	final int order = 1;            // up to what order derivatives to compute for the expected loss
 	
 	final boolean use_VFSA = false; // if VFSA is used to pick starting points for expected loss
-									// minimization
+									// minimization (if false, starting pts are uniform)
 	
 	final int depth = 100;          // how many iterations of local optimization
-	
-	final int width_mult = 10;      // do local searches from dim(f) * width_mult start locations
+	final int width = 10;           // how many points to start local searches from
 	
 	// Observations
 	RealMatrix X;
@@ -67,8 +66,9 @@ public class GPGO extends    Optimizer<Function>
 	double min_delta = 1e-2; // don't allow observations too close to each other
 	                         // otherwise you get singular matrices
 	
-	// How many function evaluations we are allowed
+	// How many function evaluations are allowed
 	int budget = 100;
+	int local_budget = 1000; // how many loss evaluations are allowed
 
 	// Introspection
 	long [] times;
@@ -104,7 +104,7 @@ public class GPGO extends    Optimizer<Function>
 		this.y = y;
 	}
 
-	private void furtherInit(){
+	private void furtherInit() {
 	    //note that we can't created X yet, because it will be filled in automatically
 	    //with zeros, thus giving us off-by-one errors (it will seem as though we have
 	    //one more observation than we actually do!!!
@@ -114,7 +114,7 @@ public class GPGO extends    Optimizer<Function>
 	    // 	X = MatrixUtils.createRealMatrix(this.f.getNumDimensions(),1);
 	    // }
 	    if(this.y==null){
-		this.y=new ArrayRealVector();
+	    	this.y=new ArrayRealVector();
 	    }
 	}
 	
@@ -203,7 +203,6 @@ public class GPGO extends    Optimizer<Function>
 	private RealVector getInitialPoint() {
 		double [] pt = new double[f.getNumDimensions()];
 		// Random starting location
-		double effective_upper, effective_lower;
 		for(int i=0; i<pt.length; i++) {
 		    double r  = Prng.nextDouble(); //r ~ U(0,1)
 		    pt[i] = loss.getBounds().transformFromUnitInterval(i,r);
@@ -255,22 +254,23 @@ public class GPGO extends    Optimizer<Function>
 		
 		if(use_VFSA) {
 			
-			// FIXME: needs testing / debugging
-			VFSAOptimizer opt = new VFSAOptimizer(loss);
-			opt.minimize();
-			double [] pt = f.getPoint();
-			points.add( new ArrayRealVector(pt) );
+			for(int i=0; i<this.width; i++) {
+				VFSAOptimizer opt = new VFSAOptimizer(loss, local_budget);
+				opt.minimize();
+				double [] pt = f.getPoint();
+				points.add( new ArrayRealVector(pt) );
+			}
 			
 		} else {
 			
 			Bounds bounds = loss.getBounds();
-			for(int i=0; i<this.width_mult * f.getNumDimensions(); i++) {
+			for(int i=0; i<this.width; i++) {
 				double [] pt = new double[f.getNumDimensions()];
-				// Random starting location
 				for(int k=0; k<pt.length; k++) {
 				    double r  = Prng.nextDouble(); //r ~ U(0,1)
 				    pt[k] = (bounds.getUpper(k)-bounds.getLower(k))*(r-1.0) + bounds.getUpper(k);
 				}
+				
 				points.add( new ArrayRealVector(pt) );
 			}
 			
@@ -391,47 +391,47 @@ public class GPGO extends    Optimizer<Function>
 	     * @param order Up to what order derivatives to compute
 	     * @return 		The expected loss (along with its first and second derivatives wrt x)
 	     */
-	    public DerivativeStructure computeExpectedLoss(RealVector x, int order) {
-	    	
-	    	// Initialize free variables
-	    	DerivativeStructure [] vars = new DerivativeStructure[x.getDimension()];
-	    	for(int k=0; k<vars.length; k++) {
-	    		vars[k] = new DerivativeStructure(x.getDimension(), order, k, x.getEntry(k));
-	    		//log.info("[AD] x["+k+"]="+vars[k].getValue());
-
-	    	}
-	    	
-	    	// Compute GP posterior mean and variance at x
-	    	DerivativeStructure mean = predictive_mean(vars);
-	    	DerivativeStructure var = predictive_var(vars);
-	    	
-	    	log.info("[AD loss] mean = " + mean.getValue());
-	    	log.info("[AD loss] var = " + var.getValue());
-	    		  
-	    	// Get function minimum found so far
-	    	DerivativeStructure min = new DerivativeStructure(x.getDimension(), order, minimumSoFar());
-
-	    	// Compute CDF and PDF at the minimum
-	    	DerivativeStructure cdf = Phi(min, mean, var);
-	    	DerivativeStructure pdf = phi(min, mean, var);
-
-	    	// Return the expected myopic loss
-	    	return min.add(cdf.multiply(mean.subtract(min))).subtract(var.multiply(pdf));
-	    }
+//	    public DerivativeStructure computeExpectedLoss(RealVector x, int order) {
+//	    	
+//	    	// Initialize free variables
+//	    	DerivativeStructure [] vars = new DerivativeStructure[x.getDimension()];
+//	    	for(int k=0; k<vars.length; k++) {
+//	    		vars[k] = new DerivativeStructure(x.getDimension(), order, k, x.getEntry(k));
+//	    		//log.info("[AD] x["+k+"]="+vars[k].getValue());
+//
+//	    	}
+//	    	
+//	    	// Compute GP posterior mean and variance at x
+//	    	DerivativeStructure mean = predictive_mean(vars);
+//	    	DerivativeStructure var = predictive_var(vars);
+//	    	
+//	    	log.info("[AD loss] mean = " + mean.getValue());
+//	    	log.info("[AD loss] var = " + var.getValue());
+//	    		  
+//	    	// Get function minimum found so far
+//	    	DerivativeStructure min = new DerivativeStructure(x.getDimension(), order, minimumSoFar());
+//
+//	    	// Compute CDF and PDF at the minimum
+//	    	DerivativeStructure cdf = Phi(min, mean, var);
+//	    	DerivativeStructure pdf = phi(min, mean, var);
+//
+//	    	// Return the expected myopic loss
+//	    	return min.add(cdf.multiply(mean.subtract(min))).subtract(var.multiply(pdf));
+//	    }
 	    
 	    public double computeExpectedLoss(RealVector x) {
 	    	
-	    	for(int k=0; k<x.getDimension(); k++) {
-	    		log.info("x["+k+"]="+x.getEntry(k));
-	    	}
+	    	//for(int k=0; k<x.getDimension(); k++) {
+	    	//	log.info("x["+k+"]="+x.getEntry(k));
+	    	//}
 	    	
 	    	// Compute GP posterior mean and variance at x
 	    	RegressionResult res = reg.predict(x);
 	    	double mean = res.mean;
 	    	double var = res.var;
 	    	
-	    	log.info("[loss] mean = " + mean);
-	    	log.info("[loss] var = " + var);
+	    	//log.info("[loss] mean = " + mean);
+	    	//log.info("[loss] var = " + var);
 	    	
 	    	assert(var > 0);
 	    	
@@ -451,14 +451,81 @@ public class GPGO extends    Optimizer<Function>
 	    	
 	    	return min + (mean-min)*cdf - var*pdf;
 	    }
+	    
+	    // Should probably compute both l(x) and dx l(x) in the same
+	    // method to avoid duplicate work
+	    public double [] computeExpectedLossGradient(RealVector x) {
+	    	double [] g = new double[x.getDimension()];
+	    	RegressionResult res = reg.predict(x);
+	    	double m = res.mean;
+	    	double c = res.var;
+	    	double stddev = Math.sqrt(c);
+	    	double [] dm = new double[x.getDimension()];
+	    	double [] dc = new double[x.getDimension()];
+	    	reg.computeMeanGradient(x, dm);
+	    	reg.computeCovarGradient(x, dc);
+	    	NormalDistribution N = new NormalDistribution();
+	    	double min = minimumSoFar();
+	    	double std_min = (min-m)/stddev;
+	    	double [] dmin = new double[x.getDimension()];
+	    	for(int i=0; i<x.getDimension(); i++) {
+	    		dmin[i] = (-dm[i]*stddev-(min-m)*(1.0/2*stddev)*dc[i])/c;
+	    	}
+	    	
+	    	// XXXX Debug: Check the dmin gradient
+//	    	double eps = 1e-6;
+//	    	// Perturb x
+//	    	RealVector x_plus_eps = x.copy();
+//	    	x_plus_eps.addToEntry(0, eps); 
+//	    	RegressionResult eps_res = reg.predict(x_plus_eps);
+//	    	double eps_m = eps_res.mean;
+//	    	double eps_c = eps_res.var;
+//	    	double eps_std_min = (min-eps_m)/Math.sqrt(eps_c);
+//	    	double approx_dmin = (eps_std_min - std_min) / eps;
+//	    	log.info("dmin = " + dmin[0]);
+//	    	log.info("approx dmin = " + approx_dmin);
+//	    	// end debug
+//	    			
+//	    	
+//	    	double eps_rhs = eps_c*N.density(eps_std_min)/Math.sqrt(eps_c);
+//	    	double rhs = c*N.density(std_min)/Math.sqrt(c);
+//	    	double approx_d_rhs = (eps_rhs-rhs)/eps;
+//	    	double d_rhs = 0.5*(1.0/stddev)*dc[0]*N.density(std_min) - stddev*std_min*N.density(std_min)*dmin[0];
+//	    	log.info("approx drhs = " + approx_d_rhs);
+//	    	log.info("drhs = " + d_rhs);
+//	    	
+////	    	log.info("min = " + min);
+////	    	log.info("m="+m);
+////	    	log.info("c="+c);
+	    	double pdf = N.density(std_min)/stddev;
+	    	double cdf = N.cumulativeProbability(std_min);
+//	    	
+////	    	NormalDistribution N2 = new NormalDistribution(m, stddev);
+////	    	double pdf2 = N2.density(min);
+////	    	double cdf2 = N2.cumulativeProbability(min);
+////	    	
+////	    	log.info("normal transform:");
+////	    	log.info(pdf);
+////	    	log.info(pdf2);
+////	    	log.info(cdf);
+////	    	log.info(cdf2);
+////	    	
+////	    	System.exit(1);
+	    	
+	    	for(int i=0; i<x.getDimension(); i++) {
+		    	double d2 = 0.5*(1.0/stddev)*dc[i]*N.density(std_min) - stddev*std_min*N.density(std_min)*dmin[i];
+	    		g[i] = dm[i]*cdf + m*pdf*dmin[i] - min*pdf*dmin[i] - d2;
+	    	}
+	    	
+	    	return g;
+	    }
 		
 		@Override
 		public void getGradient(double[] gradient) {
-			DerivativeStructure value = computeExpectedLoss(new ArrayRealVector(this.point), 1);
-			for(int i=0; i<n; i++) {
-				int [] orders = new int[n];
-				orders[i] = 1;
-				gradient[i] = value.getPartialDerivative(orders);
+			RealVector x = new ArrayRealVector(point);
+			double [] g = computeExpectedLossGradient(x);
+			for(int i=0; i<x.getDimension(); i++) {
+				gradient[i] = g[i];
 			}
 		}
 
@@ -476,11 +543,7 @@ public class GPGO extends    Optimizer<Function>
 
 		@Override
 		public double getValue(double[] point) {
-			
-			RealVector x = new ArrayRealVector(point);
-			DerivativeStructure res = computeExpectedLoss(x, order);
-			
-			return res.getValue();
+			return this.computeExpectedLoss(new ArrayRealVector(point));
 		}
 
 		@Override

@@ -8,6 +8,7 @@ package edu.jhu.hlt.optimize;
 public class Bounds {
 	public double [] A; // lower bounds
 	public double [] B; // upper bounds
+	
 	public Bounds(double [] A, double [] B) {
 		this.A = A;
 		this.B = B;
@@ -17,13 +18,23 @@ public class Bounds {
     	this.A=new double[dim];
     	this.B = new double[dim];
     }
+    
     public double getLower(int i){
     	return A[i];
     }
+    
     public double getUpper(int i){
     	return B[i];
     }
 
+    public boolean inBounds(double [] pt) {
+    	for(int i=0; i<pt.length; i++) {
+    		if (pt[i] > B[i]) return false;
+    		if (pt[i] < A[i]) return false;
+    	}
+    	return true;
+    }
+    
     /**
        Maps d \in [0,1] to transformed(d), such that
        transformed(d) \in [A[i], B[i]]. The transform is 

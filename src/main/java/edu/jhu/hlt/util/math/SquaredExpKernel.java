@@ -76,16 +76,11 @@ public class SquaredExpKernel implements Kernel {
 		return res.multiply(var*var);
 	}
 
-	@Override
-	public double grad_k(RealVector x1, RealVector x2, int i) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public double identity_grad_k(RealVector x1, int i) {
-		// TODO Auto-generated method stub
-		return 0;
+	public void grad_k(RealVector x1, RealVector x2, double [] grad) {
+		double kern = k(x1, x2);
+		for(int k=0; k<x1.getDimension(); k++) {
+			grad[k] = -(1.0/len_scale*len_scale)*(x2.getEntry(k)-x1.getEntry(k))*kern;
+		}
 	}
 	
 }

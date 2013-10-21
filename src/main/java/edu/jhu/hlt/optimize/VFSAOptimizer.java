@@ -40,14 +40,17 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 	double [] T0; // initial temperatures
 	
 	// Convergence parameters
+	int max_iter = 1000;
 	final int eps = 1000;
 	final double min_T = 1e-3;
 	
 	// Other magic numbers
+	final double MAX_TEMP = 1e5;
+	final double START_TEMP = 1e-2;  // heuristics will increase this to find a starting temperature
+	final int MAX_TRIALS = 100;      
 	int samples_per_temp;            // (see constructor)
 	int temps_between_reanneal = 10; // number of cooling iterations between adaptation steps
-	double desired_accept = 2d/3d;   // desired acceptance rate
-	double a_T1 = 1d;                // T0 for trial SA run used in setting actual T0 adaptively for desired_accept
+	double desired_accept = 0.90;    // desired initial acceptance rate
 	
 	// Options
 	boolean reanneal = false;
@@ -56,12 +59,14 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 	int naccept;
 	int nsamples;
 	
-	public VFSAOptimizer(ConstrainedDifferentiableFunction f) {
+	public VFSAOptimizer(ConstrainedDifferentiableFunction f, int maxiter) {
 		super(f);
-
+		
+		this.max_iter = maxiter;
+		
 		this.L = new double[f.getNumDimensions()];
 		log.info("dim(f) = " + f.getNumDimensions());
-		for(int i=0; i<A.length; i++) {
+		for(int i=0; i<f.getNumDimensions(); i++) {
 			this.L[i] = f.getBounds().getUpper(i)-f.getBounds().getLower(i);
 			log.info("L["+i+"]="+L[i]);
 		}
@@ -77,11 +82,38 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 			T0[i] = 100d;
 		}
 		
-		// Initialize control parameters
-		a_c = 0.25;
+		// Initialize parameters of the annealing schedules
+		a_c = 1.0;
 		c = new double[f.getNumDimensions()];
 		for(int i=0; i<c.length; i++) {
-			c[i] = 0.25;
+			c[i] = 1.0;
+		}
+		
+		// Counters
+		a_k = 0;
+		k = new int[f.getNumDimensions()];
+		for(int i=0; i<f.getNumDimensions(); i++) {
+			k[i] = 0;
+		}
+	}
+	
+	public void setAcceptanceT0(double t) {
+		this.a_T0 = t;
+	}
+	
+	public void setAcceptanceC(double c) {
+		this.a_c = c;
+	}
+	
+	public void setInitialT(double t) {
+		for(int i=0; i<f.getNumDimensions(); i++) {
+			this.T0[i] = t;
+		}
+	}
+	
+	public void setScheduleC(double c) {
+		for(int i=0; i<f.getNumDimensions(); i++) {
+			this.c[i] = c;
 		}
 	}
 	
@@ -89,6 +121,58 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 	private double estimateStartingTemp() {
 		// TODO using the Ben-Ameur method
 		return 1d;
+	}
+	
+	// Takes the currently set point and tries to sample around it
+	private void heuristicStartingTemp(boolean minimize) {
+		// Set the initial temperature really high
+		this.setAcceptanceT0(START_TEMP);
+		this.setInitialT(START_TEMP);
+		double naccept;
+		double rate;
+		int iter = 0;
+		int trials = 1000;
+		double curr_T0 = START_TEMP;
+		double [] curr = f.getPoint();
+		double [] start = new double[f.getNumDimensions()];
+		for(int i=0; i<f.getNumDimensions(); i++) {
+			start[i] = curr[i];
+		}
+		double curr_E = f.getValue();
+		log.info("start E = " + curr_E);
+		double [] next = new double[f.getNumDimensions()];
+		do {
+			curr_T0 *= 2.0;
+			
+			this.setAcceptanceT0(curr_T0);
+			this.setInitialT(curr_T0);
+			this.updateSchedules();
+			
+			naccept = 0;
+			for(int i=0; i<trials; i++) {
+				nextPoint(start, next);
+				
+				if(!f.getBounds().inBounds(next)) {
+					continue;
+				}
+				
+				double next_E = f.getValue(next);
+				//log.info("next E = " + next_E);
+				if(accept(next_E-curr_E,minimize)) {
+					naccept+=1;
+				}
+			}
+			rate = naccept/trials;
+			if(++iter > this.MAX_TRIALS) break;
+			if(curr_T0 > this.MAX_TEMP) break;
+			log.info("accept rate @ " + curr_T0 + " = " + rate);
+		} while(rate < desired_accept);
+		
+		log.info("starting T0 = " + curr_T0);
+				
+		// Set T0
+		this.setAcceptanceT0(curr_T0);
+		this.setInitialT(curr_T0);
 	}
 	
 	private void nextPoint(double [] curr, double [] next) {
@@ -158,7 +242,7 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 		if(minimize) {
 			if(delta < 0) return true;
 			double Tprob = Math.exp(-delta/a_T);
-			log.info("Accept prob = " + Tprob);
+			//log.info("Accept prob = " + Tprob);
 			if(Tprob > Prng.nextDouble()) return true;
 		} else {
 			if(delta > 0) return true;
@@ -169,6 +253,9 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 	}
 	
 	private boolean optimize(boolean minimize) {
+		
+		// Guess some hyperparameters
+		this.heuristicStartingTemp(minimize);
 		
 		double curr_E = f.getValue();
 		double next_E;
@@ -192,16 +279,14 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 		//  - Optimum hasn't changed in the last epsilon iterations
 		//  - Temperature becomes sufficiently close to 0
 		int cntr = 0;
-		a_k = 0;
-		k = new int[f.getNumDimensions()];
-		for(int i=0; i<f.getNumDimensions(); i++) {
-			k[i] = 0;
-		}
 		int iter = 0;
+		int naccept_per_temp;
 		while(true) {
 			
 			// Set the temperatures
 			updateSchedules();
+			
+			naccept_per_temp = 0;
 			
 			// Try to make samples_per_temp moves
 			for(int m=0; m<samples_per_temp; m++) {
@@ -219,8 +304,10 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 				double delta = next_E - curr_E;
 				log.info("delta = " + delta);
 			
+				boolean in_bounds = f.getBounds().inBounds(next_point);
+				
 				// Accept/reject
-				if(accept(delta, minimize)) {
+				if(in_bounds && accept(delta, minimize)) {
 					
 					log.info("\t======= accepted! =======\t");
 					
@@ -232,6 +319,7 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 					
 					curr_E = next_E;
 				
+					naccept_per_temp += 1;
 					naccept += 1;
 					
 					// Update optimum so far
@@ -256,6 +344,9 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 				}
 			}
 			
+			double accept_rate = (double)naccept_per_temp/(double)samples_per_temp*100.0;
+			log.info("Accept rate at T="+a_T+": " + accept_rate);
+			
 			// Check for convergence
 			if(cntr > eps) {
 				log.info("CONVERGED: no change in optimum");
@@ -265,11 +356,14 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 				log.info("CONVERGED: negligible temperature");
 				break; // Negligible temperature
 			}
-			
 			if(++iter % temps_between_reanneal == 0) {
 				if(reanneal) {
 					reAnneal(best_point);
 				}
+			}
+			if(iter>this.max_iter) {
+				log.info("CONVERGED: max iterations reached");
+				break;
 			}
 			
 			// Increment k's for the T schedules

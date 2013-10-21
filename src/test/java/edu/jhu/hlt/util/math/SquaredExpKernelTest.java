@@ -14,6 +14,9 @@ import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.SGDQNCorrectedTest;
 
+/**
+ * @author noandrews
+ */
 public class SquaredExpKernelTest {
 
 	static Logger log = Logger.getLogger(SquaredExpKernelTest.class);
@@ -99,6 +102,40 @@ public class SquaredExpKernelTest {
 		log.info("X col = " + X.getColumnDimension());
 		RealMatrix K = kernel.K(X);
 		log.info("K = " + K);
+	}
+	
+	@Test
+	public void gradientTest() {
+		BasicConfigurator.configure();
+    	Logger.getRootLogger().setLevel(Level.DEBUG);
+		
+		RealVector x1 = new ArrayRealVector(new double[] {1, 1});
+		RealVector x2 = new ArrayRealVector(new double[] {2, 3});
+		double variance = 1d;
+		double len_scale = 1d;
+		SquaredExpKernel kernel = new SquaredExpKernel(variance, len_scale);
+		
+		// Compute gradient
+		double [] grad = new double[x1.getDimension()];
+		kernel.grad_k(x1, x2, grad);
+		
+		// Go through each dimension and compare it to the FD approx
+		double eps = 1e-4;
+		for(int k=0; k<x1.getDimension(); k++) {
+			double exact_g = grad[k];
+			RealVector lower = x2.copy();
+			lower.setEntry(k, x2.getEntry(k)-eps);
+			RealVector upper = x2.copy();
+			upper.setEntry(k, x2.getEntry(k)+eps);
+			double central_approx_g = (kernel.k(x1, upper) - kernel.k(x1, lower))/(2*eps);
+			double fwd_approx_g = (kernel.k(x1, upper) - kernel.k(x1, x2))/eps;
+			log.info("exact="+exact_g);
+			log.info("approx1="+central_approx_g);
+			log.info("approx2="+fwd_approx_g);
+			assertEquals(exact_g, fwd_approx_g, 1e-3);
+		}
+		
+		
 	}
 	
 }
