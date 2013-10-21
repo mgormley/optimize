@@ -102,7 +102,7 @@ public class VFSAOptimizer extends    Optimizer<DifferentiableFunction>
 		
 	}
 	
-	private double getCauchy(double t) {
+	public static double getCauchy(double t) {
 		double u = Prng.nextDouble();
 		return Math.signum(u-0.5d)*t*(Math.pow(1d+1d/t, Math.abs(2d*u-1d))-1d);
 	}
