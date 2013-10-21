@@ -1,5 +1,7 @@
 package edu.jhu.hlt.optimize;
 
+import static org.junit.Assert.assertEquals;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -205,8 +207,8 @@ public class GPGOTest {
 		series4.setMarkerColor(Color.CYAN);
 		
 		Series series5 = chart.addSeries("Start of local search", start_x, start_y);
-		series4.setMarker(SeriesMarker.TRIANGLE_DOWN);
-		series4.setMarkerColor(Color.GRAY);
+		series5.setMarker(SeriesMarker.TRIANGLE_DOWN);
+		series5.setMarkerColor(Color.GRAY);
 		
 		chart.getStyleManager().setYAxisMin(-3);
 		chart.getStyleManager().setYAxisMax(3);
@@ -219,6 +221,55 @@ public class GPGOTest {
 	    
 	    log.info("done!");
 		
+	}
+	
+	@Test
+	public void Rastrigins() {
+
+		BasicConfigurator.configure();
+		Logger.getRootLogger().setLevel(Level.DEBUG);
+
+		Prng.seed(42);
+
+		int D;
+		int maxiter = 100;
+
+		// Low dimensions
+		D = 2;
+
+		DifferentiableFunction f = new Rastrigins(D);
+		// The rastrigin optimum is at vec(0)
+
+		// Optimization bounds: −5.12 ≤ xi ≤ 5.12
+		double [] L = new double[D];
+		double [] U = new double[D];
+		double [] start = new double[D];
+		for(int i=0; i<D; i++) {
+			L[i] = -5.12;
+			U[i] = 5.12;
+			start[i] = Prng.nextDouble();
+		}
+		f.setPoint(start);
+		log.info("starting pt = ("+start[0]+", "+start[1]+")");
+		Bounds b = new Bounds(L, U);
+
+		ConstrainedDifferentiableFunction g = new FunctionOpts.DifferentiableFunctionWithConstraints(f, b);
+		
+		SquaredExpKernel kernel = new SquaredExpKernel();
+		GPGO opt = new GPGO(g, kernel, maxiter);
+
+		opt.minimize();
+
+		double [] opt_point = f.getPoint();
+		double opt_val = f.getValue();
+
+		log.info("found opt val = " + opt_val);
+		assertEquals(0, opt_val, 0.1);
+
+		// see how close we are to the opt point
+		for(int i=0; i<D; i++) {
+			assertEquals(0, opt_point[i], 0.1);
+		}
 	}
 	
 	public static void main(String [] args) {

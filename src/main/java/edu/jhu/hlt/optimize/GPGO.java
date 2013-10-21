@@ -38,21 +38,12 @@ public class GPGO extends    Optimizer<Function>
 
 	static Logger log = Logger.getLogger(GPGO.class);
 	
-	// Settings
-	final int order = 1;            // up to what order derivatives to compute for the expected loss
-	
-	final boolean use_VFSA = false; // if VFSA is used to pick starting points for expected loss
-									// minimization (if false, starting pts are uniform)
-	
-	final int depth = 100;          // how many iterations of local optimization
-	final int width = 10;           // how many points to start local searches from
-	
 	// Observations
 	RealMatrix X;
 	RealVector y;
-	double noise;
 	
 	// Prior
+	double noise;
 	Kernel prior;
 	RealMatrix K;
 	
@@ -64,12 +55,16 @@ public class GPGO extends    Optimizer<Function>
 	
 	// Magic numbers
 	double min_delta = 1e-2; // don't allow observations too close to each other
-	                         // otherwise you get singular matrices
 	
-	// How many function evaluations are allowed
-	int budget = 100;
-	int local_budget = 1000; // how many loss evaluations are allowed
+	int budget = 100; 	            // # of GPGO iterations
 
+	// These next two parameters control the time-accuracy tradeoff in picking the
+	// next point to evaluate.
+	boolean use_SA = true;
+	final int width = 10000;        // # of expected loss evaluations used to find starting point for
+									// local optimization
+	final int depth = 100;          // # of expected loss + gradient evalutaions to optimize expected loss
+	
 	// Introspection
 	long [] times;
 	double [] guesses;
@@ -80,9 +75,10 @@ public class GPGO extends    Optimizer<Function>
 	   This constructor will safely initialize y though.
 	 */
 	// FIXME: don't take in bounds, but a BoundedFunction instead
-	public GPGO(ConstrainedFunction f, Kernel prior) {
+	public GPGO(ConstrainedFunction f, Kernel prior, double noise) {
 		super(f);
 		this.prior = prior;
+		this.noise = noise;
 		this.loss = new ExpectedMyopicLoss(f.getNumDimensions(), f.getBounds());
 		furtherInit();
 	}
@@ -92,14 +88,14 @@ public class GPGO extends    Optimizer<Function>
 	   X will be filled in automatically. optimize accounts for this.
 	   This constructor will safely initialize y though.
 	 */	
-	public GPGO(ConstrainedFunction f, Kernel prior, int budget) {
-		this(f, prior);
+	public GPGO(ConstrainedFunction f, Kernel prior, double noise, int budget) {
+		this(f, prior, noise);
 		this.budget = budget;
 		furtherInit();
 	}
 	
 	public GPGO(ConstrainedFunction f, Kernel prior, RealMatrix X, RealVector y, double noise) {
-		this(f, prior);
+		this(f, prior, noise);
 		this.X = X;
 		this.y = y;
 	}
@@ -152,14 +148,17 @@ public class GPGO extends    Optimizer<Function>
 			// Pick the next point to evaluate
 			RealVector min = minimizeExpectedLoss();
 			
-			// Take (x,y) and add it to observations
+			// Compute f(min) = y
 			f.setPoint(min.toArray());
 			y = f.getValue();
+			
+			log.info("l(min) = " + y);
 			
 			currTime = System.currentTimeMillis();
 			times[iter] = currTime - startTime;
 			guesses[iter] = minimumSoFar();
 			
+			// Add (min, y) to the observations
 			updateObservations(min, y);
 		}
 		
@@ -173,6 +172,16 @@ public class GPGO extends    Optimizer<Function>
 
 		List<RealVector> pts = getPointsToProbe();
 		
+		// Get the initial minimum
+		for(RealVector pt : pts) {
+			double l = loss.computeExpectedLoss(pt);
+			if(l<best_y) {
+				best_x = pt.toArray();
+				best_y = l;
+			}
+		}
+		
+		// Run a local search starting from each of the returned points
 		for(RealVector pt : pts) {
 			ConstrainedGradientDescentWithLineSearch opt = new ConstrainedGradientDescentWithLineSearch(this.depth);
 			opt.minimize(loss, pt.toArray());
@@ -252,14 +261,12 @@ public class GPGO extends    Optimizer<Function>
 	public List<RealVector> getPointsToProbe() {
 		List<RealVector> points = new ArrayList<RealVector>();
 		
-		if(use_VFSA) {
+		if(use_SA) {
 			
-			for(int i=0; i<this.width; i++) {
-				VFSAOptimizer opt = new VFSAOptimizer(loss, local_budget);
-				opt.minimize();
-				double [] pt = f.getPoint();
-				points.add( new ArrayRealVector(pt) );
-			}
+			ParameterFreeSAOptimizer opt = new ParameterFreeSAOptimizer(loss, width);
+			opt.minimize();
+			double [] pt = f.getPoint();
+			points.add( new ArrayRealVector(pt) );
 			
 		} else {
 			
@@ -432,8 +439,8 @@ public class GPGO extends    Optimizer<Function>
 	    	
 	    	//log.info("[loss] mean = " + mean);
 	    	//log.info("[loss] var = " + var);
-	    	
-	    	assert(var > 0);
+	    
+	    	//assert(var > 0);
 	    	
 	    	// Get function minimum found so far
 	    	double min = minimumSoFar();

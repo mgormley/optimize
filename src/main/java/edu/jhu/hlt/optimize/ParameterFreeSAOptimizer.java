@@ -3,6 +3,10 @@ package edu.jhu.hlt.optimize;
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.util.Prng;
+import edu.jhu.hlt.util.math.Vectors;
+
+import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
+import org.apache.commons.math3.linear.MatrixUtils;
 
 /**
  * "An Efficient Simulated Annealing Schedule"
@@ -12,6 +16,7 @@ import edu.jhu.hlt.util.Prng;
  * VA Cicirello
  * 
  * These papers suggest a bunch of heuristics to pick the temperature schedule.
+ * The generating function is an N-dimension Gaussian centered at the current point.
  * 
  * @author noandrews
  */
@@ -20,22 +25,38 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 
 	static Logger log = Logger.getLogger(ParameterFreeSAOptimizer.class);
 	
-	int max_trials = 100;
+	final double eps = 1e-4;
+	int max_trials = 100; // maximum # of trials to find a point inside the bounds
+	double K;             // damping to track acceptance rate
 	double T = 0.5;
 	double [] curr;
 	int max_eval;
+	double [] covar;
+	MultivariateNormalDistribution N;
 	
 	public ParameterFreeSAOptimizer(ConstrainedFunction f, int max_eval) {
 		super(f);
 		curr = new double[f.getNumDimensions()];
+		covar = new double[f.getNumDimensions()];
 		this.max_eval = max_eval;
+		this.K = (double)max_eval * 0.1;
+	}
+	
+	private void updateCovar(double frac) {
+		for(int i=0; i<covar.length; i++) {
+			double L = (f.getBounds().getUpper(i)-f.getBounds().getLower(i));
+			covar[i] = (1-frac)*L;
+			//log.info("covar " + i + " = " + covar[i]);
+		}
 	}
 
-	// This uses the VFSA proposal
 	private void nextRandomState(double [] curr, double [] next) {
-		for(int i=0;i<curr.length; i++) {
-			double r = VFSAOptimizer.getCauchy(T);
-			next[i] = curr[i] + r*(f.getBounds().getUpper(i) - f.getBounds().getLower(i));
+		double [][] C = MatrixUtils.createRealDiagonalMatrix(covar).getData();
+		double [] m = new double[f.getNumDimensions()];
+		N = new MultivariateNormalDistribution(curr, C);
+		double [] sample = N.sample();
+		for(int i=0; i<sample.length; i++) {
+			next[i] = sample[i];
 		}
 	}
 	
@@ -50,13 +71,29 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 		
 		T = 0.5;
 		double accept_rate = 0.5;
+		//int total_accept = 0;
+		
+		log.info("initial energy = " + curr_E);
 		
 		for(int i=1; i<max_eval; i++) {
 			
-			nextRandomState(curr, next);
+			double frac = (double)i/(double)max_eval;
+			
+			// Set the variance of the proposal distribution
+			updateCovar(frac);
+			
+			for(int j=0; j<max_trials; j++) {
+				nextRandomState(curr, next);
+				if(f.getBounds().inBounds(next)) 
+					break;
+			}
+			
+			//log.info( "euc(curr,next) = " + Vectors.euclid(curr, next) );
 				
 			f.setPoint(next);
 			next_E = f.getValue();
+			
+			//log.info("next=("+next[0]+", "+next[1]+"), energy = " + next_E);
 			
 			boolean accepted = false;
 			if(next_E < curr_E) {
@@ -65,7 +102,7 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 				accepted = true;
 			} else {
 				double r = Prng.nextDouble();
-				if (r<Math.exp(curr_E-next_E)/T) {
+				if (r<Math.exp((curr_E-next_E)/T)) {
 					// accept move
 					accept_rate = (1.0/500)*(499.0*accept_rate+1);
 					accepted = true;
@@ -76,12 +113,17 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 			}
 			
 			if(accepted) {
+				//log.info("accepted!");
+				//total_accept += 1;
+				
+				// Update current point and associated energy
 				curr_E = next_E;
 				for(int j=0; j<curr.length; j++) {
 					curr[j] = next[j];
 				}
 				
-				if(curr_E > best_E) {
+				// Check if current updated point is the best so far
+				if(curr_E < best_E) {
 					best_E = curr_E;
 					for(int j=0; j<curr.length; j++) {
 						best[j] = curr[j];
@@ -90,7 +132,6 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 			}
 			
 			double lamRate = 0.44;
-			double frac = i/(double)max_eval;
 			if(frac < 0.15) {
 				lamRate = 0.44 + 0.56*Math.pow(560.0, -frac/0.15);
 			} 
@@ -100,15 +141,17 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 			if(frac >= 0.65) {
 				lamRate = 0.44 * Math.pow(440.0, -(frac-0.65)/0.35);
 			}
-			if(accept_rate > lamRate) {
-				T *= 0.999;
-			} else {
-				T /= 0.999;
-			}
+			//log.info("accept rate = " + accept_rate);
+			//log.info("lam rate = " + lamRate);
 			
-			log.info("iter " + i + ": T="+T+" best_E="+best_E);
+			// Update T to get desired acceptance rate
+			T = (1.0 - (accept_rate-lamRate)/K)*T;
+			
+			//log.info("iter " + i + ": T="+T+" best_E="+best_E);
 		}
 				
+		//log.info("total accepted = " + total_accept);
+		
 		// Set the best point
 		f.setPoint(best);
 		

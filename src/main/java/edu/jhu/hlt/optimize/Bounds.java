@@ -19,11 +19,11 @@ public class Bounds {
 		this.B = new double[dim];
     }
     
-    public double getLower(int i){
+    public double getLower(int i) {
     	return A[i];
     }
     
-    public double getUpper(int i){
+    public double getUpper(int i) {
     	return B[i];
     }
 

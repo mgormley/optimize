@@ -48,11 +48,13 @@ public class GPRegression {
 		CholeskyDecomposition decomp;
 		RealVector alpha;
 		Kernel kernel;
-		public GPRegressor(RealMatrix X, CholeskyDecomposition decomp, RealVector alpha, Kernel kernel) {
+		double noise;
+		public GPRegressor(RealMatrix X, CholeskyDecomposition decomp, RealVector alpha, Kernel kernel, double noise) {
 			this.X = X;
 			this.decomp = decomp;
 			this.alpha = alpha;
 			this.kernel = kernel;
+			this.noise = noise;
 		}
 		
 		public RegressionResult predict(RealVector x_star) {
@@ -65,8 +67,8 @@ public class GPRegression {
 			RealVector v = k_star.copy();
 			MatrixUtils.solveLowerTriangularSystem(decomp.getL(), v);
 			double predicted_var = x_star_covar - v.dotProduct(v);
-			assert(predicted_var > 0) : "variance not strictly positive";
-			return new RegressionResult(predicted_mean, predicted_var);
+			//assert(predicted_var > 0) : "variance not strictly positive";
+			return new RegressionResult(predicted_mean, predicted_var+noise);
 		}
 		
 		/*
@@ -157,7 +159,7 @@ public class GPRegression {
 		RealVector alpha = y.copy();
 		MatrixUtils.solveLowerTriangularSystem(L, alpha);
 		MatrixUtils.solveUpperTriangularSystem(LT, alpha);
-		return new GPRegressor(X, decomp, alpha, kernel);
+		return new GPRegressor(X, decomp, alpha, kernel, noise);
 	}
 	
 	public static RegressionResult predict(RealMatrix x,        // train inputs

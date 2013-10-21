@@ -15,6 +15,14 @@ public class Vectors {
         // private constructor
     }
    
+    public static double euclid(double [] u, double [] v) {
+    	double d = 0;
+    	for(int i=0; i<u.length; i++) {
+    		d += Math.pow(v[i]-u[i], 2);
+    	}
+    	return d;
+    }
+    
     public static double norm2(double [] vector) {
     	double sum = 0d;
     	for(double v : vector) {

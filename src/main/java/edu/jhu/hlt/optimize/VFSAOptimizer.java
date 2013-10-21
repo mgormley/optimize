@@ -187,7 +187,8 @@ public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunctio
 	
 	public static double getCauchy(double t) {
 		double u = Prng.nextDouble();
-		return Math.signum(u-0.5d)*t*(Math.pow(1d+1d/t, Math.abs(2d*u-1d))-1d);
+		double x = Math.pow(1.0+1.0/t, Math.abs(2.0*u-1));
+		return Math.signum(u-0.5d)*t*(x-1.0);
 	}
 	
 	// Update T for the acceptance rate and for each input variable
