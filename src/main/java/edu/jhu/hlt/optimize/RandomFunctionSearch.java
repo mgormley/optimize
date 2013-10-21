@@ -40,8 +40,6 @@ public class RandomFunctionSearch {
     double noise;
 	
     // Magic numbers
-    double min_delta = 1e-2; // don't allow observations too close to each other
-    // otherwise you get singular matrices
     int budget = 100;        
 
     // Introspection
@@ -50,12 +48,12 @@ public class RandomFunctionSearch {
     double[][] points;
 	
     public RandomFunctionSearch(Function f, Bounds bounds) {
-	this.function = f;
-	this.bounds = bounds;
+    	this.function = f;
+    	this.bounds = bounds;
     }
 		
     public boolean sample(){
-	return sample(numSamplesToTake);
+    	return sample(numSamplesToTake);
     }
 
     /**
@@ -65,74 +63,75 @@ public class RandomFunctionSearch {
      * @return
      */
     public boolean sample(int numTimes){
-	// Initialization
-	RealVector x;	    
-	// Initialize storage for introspection purposes
-	times = new long[numTimes];
-	guesses = new double[numTimes];
-	points = new double[numTimes][];
-	long startTime = System.currentTimeMillis();
-	long currTime;
-	for(int iter=0;iter<numTimes;iter++){
-	    points[iter] = getInitialPointArray();
-	    x= new ArrayRealVector(points[iter]);
-	    function.setPoint(x.toArray());
-	    double y = function.getValue(x.toArray());
-	    //updateObservations(x, y);				
-	    // Take (x,y) and add it to observations
-	    currTime = System.currentTimeMillis();
-	    times[iter] = currTime - startTime;
-	    guesses[iter] = y;
-	}		
-	return true;
+    	// Initialization
+    	RealVector x;	    
+    	// Initialize storage for introspection purposes
+    	times = new long[numTimes];
+    	guesses = new double[numTimes];
+    	points = new double[numTimes][];
+    	long startTime = System.currentTimeMillis();
+    	long currTime;
+    	for(int iter=0;iter<numTimes;iter++){
+    		points[iter] = getInitialPointArray();
+    		x= new ArrayRealVector(points[iter]);
+    		function.setPoint(x.toArray());
+    		double y = function.getValue();
+    		//updateObservations(x, y);				
+    		// Take (x,y) and add it to observations
+    		currTime = System.currentTimeMillis();
+    		times[iter] = currTime - startTime;
+    		guesses[iter] = y;
+    	}		
+    	return true;
     }
 	
     // This is needlessly inefficient: should just store a list of vectors
     private void updateObservations(RealVector x, double fx) {
-	//RealMatrix new_X = new RealMatrix(X.getColumnDimension()+1, X.getRowDimension());
-	System.out.println("creating...");
-	RealMatrix X_new = X.createMatrix(X.getColumnDimension()+1, X.getRowDimension());
-	System.out.println("done!");
-	for(int i=0; i<X.getColumnDimension(); i++) {
-	    X_new.setColumnVector(i, X.getColumnVector(i));
-	}
-	X_new.setColumnVector(X.getColumnDimension(), x);
-	y.append(fx);
+    	//RealMatrix new_X = new RealMatrix(X.getColumnDimension()+1, X.getRowDimension());
+    	System.out.println("creating...");
+    	RealMatrix X_new = X.createMatrix(X.getColumnDimension()+1, X.getRowDimension());
+    	System.out.println("done!");
+    	for(int i=0; i<X.getColumnDimension(); i++) {
+    		X_new.setColumnVector(i, X.getColumnVector(i));
+    	}
+    	X_new.setColumnVector(X.getColumnDimension(), x);
+    	y.append(fx);
     }
 	
     private RealVector getInitialPoint() {
-	return new ArrayRealVector(getInitialPointArray());
+    	return new ArrayRealVector(getInitialPointArray());
     }
+    
     private double[] getInitialPointArray() {
-	double [] pt = new double[function.getNumDimensions()];
-	// Random starting location
-	for(int i=0; i<pt.length; i++) {
-	    double r  = Prng.nextDouble(); //r ~ U(0,1)
-	    //pt[i] = (bounds.getUpper(i)-bounds.getLower(i))*(r-1.0) + bounds.getUpper(i);
-	    pt[i] = this.bounds.transformFromUnitInterval(i,r);
-	}
-	return pt;
+    	double [] pt = new double[function.getNumDimensions()];
+    	// Random starting location
+    	for(int i=0; i<pt.length; i++) {
+    		double r  = Prng.nextDouble(); //r ~ U(0,1)
+    		//pt[i] = (bounds.getUpper(i)-bounds.getLower(i))*(r-1.0) + bounds.getUpper(i);
+    		pt[i] = this.bounds.transformFromUnitInterval(i,r);
+    	}
+    	return pt;
     }
 	
     // Introspection
     public double [] getBestGuessPerIteration() {
-	return guesses;
+    	return guesses;
     }
 	
     public long [] getCumulativeMillisPerIteration() {
-	return times;
+    	return times;
     }
 
     public double[][] getPoints(){
-	return points;
+    	return points;
     }
 
     private double minimumSoFar() {
-	double min = Double.POSITIVE_INFINITY;
-	for(int i=0; i<y.getDimension(); i++) {
-	    double d = y.getEntry(i);
-	    if(d<min) min=d;
-	}
-	return min;
+    	double min = Double.POSITIVE_INFINITY;
+    	for(int i=0; i<y.getDimension(); i++) {
+    		double d = y.getEntry(i);
+    		if(d<min) min=d;
+    	}
+    	return min;
     }
 }

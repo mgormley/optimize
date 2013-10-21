@@ -33,7 +33,6 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 
 	// This uses the VFSA proposal
 	private void nextRandomState(double [] curr, double [] next) {
-		this.f.getBounds().
 		for(int i=0;i<curr.length; i++) {
 			double r = VFSAOptimizer.getCauchy(T);
 			next[i] = curr[i] + r*(f.getBounds().getUpper(i) - f.getBounds().getLower(i));

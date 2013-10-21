@@ -9,5 +9,5 @@ public interface Kernel {
 	public DerivativeStructure k(RealVector x, DerivativeStructure [] x_star);
 	public double k(RealVector x1, RealVector x2);
 	public RealMatrix K(RealMatrix x);             // TODO: shouldn't use a dense matrix here since it's pos. semi-def.
-	
+	public void grad_k(RealVector x1, RealVector x2, double [] grad);
 }

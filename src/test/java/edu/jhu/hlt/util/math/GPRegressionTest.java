@@ -1,5 +1,7 @@
 package edu.jhu.hlt.util.math;
 
+import static org.junit.Assert.*;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,100 @@ import edu.jhu.hlt.util.math.GPRegression.RegressionResult;
 public class GPRegressionTest {
 
 	static Logger log = Logger.getLogger(GPRegressionTest.class);
+	
+	@Test
+	public void TwoDGradientTest() {
+		BasicConfigurator.configure();
+    	Logger.getRootLogger().setLevel(Level.DEBUG);
+		
+    	// Parameters
+    	Kernel kernel = new SquaredExpKernel(1d, 1d);
+    	double noise = 0d;
+    	
+    	// Training data
+    	double [][] xs = {{-3,1},{-2,2},{-1,3}, {1,4}, {2,5}, {3,6}};
+		RealMatrix X = MatrixUtils.createRealMatrix(xs).transpose();
+		double [] ys = new double[xs.length];
+		for(int i=0; i<ys.length; i++) {
+			ys[i] = Math.pow(xs[i][0]-xs[i][1],2);
+		}
+		RealVector y = new ArrayRealVector(ys);
+
+		GPRegressor reg = GPRegression.trainRegressor(X, y, kernel, noise);
+		
+		double [] g = new double[xs[0].length];
+		double eps = 1e-6;
+		RealVector x_star = new ArrayRealVector(new double[] {1.5, 1.5});
+		RealVector x_star_plus_eps = x_star.copy();
+		RealVector x_star_minus_eps = x_star.copy();
+		x_star_plus_eps.addToEntry(0, eps);
+		x_star_minus_eps.addToEntry(0, -eps);
+		reg.computeMeanGradient(x_star, g);
+		double approx_g = reg.predict(x_star_plus_eps).mean - reg.predict(x_star).mean;
+		approx_g /= eps;
+		log.info(g[0]);
+		log.info(approx_g);
+		
+		assertEquals(g[0], approx_g, 1e-3);
+		
+		reg.computeCovarGradient(x_star, g);
+		approx_g = reg.predict(x_star_plus_eps).var - reg.predict(x_star).var;
+		approx_g /= eps;
+		double approx_g_2 = reg.predict(x_star_plus_eps).var - reg.predict(x_star_minus_eps).var;
+		approx_g_2 /= 2*eps;
+		log.info("exact = " + g[0]);
+		log.info("approx = " + approx_g);
+		log.info("approx 2 = " + approx_g_2);
+		assertEquals(g[0], approx_g, 1e-3);
+		
+	}
+	
+	@Test
+	public void OneDGradientTest() {
+		BasicConfigurator.configure();
+    	Logger.getRootLogger().setLevel(Level.DEBUG);
+		
+    	// Parameters
+    	Kernel kernel = new SquaredExpKernel(1d, 1d);
+    	Function f = new XSquared(0);
+    	double noise = 0d;
+    	
+    	// Training data
+    	double [][] xs = {{-3},{-2},{-1}, {1}, {2}, {3}};
+		RealMatrix X = MatrixUtils.createRealMatrix(xs).transpose();
+		double [] ys = new double[xs.length];
+		for(int i=0; i<ys.length; i++) {
+			ys[i] = f.getValue(xs[i]);
+		}
+		RealVector y = new ArrayRealVector(ys);
+
+		GPRegressor reg = GPRegression.trainRegressor(X, y, kernel, noise);
+		
+		double [] g = new double[1];
+		double eps = 1e-6;
+		RealVector x_star = new ArrayRealVector(new double[] {1.5});
+		RealVector x_star_plus_eps = x_star.copy();
+		RealVector x_star_minus_eps = x_star.copy();
+		x_star_plus_eps.addToEntry(0, eps);
+		x_star_minus_eps.addToEntry(0, -eps);
+		reg.computeMeanGradient(x_star, g);
+		double approx_g = reg.predict(x_star_plus_eps).mean - reg.predict(x_star).mean;
+		approx_g /= eps;
+		log.info(g[0]);
+		log.info(approx_g);
+		
+		assertEquals(g[0], approx_g, 1e-3);
+		
+		reg.computeCovarGradient(x_star, g);
+		approx_g = reg.predict(x_star_plus_eps).var - reg.predict(x_star).var;
+		approx_g /= eps;
+		double approx_g_2 = reg.predict(x_star_plus_eps).var - reg.predict(x_star_minus_eps).var;
+		approx_g_2 /= 2*eps;
+		log.info("exact = " + g[0]);
+		log.info("approx = " + approx_g);
+		log.info("approx 2 = " + approx_g_2);
+		assertEquals(g[0], approx_g, 1e-3);
+	}
 	
 	@Test
 	public void regressionTest() {

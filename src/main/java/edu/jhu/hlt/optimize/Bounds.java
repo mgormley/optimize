@@ -26,6 +26,14 @@ public class Bounds {
     public double getUpper(int i){
     	return B[i];
     }
+
+    public boolean inBounds(double [] pt) {
+    	for(int i=0; i<pt.length; i++) {
+    		if (pt[i] > B[i]) return false;
+    		if (pt[i] < A[i]) return false;
+    	}
+    	return true;
+    }
     
     /**
        Maps d \in [0,1] to transformed(d), such that

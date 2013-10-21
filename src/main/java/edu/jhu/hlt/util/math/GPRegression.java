@@ -45,12 +45,12 @@ public class GPRegression {
 	// TODO: this should implement a generic "Regressor" interface
 	public static class GPRegressor {
 		RealMatrix X;
-		RealMatrix L;
+		CholeskyDecomposition decomp;
 		RealVector alpha;
 		Kernel kernel;
-		public GPRegressor(RealMatrix X, RealMatrix L, RealVector alpha, Kernel kernel) {
+		public GPRegressor(RealMatrix X, CholeskyDecomposition decomp, RealVector alpha, Kernel kernel) {
 			this.X = X;
-			this.L = L;
+			this.decomp = decomp;
 			this.alpha = alpha;
 			this.kernel = kernel;
 		}
@@ -58,16 +58,57 @@ public class GPRegression {
 		public RegressionResult predict(RealVector x_star) {
 			double x_star_covar = kernel.k(x_star, x_star);
 			RealVector k_star = vectorCovar(X, x_star, kernel);
+			//for(int k=0; k<k_star.getDimension(); k++) {
+			//	log.info("k_star["+k+"]="+k_star.getEntry(k));
+			//}
 			double predicted_mean = k_star.dotProduct(alpha);
 			RealVector v = k_star.copy();
-			MatrixUtils.solveLowerTriangularSystem(L, v);
+			MatrixUtils.solveLowerTriangularSystem(decomp.getL(), v);
 			double predicted_var = x_star_covar - v.dotProduct(v);
 			assert(predicted_var > 0) : "variance not strictly positive";
 			return new RegressionResult(predicted_mean, predicted_var);
 		}
 		
+		/*
+		 * wrt x_star
+		 */
+		public void computeMeanGradient(RealVector x_star, double [] g) {
+			for(int k=0; k<g.length; k++) {
+				g[k] = 0;
+			}
+			double [] kernel_grad = new double[g.length];
+			for(int i=0; i<decomp.getL().getColumnDimension(); i++) { // number of training instances
+				kernel.grad_k(X.getColumnVector(i), x_star, kernel_grad);
+				for(int k=0; k<g.length; k++) {
+					g[k] += kernel_grad[k] * alpha.getEntry(i);
+				}
+			}
+		}
+		
+		//FIXME: speed up this computation
+		public void computeCovarGradient(RealVector x_star, double [] g) {
+			RealVector k_star = vectorCovar(X, x_star, kernel);
+			RealMatrix G = vectorCovarGradient(X, x_star, kernel); // this could be a problem space-wise
+//			for(int i=0; i<G.getRowDimension(); i++) {
+//				for(int j=0; j<G.getColumnDimension(); j++) {
+//					log.info("G "+i+" "+j+" = "+G.getEntry(i, j));
+//				}
+//			}
+			RealMatrix K_inverse = decomp.getSolver().getInverse();
+			RealMatrix temp = K_inverse.multiply(G);
+			RealMatrix k_star_T = MatrixUtils.createRealMatrix(k_star.getDimension(), 1);
+			k_star_T.setColumnVector(0, k_star);
+			k_star_T = k_star_T.transpose();
+			RealMatrix result = k_star_T.multiply(temp);
+			//log.info("ncol = " + result.getColumnDimension());
+			//log.info("nrow = " + result.getRowDimension());
+			for(int i=0; i<g.length; i++) {
+				g[i] = -2*result.getEntry(0, i);
+			}
+		}
+		
 		public RealMatrix getL() {
-			return L;
+			return decomp.getL();
 		}
 		
 		public RealVector getAlpha() {
@@ -87,6 +128,21 @@ public class GPRegression {
 		return k_star;
 	}
 	
+	/**
+	 * dk* / dx
+	 * 
+	 * Returns matrix with X.getColumnDimension() rows and x.getDimension() columns
+	 */
+	public static RealMatrix vectorCovarGradient(RealMatrix X, RealVector x, Kernel kernel) {
+		RealMatrix G = MatrixUtils.createRealMatrix(x.getDimension(), X.getColumnDimension());
+		for(int i=0; i<X.getColumnDimension(); i++) {
+			double [] g = new double[x.getDimension()];
+			kernel.grad_k(X.getColumnVector(i), x, g);
+			G.setColumn(i, g);
+		}
+		return G.transpose();
+	}
+	
 	public static GPRegressor trainRegressor(RealMatrix X, // train inputs
 								             RealVector y, // train outputs
 								             Kernel kernel,
@@ -101,7 +157,7 @@ public class GPRegression {
 		RealVector alpha = y.copy();
 		MatrixUtils.solveLowerTriangularSystem(L, alpha);
 		MatrixUtils.solveUpperTriangularSystem(LT, alpha);
-		return new GPRegressor(X, L, alpha, kernel);
+		return new GPRegressor(X, decomp, alpha, kernel);
 	}
 	
 	public static RegressionResult predict(RealMatrix x,        // train inputs

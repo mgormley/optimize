@@ -1,5 +1,7 @@
 package edu.jhu.hlt.optimize;
 
+import static org.junit.Assert.assertEquals;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -20,9 +22,12 @@ public class VFSAOptimizerTest {
 		Prng.seed(42);
 		
 		int D;
+		int maxiter;
 		
 		// Low dimensions
 		D = 2;
+		maxiter = 1000;
+		
 		DifferentiableFunction f = new Rastrigins(D);
 		// The rastrigin optimum is at vec(0)
 		
@@ -38,16 +43,25 @@ public class VFSAOptimizerTest {
 		f.setPoint(start);
 		Bounds b = new Bounds(L, U);
 		
-		VFSAOptimizer opt = new VFSAOptimizer(f, b);
+		ConstrainedDifferentiableFunction g = new FunctionOpts.DifferentiableFunctionWithConstraints(f, b);
+		VFSAOptimizer opt = new VFSAOptimizer(g, 10);
+		
 		opt.minimize();
 		
 		double [] opt_point = f.getPoint();
 		double opt_val = f.getValue();
 		
 		log.info("found opt val = " + opt_val);
+	    assertEquals(0, opt_val, 1e-2);
+	    
+	    // see how close we are to the opt point
+	    for(int i=0; i<D; i++) {
+	    	assertEquals(0, opt_point[i], 1e-2);
+	    }
 		
 		// Medium dimensions
 		
+	    
 		// High dimensions
 		
 		
