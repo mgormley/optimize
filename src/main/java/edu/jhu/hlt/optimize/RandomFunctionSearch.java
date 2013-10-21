@@ -75,7 +75,7 @@ public class RandomFunctionSearch {
     		points[iter] = getInitialPointArray();
     		x= new ArrayRealVector(points[iter]);
     		function.setPoint(x.toArray());
-    		double y = function.getValue(x.toArray());
+    		double y = function.getValue();
     		//updateObservations(x, y);				
     		// Take (x,y) and add it to observations
     		currTime = System.currentTimeMillis();
