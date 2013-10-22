@@ -33,7 +33,7 @@ public class ConstrainedGradientDescentWithLineSearch implements Maximizer<Const
         
         // Magic linesearch parameters
         public int max_linesearch_iter = 50;
-        public double initial_step = 0.1;
+        public double initial_step = 0.01;
         public double tau = 0.5;
         public double c1 = 0.5;
         public double c2 = 1e-4;
@@ -90,7 +90,7 @@ public class ConstrainedGradientDescentWithLineSearch implements Maximizer<Const
             
             // Get the current value of the function.
             double value = function.getValue();
-            log.info(String.format("[iter %d] f(%f) = %f", iterCount, point[0], value));
+            //log.info(String.format("[iter %d] f(%f) = %f", iterCount, point[0], value));
             
             // Get the gradient of the function.
             Arrays.fill(gradient, 0.0);
@@ -128,8 +128,10 @@ public class ConstrainedGradientDescentWithLineSearch implements Maximizer<Const
     // Armijo rule: ensures that the step size decreases f 'sufficiently'
     public static boolean sufficientDecrease(double new_value, double value, double step, double c1, double [] d, double [] g, boolean maximize) {      
     	if(maximize) {
+    		if(new_value < value) return false;
         	return new_value >= value+c1*step*Vectors.dotProduct(d, g);
         } else {
+        	if(new_value > value) return false;
         	return new_value <= value+c1*step*Vectors.dotProduct(d, g);
         }
     }

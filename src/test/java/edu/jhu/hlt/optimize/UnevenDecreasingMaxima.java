@@ -69,12 +69,29 @@ public class UnevenDecreasingMaxima implements DifferentiableFunction {
 
 	@Override
 	public void getGradient(double[] gradient) {
-		DerivativeStructure value = AD_getValue(getPoint());
-		for(int i=0; i<n; i++) {
-			int [] orders = new int[n];
-			orders[i] = 1;
-			gradient[i] = value.getPartialDerivative(orders);
-		}
+//		DerivativeStructure value = AD_getValue(getPoint());
+//		for(int i=0; i<n; i++) {
+//			int [] orders = new int[n];
+//			orders[i] = 1;
+//			gradient[i] = value.getPartialDerivative(orders);
+//		}
+		
+		// Do a two-sided FD approximation
+		double [] prev_pt = getPoint();
+		double eps = 1e-5;
+		double [] high_pt = new double[1];
+		double [] low_pt = new double[1];
+		high_pt[0] = prev_pt[0] + eps;
+		low_pt[0] = prev_pt[0] - eps;
+		double upper = getValue(high_pt);
+		double lower = getValue(low_pt);
+		//log.info("upper = " + upper);
+		//log.info("lower = " + lower);
+		gradient[0] = (upper-lower)/(2*eps);
+		//log.info("gradient = " + gradient[0]);
+		
+		// reset the point
+		setPoint(prev_pt);
 	}
 	
 	public static void main(String [] args) {
@@ -85,8 +102,8 @@ public class UnevenDecreasingMaxima implements DifferentiableFunction {
 		UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
 		Function f = new FunctionOpts.NegateFunction(g);
 		
-		double grid_min = 0.0;
-		double grid_max = 1.0;
+		double grid_min = 0.05;
+		double grid_max = 0.95;
 		double range = grid_max - grid_min;
 		int npts = 500;
 		double increment = range/(double)npts; 

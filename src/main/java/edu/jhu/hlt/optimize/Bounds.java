@@ -35,6 +35,16 @@ public class Bounds {
     	return true;
     }
     
+    public static Bounds getUnitBounds(int dim) {
+    	double [] L = new double[dim];
+    	double [] U = new double[dim];
+    	for(int i=0; i<dim; i++) {
+    		L[i] = 0;
+    		U[i] = 1;
+    	}
+    	return new Bounds(L, U);
+    }
+    
     /**
        Maps d \in [0,1] to transformed(d), such that
        transformed(d) \in [A[i], B[i]]. The transform is 

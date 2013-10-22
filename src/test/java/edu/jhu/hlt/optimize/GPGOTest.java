@@ -309,10 +309,10 @@ public class GPGOTest {
 		ConstrainedFunction h = new FunctionOpts.FunctionWithConstraints(f, bounds);
 		
 		// These parameters are crucial
-		Kernel kernel = new SquaredExpKernel(500, 0.1);
+		Kernel kernel = new SquaredExpKernel(500, 5);
 		
-		GPGO opt = new GPGO(h, kernel, 0.1, 10);
-		opt.setSearchParam(10000, 5);
+		GPGO opt = new GPGO(h, kernel, 0.01, 10);
+		opt.setSearchParam(30000, 5);
 		
 		// Uncomment these two to just run GPGO normally
 		//opt.minimize();
@@ -323,7 +323,7 @@ public class GPGOTest {
 		opt.setInitialPoint();
 		opt.setInitialPoint();
 		
-		for(int iter=0; iter<10; iter++) {
+		for(int iter=0; iter<15; iter++) {
 			
 			// Observations
 			List<Number> xs = new ArrayList<Number>();
