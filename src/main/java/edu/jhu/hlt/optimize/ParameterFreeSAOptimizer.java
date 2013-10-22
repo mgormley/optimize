@@ -28,7 +28,7 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 	final double eps = 1e-4;
 	int max_trials = 100; // maximum # of trials to find a point inside the bounds
 	double K;             // damping to track acceptance rate
-	double T = 0.5;
+	double T = 0.5;       // initial accept temperature: its adapted from here
 	double [] curr;
 	int max_eval;
 	double [] covar;
@@ -36,8 +36,6 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 	
 	public ParameterFreeSAOptimizer(ConstrainedFunction f, int max_eval) {
 		super(f);
-		curr = new double[f.getNumDimensions()];
-		covar = new double[f.getNumDimensions()];
 		this.max_eval = max_eval;
 		this.K = (double)max_eval * 0.1;
 	}
@@ -63,17 +61,19 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 	@Override
 	public boolean minimize(ConstrainedFunction f, double[] initial) {
 		
-		double [] next = new double[curr.length];
-		double [] best = new double[curr.length];
+		curr = new double[f.getNumDimensions()];
+		covar = new double[f.getNumDimensions()];	
+		double [] next = new double[f.getNumDimensions()];
+		double [] best = new double[f.getNumDimensions()];
 		double curr_E = f.getValue();
 		double best_E = curr_E;
 		double next_E;
 		
 		T = 0.5;
 		double accept_rate = 0.5;
-		//int total_accept = 0;
+		int total_accept = 0;
 		
-		log.info("initial energy = " + curr_E);
+		log.info("[SA] initial energy = " + curr_E);
 		
 		for(int i=1; i<max_eval; i++) {
 			
@@ -93,7 +93,7 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 			f.setPoint(next);
 			next_E = f.getValue();
 			
-			//log.info("next=("+next[0]+", "+next[1]+"), energy = " + next_E);
+			//log.info("next=("+next[0]+"), energy = " + next_E);
 			
 			boolean accepted = false;
 			if(next_E < curr_E) {
@@ -114,7 +114,7 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 			
 			if(accepted) {
 				//log.info("accepted!");
-				//total_accept += 1;
+				total_accept += 1;
 				
 				// Update current point and associated energy
 				curr_E = next_E;
@@ -150,7 +150,9 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 			//log.info("iter " + i + ": T="+T+" best_E="+best_E);
 		}
 				
-		//log.info("total accepted = " + total_accept);
+		log.info("[SA] total accepted = " + total_accept);
+		log.info("[SA] final point = " + best[0]);
+		log.info("[SA] final energy = " + best_E);
 		
 		// Set the best point
 		f.setPoint(best);

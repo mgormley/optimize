@@ -152,7 +152,7 @@ public class GPRegression {
 								             ) {
 		RealMatrix K = kernel.K(X);
 		assert(K.getColumnDimension() == y.getDimension()) : "dimension mismatch: " + K.getColumnDimension() + " != " + y.getDimension();
-		RealMatrix temp = K.subtract(MatrixUtils.createRealIdentityMatrix(K.getColumnDimension()).scalarMultiply(noise));
+		RealMatrix temp = K.add(MatrixUtils.createRealIdentityMatrix(K.getColumnDimension()).scalarMultiply(noise));
 		CholeskyDecomposition decomp = new CholeskyDecomposition(temp);
 		RealMatrix L = decomp.getL();
 		RealMatrix LT = decomp.getLT();
@@ -169,7 +169,7 @@ public class GPRegression {
 			                               double x_star_covar, // self-covar of x_star
 			                               double noise,        // noise level in inputs
 			                               RealVector x_star) { // test input
-		RealMatrix temp = K.subtract(MatrixUtils.createRealIdentityMatrix(K.getColumnDimension()).scalarMultiply(noise));
+		RealMatrix temp = K.add(MatrixUtils.createRealIdentityMatrix(K.getColumnDimension()).scalarMultiply(noise));
 		CholeskyDecomposition decomp = new CholeskyDecomposition(temp);
 		RealMatrix L = decomp.getL();
 		RealMatrix LT = decomp.getLT();

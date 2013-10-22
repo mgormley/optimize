@@ -23,6 +23,7 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
+import edu.jhu.hlt.optimize.FunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.GPGO.ExpectedMyopicLoss;
 import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.Kernel;
@@ -42,7 +43,7 @@ public class GPGOTest {
     	Logger.getRootLogger().setLevel(Level.DEBUG);
 		
     	// Parameters
-    	Kernel kernel = new SquaredExpKernel(0.5, 0.1);
+    	Kernel kernel = new SquaredExpKernel(0.5, 1.0);
     	
     	//Function f = new XSquared(0);
     	Function f = new Franks();
@@ -235,6 +236,7 @@ public class GPGOTest {
 		int maxiter = 100;
 
 		// Low dimensions
+		double noise = 0.01;
 		D = 2;
 
 		DifferentiableFunction f = new Rastrigins(D);
@@ -256,7 +258,7 @@ public class GPGOTest {
 		ConstrainedDifferentiableFunction g = new FunctionOpts.DifferentiableFunctionWithConstraints(f, b);
 		
 		SquaredExpKernel kernel = new SquaredExpKernel();
-		GPGO opt = new GPGO(g, kernel, maxiter);
+		GPGO opt = new GPGO(g, kernel, noise, maxiter);
 
 		opt.minimize();
 
@@ -272,9 +274,131 @@ public class GPGOTest {
 		}
 	}
 	
+	@Test
+	public void UnevenDecreasingMaxima() {
+		
+		BasicConfigurator.configure();
+		Logger.getRootLogger().setLevel(Level.DEBUG);
+		
+		UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
+		Function f = new FunctionOpts.NegateFunction(g);
+		
+		double grid_min = 0.0;
+		double grid_max = 1.0;
+		double range = grid_max - grid_min;
+		int npts = 500;
+		int npts2 = 100;
+		double increment = range/(double)npts;
+		double increment2 = range/(double)npts2;
+		
+		List<Number> grid = new ArrayList<Number>();
+		List<Number> fvals = new ArrayList<Number>();
+		
+		for(double x=grid_min; x<grid_max; x+=increment) {	
+			double y = f.getValue(new double[] {x});
+			grid.add(x);
+			fvals.add(y);
+		}
+		
+		// Initialize GPGO
+		double [] A = new double[1];
+		double [] B = new double[1];
+		A[0] = 0;
+		B[0] = 1;
+		Bounds bounds = new Bounds(A, B);
+		ConstrainedFunction h = new FunctionOpts.FunctionWithConstraints(f, bounds);
+		
+		// These parameters are crucial
+		Kernel kernel = new SquaredExpKernel(300, 0.01);
+		
+		GPGO opt = new GPGO(h, kernel, 0.01, 10);
+		opt.setSearchParam(100, 5);
+		
+		// Uncomment these two to just run GPGO normally
+		//opt.minimize();
+		//System.exit(0);
+		
+		// Do some iterations of GPGO
+		opt.setInitialPoint();
+		opt.setInitialPoint();
+		opt.setInitialPoint();
+		
+		for(int iter=0; iter<6; iter++) {
+			
+			// Observations
+			List<Number> xs = new ArrayList<Number>();
+			List<Number> ys = new ArrayList<Number>();
+			
+			for(int i=0; i<opt.X.getColumnDimension(); i++) {
+				xs.add(opt.X.getColumnVector(i).getEntry(0));
+				ys.add(opt.y.getEntry(i));
+			}
+			
+			RealVector min_vec = opt.doIterNoUpdate(iter, false);
+			List<Number> min = new ArrayList<Number>();
+			min.add(min_vec.getEntry(0));
+			List<Number> loss_at_min = new ArrayList<Number>();
+			loss_at_min.add(opt.loss.computeExpectedLoss(min_vec));
+			
+			Chart chart = new ChartBuilder().width(800).height(600).title("iter"+iter).xAxisTitle("X").yAxisTitle("Y").chartType(ChartType.Line).build();
+			
+			// Customize Chart
+			chart.getStyleManager().setChartTitleVisible(true);
+			chart.getStyleManager().setLegendVisible(true);
+			chart.getStyleManager().setAxisTitlesVisible(false);
+	 
+			List<Number> posterior_mean = new ArrayList<Number>();
+			List<Number> posterior_var = new ArrayList<Number>();
+			List<Number> grid2 = new ArrayList<Number>();
+			List<Number> ls = new ArrayList<Number>();
+			
+			for(double x=grid_min; x<grid_max; x+=increment2) {
+				grid2.add(x);
+				RegressionResult pred = opt.getRegressor().predict(new ArrayRealVector(new double[] {x}));
+				posterior_mean.add(pred.mean);
+				posterior_var.add(pred.var);
+				
+				double l = opt.loss.getValue(new double[] {x});
+				//log.info("loss("+x+")="+l);
+				ls.add(l);
+			}
+			
+			// Series 0: True function
+			Series series0 = chart.addSeries("True function", grid, fvals);
+			series0.setMarker(SeriesMarker.NONE);
+		
+			// Series 1: Posterior
+			Series series1 = chart.addSeries("Posterior", grid2, posterior_mean, posterior_var);
+			series1.setMarker(SeriesMarker.NONE);
+			
+			// Series 2: Loss
+			Series series2 = chart.addSeries("Loss", grid2, ls);
+			series2.setMarker(SeriesMarker.NONE);
+			
+			// Series 3: Observations
+			Series series3 = chart.addSeries("Observations", xs, ys);
+			series3.setLineStyle(SeriesLineStyle.NONE);
+			
+			// Series 4: Chosen point
+			Series series4 = chart.addSeries("Next evaluation", min, loss_at_min);
+			series4.setLineStyle(SeriesLineStyle.NONE);
+			
+			chart.getStyleManager().setYAxisMin(-1.0);
+			chart.getStyleManager().setYAxisMax(0.5);
+		 
+			chart.getStyleManager().setXAxisMin(0);
+			chart.getStyleManager().setXAxisMax(1);
+		
+			new SwingWrapper(chart).displayChart();
+			
+			// Update observations for the next iteration
+			opt.updateObservations(min_vec, h.getValue(min_vec.toArray()));
+		}
+	}
+	
 	public static void main(String [] args) {
 		GPGOTest tester = new GPGOTest();
-		tester.myopicLossTest();
+		tester.UnevenDecreasingMaxima();
 	}
 	
 }

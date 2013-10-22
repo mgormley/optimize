@@ -131,14 +131,12 @@ public class FunctionOpts {
 
 		@Override
 		public double[] getPoint() {
-			// TODO Auto-generated method stub
-			return null;
+			return function.getPoint();
 		}
 
 		@Override
 		public double getValue(double[] point) {
-			// TODO Auto-generated method stub
-			return 0;
+			return multiplier*function.getValue(point);
 		}
     
     }
