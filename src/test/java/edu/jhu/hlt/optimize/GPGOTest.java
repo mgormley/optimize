@@ -309,10 +309,10 @@ public class GPGOTest {
 		ConstrainedFunction h = new FunctionOpts.FunctionWithConstraints(f, bounds);
 		
 		// These parameters are crucial
-		Kernel kernel = new SquaredExpKernel(300, 0.01);
+		Kernel kernel = new SquaredExpKernel(500, 0.1);
 		
-		GPGO opt = new GPGO(h, kernel, 0.01, 10);
-		opt.setSearchParam(100, 5);
+		GPGO opt = new GPGO(h, kernel, 0.1, 10);
+		opt.setSearchParam(10000, 5);
 		
 		// Uncomment these two to just run GPGO normally
 		//opt.minimize();
@@ -323,7 +323,7 @@ public class GPGOTest {
 		opt.setInitialPoint();
 		opt.setInitialPoint();
 		
-		for(int iter=0; iter<6; iter++) {
+		for(int iter=0; iter<10; iter++) {
 			
 			// Observations
 			List<Number> xs = new ArrayList<Number>();
@@ -334,7 +334,7 @@ public class GPGOTest {
 				ys.add(opt.y.getEntry(i));
 			}
 			
-			RealVector min_vec = opt.doIterNoUpdate(iter, false);
+			RealVector min_vec = opt.doIterNoUpdate(iter, true);
 			List<Number> min = new ArrayList<Number>();
 			min.add(min_vec.getEntry(0));
 			List<Number> loss_at_min = new ArrayList<Number>();

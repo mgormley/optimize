@@ -66,6 +66,8 @@ public class GPGO extends    Optimizer<Function>
 	
 	// Magic numbers
 	double min_delta = 1e-2; // don't allow observations too close to each other
+	double min_improve = 1e-3; // if the improvement is less than this, pick a random
+	                           // point rather than that returned by the optimization
 	
 	int budget = 100; 	            // # of GPGO iterations
 
@@ -145,8 +147,10 @@ public class GPGO extends    Optimizer<Function>
 	}
 	
 	public void doIter(int iter, boolean minimize) {
-		double optimum_so_far = this.y.getEntry(currentBestIndex(minimize));
-		log.info("iter = " + iter + ": " + "optimum = " + optimum_so_far);
+		int best_index = currentBestIndex(minimize);
+		log.info("[GPGO] best index = " + best_index);
+		double optimum_so_far = this.y.getEntry(best_index);
+		log.info("[GPGO] iter = " + iter + ": " + "optimum = " + optimum_so_far);
 		
 		// Compute the GP posterior
 		estimatePosterior();
@@ -168,8 +172,10 @@ public class GPGO extends    Optimizer<Function>
 	 * DEBUG
 	 */
 	public RealVector doIterNoUpdate(int iter, boolean minimize) {
-		double optimum_so_far = this.y.getEntry(currentBestIndex(minimize));
-		log.info("iter = " + iter + ": " + "optimum = " + optimum_so_far);
+		int best_index = currentBestIndex(minimize);
+		log.info("[GPGO] best index = " + best_index);
+		double optimum_so_far = this.y.getEntry(best_index);
+		log.info("[GPGO] iter = " + iter + ": " + "optimum = " + optimum_so_far);
 		
 		// Compute the GP posterior
 		estimatePosterior();
@@ -220,7 +226,7 @@ public class GPGO extends    Optimizer<Function>
 	// Minimize the expected loss and return the point at its estimated minimum
 	public RealVector minimizeExpectedLoss() {
 
-		double [] best_x = null;
+		double [] best_x = new double[f.getNumDimensions()];
 		double best_y = Double.POSITIVE_INFINITY;
 
 		List<RealVector> pts = getPointsToProbe();
@@ -245,11 +251,15 @@ public class GPGO extends    Optimizer<Function>
 			double y = loss.getValue();
 			log.info("[GPGO] Improvement from local search = " + (temp-y));
 			if(y<best_y) {
-				best_x = x;
+				log.info("[GPGO] Keeping the point from local search");
+				for(int i=0; i<best_x.length; i++) {
+					best_x[i] = x[i];
+				}
 				best_y = y;
+			} else {
+				log.info("[GPGO] Discarding the point from local search");
 			}
 		}
-
 		
 		return new ArrayRealVector(best_x);
 	}
@@ -315,6 +325,7 @@ public class GPGO extends    Optimizer<Function>
 		}
 		for(int i=0; i<y.getDimension(); i++) {
 			double d = y.getEntry(i);
+			log.info("y("+i+")="+d);
 			if(minimize) {
 				if(d<opt) {
 					opt = d;
@@ -346,13 +357,24 @@ public class GPGO extends    Optimizer<Function>
 		List<RealVector> points = new ArrayList<RealVector>();
 		
 		if(use_SA) {
-			
+			double initial_loss = loss.getValue();
 			ParameterFreeSAOptimizer opt = new ParameterFreeSAOptimizer(loss, width);
 			opt.minimize();
 			double [] pt = loss.getPoint();
 			RealVector sa_min = new ArrayRealVector(pt);
-			points.add( sa_min );
-			log.info("SA found minimum = " + loss.computeExpectedLoss(sa_min));
+			
+			// Check to see if this resulted in significant improvement
+			double delta = Math.abs(initial_loss-loss.getValue());
+			if(delta < this.min_improve) {
+				// Pick a random point instead
+				log.info("SA failed to improve (delta="+delta+"), picking random point to eval");
+				RealVector x = getInitialPoint();
+				//log.info("random x="+x.getEntry(0));
+				points.add( x );
+			} else {
+				log.info("SA found minimum = " + loss.computeExpectedLoss(sa_min));
+				points.add( sa_min );
+			}	
 			
 		} else {
 			
