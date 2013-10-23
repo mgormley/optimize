@@ -2,8 +2,29 @@ package edu.jhu.hlt.optimize;
 
 import edu.jhu.hlt.util.math.Vectors;
 
+/**
+ * Function operations.
+ * 
+ * @author mgormley
+ */
 public class FunctionOpts {
-	
+
+    public static DifferentiableFunction negate(DifferentiableFunction f) {
+        return new NegateFunction(f);
+    }
+    
+    public static DifferentiableFunction scale(DifferentiableFunction f, double multiplier) {
+        return new ScaleFunction(f, multiplier);
+    }
+
+    public static Function negate(Function f) {
+        return new NegateFunction1(f);
+    }
+    
+    public static Function scale(Function f, double multiplier) {
+        return new ScaleFunction1(f, multiplier);
+    }
+    
 	public static class FunctionWithConstraints implements ConstrainedFunction {
 		private Function f;
 		private Bounds b;
@@ -89,6 +110,8 @@ public class FunctionOpts {
 	}
 	
     /** Wrapper which negates the input function. */
+    // TODO: Rename to NegateDifferentiableFunction.
+    // TODO: Make private.
     public static class NegateFunction extends ScaleFunction implements DifferentiableFunction {
     
         public NegateFunction(DifferentiableFunction function) {
@@ -98,6 +121,8 @@ public class FunctionOpts {
     }
     
     /** Wrapper which scales the input function. */
+    // TODO: Rename to ScaleDifferentiableFunction.
+    // TODO: Make private.
     public static class ScaleFunction implements DifferentiableFunction {
     
         private DifferentiableFunction function;
@@ -138,6 +163,56 @@ public class FunctionOpts {
 		public double getValue(double[] point) {
 			return multiplier*function.getValue(point);
 		}
+    
+    }
+    
+
+    /** Wrapper which negates the input function. */
+    // TODO: Drop the 1 from this name.
+    private static class NegateFunction1 extends ScaleFunction1 implements Function {
+    
+        public NegateFunction1(Function function) {
+            super(function, -1.0);
+        }
+        
+    }
+    
+    /** Wrapper which scales the input function. */
+    // TODO: Drop the 1 from this name.
+    private static class ScaleFunction1 implements Function {
+    
+        private Function function;
+        private double multiplier;
+        
+        public ScaleFunction1(Function function, double multiplier) {
+            this.function = function;
+            this.multiplier = multiplier;
+        }
+        
+        @Override
+        public void setPoint(double[] point) {
+            function.setPoint(point);
+        }
+        
+        @Override
+        public double getValue() {
+            return multiplier * function.getValue();
+        }
+    
+        @Override
+        public int getNumDimensions() {
+            return function.getNumDimensions();
+        }
+
+        @Override
+        public double[] getPoint() {
+            return function.getPoint();
+        }
+
+        @Override
+        public double getValue(double[] point) {
+            return multiplier*function.getValue(point);
+        }
     
     }
     

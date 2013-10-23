@@ -4,6 +4,7 @@ package edu.jhu.hlt.optimize;
  * This should probably be part of a specialized Function class.
  * 
  * @author noandrews
+ * @author mgormley
  */
 public class Bounds {
 	public double [] A; // lower bounds
@@ -43,6 +44,24 @@ public class Bounds {
     		U[i] = 1;
     	}
     	return new Bounds(L, U);
+    }
+    
+    /**
+     * Gets bounds which are identical for all dimensions.
+     * 
+     * @param dim The number of dimensions.
+     * @param l The value of all lower bounds.
+     * @param u The value of all upper bounds.
+     * @return The new bounds.
+     */
+    public static Bounds getSymmetricBounds(int dim, double l, double u) {
+        double [] L = new double[dim];
+        double [] U = new double[dim];
+        for(int i=0; i<dim; i++) {
+            L[i] = l;
+            U[i] = u;
+        }
+        return new Bounds(L, U);
     }
     
     /**
