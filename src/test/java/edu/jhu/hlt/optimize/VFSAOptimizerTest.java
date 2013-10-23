@@ -7,6 +7,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import edu.jhu.hlt.optimize.functions.Rastrigins;
 import edu.jhu.hlt.util.Prng;
 
 public class VFSAOptimizerTest {

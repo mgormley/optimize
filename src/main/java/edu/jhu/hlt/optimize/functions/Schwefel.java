@@ -1,20 +1,22 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.functions;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
+import edu.jhu.hlt.optimize.DifferentiableFunction;
+
 /**
- * Test area is usually restricted to hyphercube −600 ≤ x_i ≤ 600, i = 1, ..., n. 
- * Its global minimum equal f(x) = 0 is obtainable for x_i = 0, i = 1, ..., n.
+ * Test area is usually restricted to hyper-cube −500 ≤ x_i ≤ 500, i = 1, ..., n.
+ * Its global minimum f(x) = −418.9829n is obtainable for x_i = 420.9687, i = 1, ..., n.
  * 
  * @author noandrews
  */
-public class Griewangk implements DifferentiableFunction {
+public class Schwefel implements DifferentiableFunction {
 
 	int n;
 	int order = 1; // 1st derivatives only
 	double [] point;
 	
-	public Griewangk(int dimension) {
+	public Schwefel(int dimension) {
 		this.n = dimension;
 	}
 	
@@ -25,18 +27,13 @@ public class Griewangk implements DifferentiableFunction {
 			x[i] = new DerivativeStructure(n, order, i, point[i]);
 		}
 		
-		DerivativeStructure lhs = new DerivativeStructure(n, order, 0);
-		for(int i=0; i<n; i++) {
-			lhs = lhs.add(x[i].pow(2));
-		}
-		lhs = lhs.multiply(1d/4000d);
+		DerivativeStructure value = new DerivativeStructure(n, order, 0);
 		
-		DerivativeStructure rhs = new DerivativeStructure(n, order, 1);
 		for(int i=0; i<n; i++) {
-			rhs = rhs.multiply( x[i].divide(Math.sqrt(i)).cos() );
+			value = value.add(x[i].abs().sqrt().multiply(x[i].negate()));
 		}
 		
-		return lhs.subtract(rhs).add(1d);
+		return value;
 	}
 	
 	@Override

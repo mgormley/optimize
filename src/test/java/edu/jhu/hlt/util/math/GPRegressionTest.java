@@ -23,7 +23,7 @@ import com.xeiam.xchart.StyleManager.ChartType;
 import com.xeiam.xchart.SwingWrapper;
 
 import edu.jhu.hlt.optimize.Function;
-import edu.jhu.hlt.optimize.XSquared;
+import edu.jhu.hlt.optimize.functions.XSquared;
 import edu.jhu.hlt.util.math.GPRegression.GPRegressor;
 import edu.jhu.hlt.util.math.GPRegression.RegressionResult;
 

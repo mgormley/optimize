@@ -1,4 +1,4 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.functions;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -16,6 +16,11 @@ import com.xeiam.xchart.SeriesLineStyle;
 import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
+
+import edu.jhu.hlt.optimize.DifferentiableFunction;
+import edu.jhu.hlt.optimize.Function;
+import edu.jhu.hlt.optimize.FunctionOpts;
+import edu.jhu.hlt.optimize.FunctionOpts.NegateFunction;
 
 public class UnevenDecreasingMaxima implements DifferentiableFunction {
 

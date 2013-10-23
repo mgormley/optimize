@@ -18,6 +18,7 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
+import edu.jhu.hlt.optimize.functions.Rastrigins;
 import edu.jhu.hlt.util.Prng;
 
 public class ParameterFreeSAOptimizerTest {

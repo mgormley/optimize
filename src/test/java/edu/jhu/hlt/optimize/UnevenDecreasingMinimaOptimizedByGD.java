@@ -17,6 +17,7 @@ import com.xeiam.xchart.StyleManager.ChartType;
 
 import edu.jhu.hlt.optimize.FunctionOpts.DifferentiableFunctionWithConstraints;
 import edu.jhu.hlt.optimize.FunctionOpts.NegateFunction;
+import edu.jhu.hlt.optimize.functions.UnevenDecreasingMaxima;
 
 public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 	

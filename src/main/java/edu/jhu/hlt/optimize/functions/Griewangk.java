@@ -1,31 +1,23 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.functions;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
+import edu.jhu.hlt.optimize.DifferentiableFunction;
+
 /**
- * Three global optima equal f(x1, x2) = 0.397887
+ * Test area is usually restricted to hyphercube −600 ≤ x_i ≤ 600, i = 1, ..., n. 
+ * Its global minimum equal f(x) = 0 is obtainable for x_i = 0, i = 1, ..., n.
  * 
- * 	(x1, x2) = (-pi, 12.275)
- * 	(x1, x2) = (+pi, 2.475)
- *  (x1, x2) = (9.42478, 2.475)
- *  
  * @author noandrews
  */
-public class Branins implements DifferentiableFunction {
+public class Griewangk implements DifferentiableFunction {
 
-	static final double a = 1;
-	static final double b = 5.1/4.0*Math.pow(Math.PI,2);
-	static final double c = 5.0/Math.PI;
-	static final double d = 6.0;
-	static final double e = 10.0;
-	static final double f = 1.0/8.0*Math.PI;
-	
 	int n;
 	int order = 1; // 1st derivatives only
 	double [] point;
 	
-	public Branins() {
-		n = 3;
+	public Griewangk(int dimension) {
+		this.n = dimension;
 	}
 	
 	DerivativeStructure AD_getValue(double [] point) {
@@ -35,7 +27,18 @@ public class Branins implements DifferentiableFunction {
 			x[i] = new DerivativeStructure(n, order, i, point[i]);
 		}
 		
-		return x[0].cos().multiply(e*(1-f)).add(x[1].subtract(x[0].pow(2).multiply(b)).add(x[0].multiply(c)).subtract(d).pow(2).multiply(a));		
+		DerivativeStructure lhs = new DerivativeStructure(n, order, 0);
+		for(int i=0; i<n; i++) {
+			lhs = lhs.add(x[i].pow(2));
+		}
+		lhs = lhs.multiply(1d/4000d);
+		
+		DerivativeStructure rhs = new DerivativeStructure(n, order, 1);
+		for(int i=0; i<n; i++) {
+			rhs = rhs.multiply( x[i].divide(Math.sqrt(i)).cos() );
+		}
+		
+		return lhs.subtract(rhs).add(1d);
 	}
 	
 	@Override
@@ -73,5 +76,6 @@ public class Branins implements DifferentiableFunction {
 			gradient[i] = value.getPartialDerivative(orders);
 		}
 	}
+
 	
 }

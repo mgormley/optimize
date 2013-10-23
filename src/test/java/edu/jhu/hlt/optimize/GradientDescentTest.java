@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import edu.jhu.hlt.optimize.functions.SumSquares;
+import edu.jhu.hlt.optimize.functions.XSquared;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.Utilities;
 import edu.jhu.hlt.util.math.Vectors;

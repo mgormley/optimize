@@ -1,34 +1,37 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.functions;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
+import edu.jhu.hlt.optimize.DifferentiableFunction;
+
 /**
- * Test area is usually restricted to hyper-cube −500 ≤ x_i ≤ 500, i = 1, ..., n.
- * Its global minimum f(x) = −418.9829n is obtainable for x_i = 420.9687, i = 1, ..., n.
+ * Test area is usually restricted to hyper-cube −5.12 ≤ xi ≤ 5.12, i = 1, ..., n. 
+ * Its global minimum equal f(x) = 0 is obtainable for x_i = 0 for i = 1, ..., n.
  * 
  * @author noandrews
  */
-public class Schwefel implements DifferentiableFunction {
+public class Rastrigins implements DifferentiableFunction {
 
 	int n;
 	int order = 1; // 1st derivatives only
 	double [] point;
 	
-	public Schwefel(int dimension) {
+	public Rastrigins(int dimension) {
 		this.n = dimension;
+		point = new double[n];
 	}
 	
-	DerivativeStructure AD_getValue(double [] point) {
+	DerivativeStructure AD_getValue(double [] pt) {
 		
 		DerivativeStructure [] x = new DerivativeStructure[n];
 		for(int i=0; i<x.length; i++) {
-			x[i] = new DerivativeStructure(n, order, i, point[i]);
+			x[i] = new DerivativeStructure(n, order, i, pt[i]);
 		}
 		
-		DerivativeStructure value = new DerivativeStructure(n, order, 0);
+		DerivativeStructure value = new DerivativeStructure(n, order, 10d*n);
 		
 		for(int i=0; i<n; i++) {
-			value = value.add(x[i].abs().sqrt().multiply(x[i].negate()));
+			value = value.add(x[i].pow(2).subtract(x[i].multiply(2*Math.PI).cos().multiply(10)));
 		}
 		
 		return value;
@@ -36,8 +39,9 @@ public class Schwefel implements DifferentiableFunction {
 	
 	@Override
 	public void setPoint(double[] point) {
-		this.point = point;
-		
+		for(int i=0; i<n; i++) {
+			this.point[i] = point[i];
+		}
 	}
 
 	@Override
