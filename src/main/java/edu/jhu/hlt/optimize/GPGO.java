@@ -278,6 +278,13 @@ public class GPGO extends    Optimizer<Function>
 	}
 	
 	private RealVector getInitialPoint() {
+		
+		if(f instanceof Proposable) {
+			Proposable p = (Proposable)f;
+			double [] pt = p.samplePoint();
+			return new ArrayRealVector(pt);
+		}
+		
 		double [] pt = new double[f.getNumDimensions()];
 		// Random starting location
 		for(int i=0; i<pt.length; i++) {

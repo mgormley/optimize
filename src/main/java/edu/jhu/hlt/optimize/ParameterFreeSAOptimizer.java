@@ -49,6 +49,17 @@ public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
 	}
 
 	private void nextRandomState(double [] curr, double [] next) {
+		
+		// FIXME: take into account the current state and the temperature
+		if(f instanceof Proposable) {
+			Proposable p = (Proposable)f;
+			double [] pt = p.samplePoint();
+			for(int i=0; i<curr.length; i++) {
+				next[i] = pt[i];
+			}
+			return;
+		}
+		
 		double [][] C = MatrixUtils.createRealDiagonalMatrix(covar).getData();
 		double [] m = new double[f.getNumDimensions()];
 		N = new MultivariateNormalDistribution(curr, C);
