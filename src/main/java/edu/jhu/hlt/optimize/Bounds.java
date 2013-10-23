@@ -53,4 +53,13 @@ public class Bounds {
     public double transformFromUnitInterval(int i, double d){
     	return (B[i]-A[i])*(d-1.0)+B[i];
     }
+
+    /**
+       Maps d \in [l,u] to transformed(d), such that
+       transformed(d) \in [A[i], B[i]]. The transform is 
+       just a linear one. It does *NOT* check for +/- infinity.
+     */
+    public double transformRangeLinearly(double l, double u, int i, double d){
+    	return (B[i]-A[i])/(u-l)*(d-u)+B[i];
+    }
 }
