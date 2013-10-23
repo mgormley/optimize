@@ -12,6 +12,8 @@ import org.apache.log4j.Logger;
 
 import org.junit.Test;
 
+import edu.jhu.hlt.optimize.functions.XSquared;
+
 
 public class RandomFunctionSearchTest {
     static Logger log = Logger.getLogger(RandomFunctionSearch.class);

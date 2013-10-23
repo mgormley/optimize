@@ -25,6 +25,9 @@ import com.xeiam.xchart.StyleManager.ChartType;
 
 import edu.jhu.hlt.optimize.FunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.GPGO.ExpectedMyopicLoss;
+import edu.jhu.hlt.optimize.functions.Rastrigins;
+import edu.jhu.hlt.optimize.functions.SimpleCubicFunction;
+import edu.jhu.hlt.optimize.functions.UnevenDecreasingMaxima;
 import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.Kernel;
 import edu.jhu.hlt.util.math.SquaredExpKernel;
@@ -46,7 +49,7 @@ public class GPGOTest {
     	Kernel kernel = new SquaredExpKernel(0.5, 1.0);
     	
     	//Function f = new XSquared(0);
-    	Function f = new Franks();
+    	Function f = new SimpleCubicFunction();
     	
     	// Training data:
     	//   X	inputs

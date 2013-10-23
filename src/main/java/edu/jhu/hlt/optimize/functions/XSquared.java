@@ -1,4 +1,6 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.functions;
+
+import edu.jhu.hlt.optimize.DifferentiableFunction;
 
 /** The function x^2. */
 public class XSquared implements DifferentiableFunction {

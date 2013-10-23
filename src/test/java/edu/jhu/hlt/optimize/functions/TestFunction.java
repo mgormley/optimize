@@ -1,5 +1,6 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.functions;
 
+import edu.jhu.hlt.optimize.Function;
 import junit.framework.Assert;
 
 /**
@@ -12,8 +13,8 @@ public class TestFunction {
 	double value_tolerance;
 	double [] param_at_optima;
 	double param_tolerance;
-	boolean maximize;
-	Function f;
+	public boolean maximize;
+	public Function f;
 	
 	public TestFunction(Function f, boolean maximize, double value_at_optima, double value_tolerance, double [] param_at_optima, double param_tolerance) {
 		this.f = f;

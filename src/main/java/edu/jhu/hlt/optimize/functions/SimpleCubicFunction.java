@@ -1,13 +1,18 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.functions;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
-public class Franks implements DifferentiableFunction {
+import edu.jhu.hlt.optimize.DifferentiableFunction;
+
+/**
+ * The function f(x) = x(x-1)(x+1).
+ */
+public class SimpleCubicFunction implements DifferentiableFunction {
 	int n;
 	int order = 1; // 1st derivatives only
 	double [] point;
 	
-	public Franks() {
+	public SimpleCubicFunction() {
 		this.n = 1;
 		point = new double[1];
 	}
