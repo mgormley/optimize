@@ -33,7 +33,7 @@ public class ConstrainedGradientDescentWithLineSearch implements Maximizer<Const
         
         // Magic linesearch parameters
         public int max_linesearch_iter = 50;
-        public double initial_step = 0.01;
+        public double initial_step = 0.001;
         public double tau = 0.5;
         public double c1 = 0.5;
         public double c2 = 1e-4;
