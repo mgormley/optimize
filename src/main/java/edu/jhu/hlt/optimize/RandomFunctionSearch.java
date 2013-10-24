@@ -71,6 +71,7 @@ public class RandomFunctionSearch {
     	points = new double[numTimes][];
     	long startTime = System.currentTimeMillis();
     	long currTime;
+    	double min = Double.POSITIVE_INFINITY;
     	for(int iter=0;iter<numTimes;iter++){
     		points[iter] = getInitialPointArray();
     		x= new ArrayRealVector(points[iter]);
@@ -80,7 +81,11 @@ public class RandomFunctionSearch {
     		// Take (x,y) and add it to observations
     		currTime = System.currentTimeMillis();
     		times[iter] = currTime - startTime;
-    		guesses[iter] = y;
+    		// Keep track of the incumbent score.
+    		if (y < min) {
+    		    min = y;
+    		}
+    		guesses[iter] = min;
     	}		
     	return true;
     }
