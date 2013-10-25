@@ -111,8 +111,8 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 		Series series1 = chart.addSeries("Optimized function", grid, foptvals);
 		series1.setMarker(SeriesMarker.NONE);
 		
-		chart.getStyleManager().setYAxisMin(1.0);
-		chart.getStyleManager().setYAxisMax(-1.0);
+		chart.getStyleManager().setYAxisMin(-1.0);
+		chart.getStyleManager().setYAxisMax(1.0);
 		 
 		chart.getStyleManager().setXAxisMin(0.0);
 		chart.getStyleManager().setXAxisMax(1.0);

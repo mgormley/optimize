@@ -3,6 +3,11 @@ package edu.jhu.hlt.optimize;
 import static org.junit.Assert.assertEquals;
 
 import java.awt.Color;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -312,9 +317,9 @@ public class GPGOTest {
 		ConstrainedFunction h = new FunctionOpts.FunctionWithConstraints(f, bounds);
 		
 		// These parameters are crucial
-		Kernel kernel = new SquaredExpKernel(500, 5);
+		Kernel kernel = new SquaredExpKernel(10, 1);
 		
-		GPGO opt = new GPGO(h, kernel, 0.01, 10);
+		GPGO opt = new GPGO(h, kernel, 0.001, 10);
 		opt.setSearchParam(30000, 5);
 		
 		// Uncomment these two to just run GPGO normally
@@ -326,7 +331,7 @@ public class GPGOTest {
 		opt.setInitialPoint();
 		opt.setInitialPoint();
 		
-		for(int iter=0; iter<15; iter++) {
+		for(int iter=0; iter<1; iter++) {
 			
 			// Observations
 			List<Number> xs = new ArrayList<Number>();
@@ -399,9 +404,161 @@ public class GPGOTest {
 		}
 	}
 	
+	@Test
+	public void UnevenDecreasingMaximaOptimizedByGD() {
+		
+		Prng.seed(54);
+		
+		BasicConfigurator.configure();
+		Logger.getRootLogger().setLevel(Level.DEBUG);
+		
+		//UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
+		//Function f = new FunctionOpts.NegateFunction(g);
+		
+		Function f = new UnevenDecreasingMinimaOptimizedByGD(100);
+		
+		double grid_min = 0.03;
+		double grid_max = 0.97;
+		double range = grid_max - grid_min;
+		int npts = 500;
+		int npts2 = 100;
+		double increment = range/(double)npts;
+		double increment2 = range/(double)npts2;
+		
+		List<Number> grid = new ArrayList<Number>();
+		List<Number> fvals = new ArrayList<Number>();
+		
+		for(double x=grid_min; x<grid_max; x+=increment) {	
+			double y = f.getValue(new double[] {x});
+			grid.add(x);
+			fvals.add(y);
+		}
+		
+		// Initialize GPGO
+		double [] A = new double[1];
+		double [] B = new double[1];
+		A[0] = 0;
+		B[0] = 1;
+		Bounds bounds = new Bounds(A, B);
+		ConstrainedFunction h = new FunctionOpts.FunctionWithConstraints(f, bounds);
+		
+		// These parameters are crucial
+		Kernel kernel = new SquaredExpKernel(100, 0.001);
+		
+		GPGO opt = new GPGO(h, kernel, 0.001, 10);
+		opt.setSearchParam(30000, 5);
+		
+		// Uncomment these two to just run GPGO normally
+		//opt.minimize();
+		//System.exit(0);
+		
+		// Do some iterations of GPGO
+		opt.setInitialPoint();
+		opt.setInitialPoint();
+		//opt.setInitialPoint();
+		
+		for(int iter=0; iter<2; iter++) {
+			
+			// Observations
+			List<Number> xs = new ArrayList<Number>();
+			List<Number> ys = new ArrayList<Number>();
+			
+			for(int i=0; i<opt.X.getColumnDimension(); i++) {
+				xs.add(opt.X.getColumnVector(i).getEntry(0));
+				ys.add(opt.y.getEntry(i));
+			}
+			
+			RealVector min_vec = opt.doIterNoUpdate(iter, true);
+			List<Number> min = new ArrayList<Number>();
+			min.add(min_vec.getEntry(0));
+			List<Number> loss_at_min = new ArrayList<Number>();
+			loss_at_min.add(opt.loss.computeExpectedLoss(min_vec));
+			
+			Chart chart = new ChartBuilder().width(800).height(600).title("iter"+iter).xAxisTitle("X").yAxisTitle("Y").chartType(ChartType.Line).build();
+			
+			// Customize Chart
+			chart.getStyleManager().setChartTitleVisible(true);
+			chart.getStyleManager().setLegendVisible(true);
+			chart.getStyleManager().setAxisTitlesVisible(false);
+	 
+			List<Number> posterior_mean = new ArrayList<Number>();
+			List<Number> posterior_var = new ArrayList<Number>();
+			List<Number> grid2 = new ArrayList<Number>();
+			List<Number> ls = new ArrayList<Number>();
+			
+			for(double x=grid_min; x<grid_max; x+=increment2) {
+				grid2.add(x);
+				RegressionResult pred = opt.getRegressor().predict(new ArrayRealVector(new double[] {x}));
+				posterior_mean.add(pred.mean);
+				posterior_var.add(pred.var);
+				
+				double l = opt.loss.getValue(new double[] {x});
+				//log.info("loss("+x+")="+l);
+				ls.add(l);
+			}
+			
+			String obs_path = new String("/home/nico/gp-opt/papers/nips2013/plots/gpgo_func_1d_obs_iter_"+iter+".dat");
+			String mean_path = new String("/home/nico/gp-opt/papers/nips2013/plots/gpgo_func_1d_mean_iter_"+iter+".dat");
+			String var_path = new String("/home/nico/gp-opt/papers/nips2013/plots/gpgo_func_1d_var_iter_"+iter+".dat");
+			
+			try {
+				Writer writer1 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(obs_path), "utf-8"));
+				Writer writer2 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(mean_path), "utf-8"));
+				Writer writer3 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(var_path), "utf-8"));
+			    
+				for(int i=0; i<xs.size(); i++) {
+					writer1.write(xs.get(i) + " " + ys.get(i) + "\n");
+				}
+				
+				for(int i=0; i<grid2.size(); i++) {
+					writer2.write(grid2.get(i) + " " + posterior_mean.get(i) + "\n");
+					writer3.write(grid2.get(i) + " " + posterior_var.get(i) + "\n");
+				}
+				
+				writer1.close();
+				writer2.close();
+				writer3.close();
+			} catch (IOException ex){
+			    // handle me
+			} 
+			
+			// Series 0: True function
+			Series series0 = chart.addSeries("True function", grid, fvals);
+			series0.setMarker(SeriesMarker.NONE);
+		
+			// Series 1: Posterior
+			Series series1 = chart.addSeries("Posterior", grid2, posterior_mean, posterior_var);
+			series1.setMarker(SeriesMarker.NONE);
+			
+			// Series 2: Loss
+			Series series2 = chart.addSeries("Loss", grid2, ls);
+			series2.setMarker(SeriesMarker.NONE);
+			
+			// Series 3: Observations
+			Series series3 = chart.addSeries("Observations", xs, ys);
+			series3.setLineStyle(SeriesLineStyle.NONE);
+			
+			// Series 4: Chosen point
+			Series series4 = chart.addSeries("Next evaluation", min, loss_at_min);
+			series4.setLineStyle(SeriesLineStyle.NONE);
+			
+			chart.getStyleManager().setYAxisMin(-1.0);
+			chart.getStyleManager().setYAxisMax(0.5);
+		 
+			chart.getStyleManager().setXAxisMin(0);
+			chart.getStyleManager().setXAxisMax(1);
+		
+			new SwingWrapper(chart).displayChart();
+			
+			// Update observations for the next iteration
+			opt.updateObservations(min_vec, h.getValue(min_vec.toArray()));
+		}
+	}
+	
 	public static void main(String [] args) {
 		GPGOTest tester = new GPGOTest();
 		tester.UnevenDecreasingMaxima();
+		tester.UnevenDecreasingMaximaOptimizedByGD();
 	}
 	
 }
