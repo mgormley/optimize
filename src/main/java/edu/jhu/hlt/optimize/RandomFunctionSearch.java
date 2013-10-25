@@ -109,6 +109,10 @@ public class RandomFunctionSearch {
     
     private double[] getInitialPointArray() {
     	double [] pt = new double[function.getNumDimensions()];
+
+		if(function instanceof Proposable) 
+			return ((Proposable)function).samplePoint();
+
     	// Random starting location
     	for(int i=0; i<pt.length; i++) {
     		double r  = Prng.nextDouble(); //r ~ U(0,1)
