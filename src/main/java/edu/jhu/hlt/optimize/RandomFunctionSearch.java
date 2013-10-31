@@ -11,10 +11,10 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.util.Prng;
-import edu.jhu.hlt.util.math.GPRegression;
-import edu.jhu.hlt.util.math.GPRegression.GPRegressor;
-import edu.jhu.hlt.util.math.GPRegression.RegressionResult;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.hlt.util.stats.GPRegression;
+import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
+import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
 
 /**
  * Random function search: given a function f(x), generate

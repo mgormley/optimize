@@ -24,8 +24,11 @@ import com.xeiam.xchart.SwingWrapper;
 
 import edu.jhu.hlt.optimize.Function;
 import edu.jhu.hlt.optimize.functions.XSquared;
-import edu.jhu.hlt.util.math.GPRegression.GPRegressor;
-import edu.jhu.hlt.util.math.GPRegression.RegressionResult;
+import edu.jhu.hlt.util.stats.GPRegression;
+import edu.jhu.hlt.util.stats.Kernel;
+import edu.jhu.hlt.util.stats.SquaredExpKernel;
+import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
+import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
 
 public class GPRegressionTest {
 

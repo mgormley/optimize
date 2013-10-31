@@ -1,4 +1,4 @@
-package edu.jhu.hlt.util.math;
+package edu.jhu.hlt.util.stats;
 
 import java.awt.Color;
 import java.util.ArrayList;

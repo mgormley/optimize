@@ -1,22 +1,26 @@
 package edu.jhu.hlt.util;
 
-import java.util.Random;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well44497b;
 
 public class Prng {
     
-    public static Random curRandom;
-    public static Random javaRandom;
+    public static RandomGenerator rng;
     public static long seed;
     
     public static void seed(long seed) {
         Prng.seed = seed;
         System.out.println("SEED="+seed);
-        javaRandom = new Random(seed);
-        setRandom(javaRandom);
+        RandomGenerator gen = new Well44497b(seed);
+        setRandom(gen);
     }
 
-    public static void setRandom(Random curRandom) {
-        Prng.curRandom = curRandom;
+    public static void setRandom(RandomGenerator rng) {
+        Prng.rng = rng;
+    }
+    
+    public static RandomGenerator getRandom() {
+    	return Prng.rng;
     }
 
     static {
@@ -28,15 +32,15 @@ public class Prng {
     
     
     public static double nextDouble() {
-        return curRandom.nextDouble();
+        return rng.nextDouble();
     }
     
     public static boolean nextBoolean() {
-        return curRandom.nextBoolean();
+        return rng.nextBoolean();
     }
     
     public static int nextInt(int n) {
-        return curRandom.nextInt(n);
+        return rng.nextInt(n);
     }
     
 }

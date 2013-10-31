@@ -1,4 +1,4 @@
-package edu.jhu.hlt.util.math;
+package edu.jhu.hlt.util.stats;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.linear.MatrixUtils;

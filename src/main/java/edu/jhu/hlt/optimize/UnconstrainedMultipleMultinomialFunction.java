@@ -1,6 +1,6 @@
 package edu.jhu.hlt.optimize;
 
-import edu.jhu.hlt.util.math.Multinomials;
+import edu.jhu.hlt.util.stats.Multinomials;
 
 /**
  * Wrapper of a MultipleMultinomialLogLikelihood which uses a softmax transform
