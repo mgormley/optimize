@@ -18,6 +18,8 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
+import edu.jhu.hlt.optimize.DifferentiableFunction;
+
 /**
  * A class for doing Gaussian process regression based on: 
  * 
@@ -43,14 +45,20 @@ public class GPRegression {
 	}
 	
 	// TODO: this should implement a generic "Regressor" interface
-	public static class GPRegressor {
+	public static class GPRegressor implements DifferentiableFunction {
 		RealMatrix X;
+		RealVector y;
+		RealMatrix K;
+		RealMatrix Kinv;
 		CholeskyDecomposition decomp;
 		RealVector alpha;
 		Kernel kernel;
 		double noise;
-		public GPRegressor(RealMatrix X, CholeskyDecomposition decomp, RealVector alpha, Kernel kernel, double noise) {
+		public GPRegressor(RealMatrix X, RealVector y, RealMatrix K, CholeskyDecomposition decomp, RealVector alpha, Kernel kernel, double noise) {
 			this.X = X;
+			this.y = y;
+			this.K = K;
+			this.Kinv = decomp.getSolver().getInverse();
 			this.decomp = decomp;
 			this.alpha = alpha;
 			this.kernel = kernel;
@@ -96,8 +104,7 @@ public class GPRegression {
 //					log.info("G "+i+" "+j+" = "+G.getEntry(i, j));
 //				}
 //			}
-			RealMatrix K_inverse = decomp.getSolver().getInverse();
-			RealMatrix temp = K_inverse.multiply(G);
+			RealMatrix temp = Kinv.multiply(G);
 			RealMatrix k_star_T = MatrixUtils.createRealMatrix(k_star.getDimension(), 1);
 			k_star_T.setColumnVector(0, k_star);
 			k_star_T = k_star_T.transpose();
@@ -119,6 +126,81 @@ public class GPRegression {
 		
 		public RealVector getInput(int i) {
 			return X.getColumnVector(i);
+		}
+
+		@Override
+		public void setPoint(double[] point) {
+			
+			kernel.setParameters(new ArrayRealVector(point));
+			
+			// Recompute things
+			K = kernel.K(X);
+			RealMatrix temp = K.add(MatrixUtils.createRealIdentityMatrix(K.getColumnDimension()).scalarMultiply(noise));
+			decomp = new CholeskyDecomposition(temp);
+			RealMatrix L = decomp.getL();
+			RealMatrix LT = decomp.getLT();
+			alpha = y.copy();
+			MatrixUtils.solveLowerTriangularSystem(L, alpha);
+			MatrixUtils.solveUpperTriangularSystem(LT, alpha);
+			Kinv = decomp.getSolver().getInverse();
+			
+		}
+
+		@Override
+		public double[] getPoint() {
+			return kernel.getParameters().toArray();
+		}
+
+		@Override
+		public double getValue(double[] point) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public double getValue() {
+			// Compute the log-determinant
+			RealMatrix L = decomp.getL();
+			double logdet = 0.0;
+			for(int i=0; i<L.getColumnDimension(); i++) {
+				logdet += Math.log(L.getEntry(i, i));
+			}
+			
+			// Return marginal likelihood (evidence)
+			return -0.5*alpha.dotProduct(y) - logdet - (L.getColumnDimension()/2.0)*Math.log(2.0*Math.PI);
+		}
+
+		@Override
+		public int getNumDimensions() {
+			return kernel.getNumParameters();
+		}
+
+		// O(N^2) per hyper-parameter
+		@Override
+		public void getGradient(double[] gradient) {
+			RealMatrix col_alpha = MatrixUtils.createColumnRealMatrix(alpha.toArray());
+			RealMatrix LHS = col_alpha.multiply(col_alpha.transpose()).subtract(Kinv);
+			List<RealMatrix> RHSs = kernel.getPartials(K);
+			for(int i=0; i < kernel.getNumParameters(); i++) {
+				RealMatrix RHS = RHSs.get(i);
+				double trace = 0;
+				for(int row=0; row<Kinv.getRowDimension(); row++) {
+					for(int col=0; col<Kinv.getColumnDimension(); col++) {
+						trace += LHS.getEntry(row, col)*RHS.getEntry(row, col);
+					}
+				}
+				gradient[i] = 0.5*trace;
+			}
+		}
+		
+		public void getSlowGradient(double[] gradient) {
+			RealMatrix col_alpha = MatrixUtils.createColumnRealMatrix(alpha.toArray());
+			RealMatrix LHS = col_alpha.multiply(col_alpha.transpose()).subtract(Kinv);
+			List<RealMatrix> RHSs = kernel.getPartials(K);
+			for(int i=0; i < kernel.getNumParameters(); i++) {
+				RealMatrix RHS = RHSs.get(i);
+				double trace = LHS.multiply(RHSs.get(i)).getTrace();
+				gradient[i] = 0.5*trace;
+			}
 		}
 	}
 	
@@ -159,7 +241,7 @@ public class GPRegression {
 		RealVector alpha = y.copy();
 		MatrixUtils.solveLowerTriangularSystem(L, alpha);
 		MatrixUtils.solveUpperTriangularSystem(LT, alpha);
-		return new GPRegressor(X, decomp, alpha, kernel, noise);
+		return new GPRegressor(X, y, K, decomp, alpha, kernel, noise);
 	}
 	
 	public static RegressionResult predict(RealMatrix x,        // train inputs

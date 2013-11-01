@@ -1,6 +1,10 @@
 package edu.jhu.hlt.util.stats;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
+import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
@@ -64,6 +68,62 @@ public class SquaredExpKernel implements Kernel {
 		}
 		return K;
 	}
+	
+	@Override
+	public List<RealMatrix> KWithPartials(RealMatrix X) {
+		List<RealMatrix> ret = new ArrayList<RealMatrix>();
+		
+		RealMatrix K = this.K(X);
+		RealMatrix dvarK = K.copy();
+		RealMatrix dlenK = K.copy();
+		
+		for(int i=0; i<K.getRowDimension(); i++) {
+			for(int j=0; j<K.getColumnDimension(); j++) {
+				double kij = K.getEntry(i, j);
+				dvarK.setEntry(i, j, 2*(1.0/var)*kij);
+				dlenK.setEntry(i, j, -Math.pow(len_scale, -3)*kij);
+			}
+		}
+		
+		ret.add(K);
+		ret.add(dvarK);
+		ret.add(dlenK);
+		
+		return ret;
+	}
+	
+
+	@Override
+	public List<RealMatrix> getPartials(RealMatrix K) {
+		List<RealMatrix> ret = new ArrayList<RealMatrix>();
+		
+		RealMatrix dvarK = K.copy();
+		RealMatrix dlenK = K.copy();
+		
+		for(int i=0; i<K.getRowDimension(); i++) {
+			for(int j=0; j<K.getColumnDimension(); j++) {
+				double kij = K.getEntry(i, j);
+				dvarK.setEntry(i, j, 2*(1.0/var)*kij);
+				dlenK.setEntry(i, j, -Math.pow(len_scale, -3)*kij);
+			}
+		}
+		
+		ret.add(dvarK);
+		ret.add(dlenK);
+		
+		return ret;
+	}
+	
+	@Override
+	public RealVector getParameters() {
+		return new ArrayRealVector(new double[] {var, len_scale});
+	}
+	
+	@Override
+	public void setParameters(RealVector phi) {
+		this.var = phi.getEntry(0);
+		this.len_scale = phi.getEntry(1);
+	}
 
 	@Override
 	public DerivativeStructure k(DerivativeStructure[] x, DerivativeStructure[] y) {
@@ -81,6 +141,11 @@ public class SquaredExpKernel implements Kernel {
 		for(int k=0; k<x1.getDimension(); k++) {
 			grad[k] = -(1.0/len_scale*len_scale)*(x2.getEntry(k)-x1.getEntry(k))*kern;
 		}
+	}
+
+	@Override
+	public int getNumParameters() {
+		return 2;
 	}
 	
 }
