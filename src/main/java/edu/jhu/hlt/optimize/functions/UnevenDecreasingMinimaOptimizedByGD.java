@@ -16,11 +16,10 @@ import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
 import edu.jhu.hlt.optimize.Bounds;
-import edu.jhu.hlt.optimize.ConstrainedGradientDescentWithLineSearch;
 import edu.jhu.hlt.optimize.Function;
 import edu.jhu.hlt.optimize.FunctionOpts;
 import edu.jhu.hlt.optimize.FunctionOpts.DifferentiableFunctionWithConstraints;
-import edu.jhu.hlt.optimize.FunctionOpts.NegateFunction;
+import edu.jhu.hlt.optimize.GradientDescentWithLineSearch;
 
 public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 	
@@ -42,7 +41,7 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 
 	@Override
 	public double getValue(double[] point) {
-		ConstrainedGradientDescentWithLineSearch opt = new ConstrainedGradientDescentWithLineSearch(150);
+		GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(150);
 		opt.minimize(f, point);
 		return f.getValue();
 	}

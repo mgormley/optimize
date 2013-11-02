@@ -1,6 +1,5 @@
 package edu.jhu.hlt.optimize;
 
-import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,7 +20,6 @@ import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
 import edu.jhu.hlt.optimize.FunctionOpts.DifferentiableFunctionWithConstraints;
-import edu.jhu.hlt.optimize.FunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.functions.UnevenDecreasingMaxima;
 
 public class UnevenDecreasingMinimaOptimizedByGD implements Function {
@@ -49,7 +47,7 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 
 	@Override
 	public double getValue(double[] point) {
-		ConstrainedGradientDescentWithLineSearch opt = new ConstrainedGradientDescentWithLineSearch(niter);
+		GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(niter);
 		opt.minimize(f, point);
 		return f.getValue();
 	}

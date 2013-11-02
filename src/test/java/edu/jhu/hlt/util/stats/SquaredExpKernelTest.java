@@ -1,4 +1,4 @@
-package edu.jhu.hlt.util.math;
+package edu.jhu.hlt.util.stats;
 
 import static org.junit.Assert.assertEquals;
 

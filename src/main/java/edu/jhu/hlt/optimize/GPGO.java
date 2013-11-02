@@ -245,7 +245,7 @@ public class GPGO extends    Optimizer<Function>
 		
 		// Run a local search starting from each of the returned points
 		for(RealVector pt : pts) {
-			ConstrainedGradientDescentWithLineSearch opt = new ConstrainedGradientDescentWithLineSearch(this.depth);
+			GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(this.depth);
 			opt.minimize(loss, pt.toArray());
 			double [] x = loss.getPoint();
 			double y = loss.getValue();

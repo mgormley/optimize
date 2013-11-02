@@ -1,4 +1,4 @@
-package edu.jhu.hlt.util.math;
+package edu.jhu.hlt.util.stats;
 
 import static org.junit.Assert.*;
 
@@ -23,7 +23,9 @@ import com.xeiam.xchart.StyleManager.ChartType;
 import com.xeiam.xchart.SwingWrapper;
 
 import edu.jhu.hlt.optimize.Function;
+import edu.jhu.hlt.optimize.functions.Friedman;
 import edu.jhu.hlt.optimize.functions.XSquared;
+import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.stats.GPRegression;
 import edu.jhu.hlt.util.stats.Kernel;
 import edu.jhu.hlt.util.stats.SquaredExpKernel;
@@ -33,6 +35,63 @@ import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
 public class GPRegressionTest {
 
 	static Logger log = Logger.getLogger(GPRegressionTest.class);
+
+	public double [][] uniformPoints(int N, int D) {
+		double [][] ret = new double[N][];
+		for(int i=0; i<N; i++) {
+			ret[i] = new double[D];
+			for(int j=0; j<D; j++) {
+				ret[i][j] = Prng.nextDouble();
+			}
+		}
+		return ret;
+	}
+	
+	@Test
+	public void hyperparameterInference() {
+		
+		Function f = new Friedman();
+		
+		// Sample some points at which to evaluate the function
+		int N = 100;
+		int D = 5;
+		RealMatrix X      = MatrixUtils.createRealMatrix(uniformPoints(N,D)).transpose();
+		RealMatrix X_star = MatrixUtils.createRealMatrix(uniformPoints(N,D)).transpose();
+		
+		double [] ys = new double[X.getColumnDimension()];
+		double [] ys_eval = new double[X_star.getColumnDimension()];
+		for(int i=0; i<N; i++) {
+			ys[i] = f.getValue(X.getColumn(i));
+			ys_eval[i] = f.getValue(X_star.getColumn(i));
+		}
+		
+		RealVector y = new ArrayRealVector(ys);
+		RealVector y_star = new ArrayRealVector(ys_eval);
+		
+		Kernel kernel = new SquaredExpKernel();
+		GPRegressor reg = GPRegression.trainRegressor(X, y, kernel, 0.1);
+		
+		// Compute initial RMSE
+		double RMSE = 0;
+		for(int i=0; i<N; i++) {
+			RegressionResult r = reg.predict(X_star.getColumnVector(i));
+			double y_hat = r.mean;
+			RMSE += Math.sqrt(Math.pow(y_star.getEntry(i)-y_hat,2)/N);
+		}
+		log.info("RMSE before training: " + RMSE);
+		
+		// Train the hyper-parameters
+		
+		
+		// Compute final RMSE
+		RMSE = 0;
+		for(int i=0; i<N; i++) {
+			RegressionResult r = reg.predict(X_star.getColumnVector(i));
+			double y_hat = r.mean;
+			RMSE += Math.sqrt(Math.pow(y_star.getEntry(i)-y_hat,2)/N);
+		}
+		log.info("RMSE before training: " + RMSE);
+	}
 	
 	@Test
 	public void TwoDGradientTest() {

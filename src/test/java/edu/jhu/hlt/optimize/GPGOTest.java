@@ -98,7 +98,7 @@ public class GPGOTest {
 		
 		log.info("Initial loss = l(" + start_pt[0] + ")="+start_loss);
 		
-		ConstrainedGradientDescentWithLineSearch local_opt = new ConstrainedGradientDescentWithLineSearch(25);
+		GradientDescentWithLineSearch local_opt = new GradientDescentWithLineSearch(25);
 		local_opt.minimize(opt.loss, start_pt);
 		double [] xguess = opt.loss.getPoint();
 		double yguess = opt.loss.getValue();

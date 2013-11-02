@@ -50,20 +50,14 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
     
     public GradientDescentWithLineSearch(GradientDescentWithLineSearchPrm prm) {
         this.prm = prm;
-        iterCount = 0;
     }
-
-    /**
-     * Maximize the function starting at the given initial point.
-     */
+    
     @Override
     public boolean maximize(DifferentiableFunction function, double[] point) {
         return optimize(function, point, true);
     }
 
-    /**
-     * Minimize the function starting at the given initial point.
-     */
+    @Override
     public boolean minimize(DifferentiableFunction function, double[] point) {
         return optimize(function, point, false);
     }
@@ -71,8 +65,8 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
     private boolean optimize(DifferentiableFunction function, double[] point, final boolean maximize) {        
         assert (function.getNumDimensions() == point.length);
         double[] gradient = new double[point.length];
+        LineSearch line = new LineSearch(function, maximize);
         
-        double passCountFrac = 0;
         for (iterCount=0; iterCount < prm.iterations; iterCount++) {
             function.setPoint(point);
             
@@ -86,7 +80,7 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
             assert (gradient.length == point.length);
             
             // Take a step in the direction of the gradient.
-            double lr = lineSearch(function, maximize, point, gradient);
+            double lr = line.search(point, gradient);
             log.info("step size = " + lr);
             for (int i=0; i<point.length; i++) {
                 if (maximize) {
@@ -115,47 +109,15 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
     public static boolean sufficientCurvature(double [] d, double [] g, double [] new_g, double c2) {
         return Vectors.dotProduct(d, new_g) >= c2*Vectors.dotProduct(d, g);
     }
-
-    // TODO: quadratic interpolation
-    private double lineSearch(DifferentiableFunction f, boolean maximize, double [] x, double [] g) {
-    	
-    	double step = prm.initial_step;
-        int iter = 0;
-        double [] d = g;
-        double value = f.getValue();
-        double [] new_g = new double[f.getNumDimensions()];
-        double [] new_x = new double[f.getNumDimensions()];
-        boolean decrease;
-		boolean curvature;
-		do {                        
-        	for(int i=0; i<f.getNumDimensions(); i++) {
-        		new_x[i] = x[i] + step*g[i];
-        	}
-        	f.setPoint(new_x);
-        	double new_value = f.getValue();
-        	f.getGradient(new_g);
-        	
-        	curvature = sufficientCurvature(d, g, new_g, prm.c2);
-        	decrease  = sufficientDecrease(new_value, value, step, prm.c1, d, g);
-        	
-        	// Contract the step size
-        	step *= prm.tau;
-        	
-        } while(!curvature && !decrease);
-       
-        return step;
-    }
     
 	@Override
 	public boolean minimize() {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public boolean maximize() {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException();
 	}
     
 }
