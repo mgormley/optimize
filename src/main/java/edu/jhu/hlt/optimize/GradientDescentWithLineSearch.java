@@ -9,11 +9,6 @@ import edu.jhu.hlt.util.math.Vectors;
 /**
  * Gradient descent. A line search is used at each iteration to pick the step size.
  * 
- * WARNING:
- * 	- This version is not thoroughly tested; used the "Constrained" version
- * 	  of this class with (-inf, +inf) constraints instead. They will be
- * 	  merged eventually.
- * 
  * @author noandrews
  */
 public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFunction>, 
@@ -23,14 +18,7 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
     public static class GradientDescentWithLineSearchPrm {
         /** The number of iterations to perform. */
         public int iterations = 10;
-        
-        // Magic linesearch parameters
-        public int max_linesearch_iter = 100;
-        public double initial_step = 0.5;
-        public double tau = 0.5;
-        public double c1 = 0.5;
-        public double c2 = 1e-4;
-        
+        public double min_step = 1e-8;
         public GradientDescentWithLineSearchPrm() { } 
         public GradientDescentWithLineSearchPrm(int iterations) {
             this.iterations = iterations;
@@ -54,18 +42,18 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
     
     @Override
     public boolean maximize(DifferentiableFunction function, double[] point) {
-        return optimize(function, point, true);
+        return optimize(FunctionOpts.negate(function), point);
     }
 
     @Override
     public boolean minimize(DifferentiableFunction function, double[] point) {
-        return optimize(function, point, false);
+        return optimize(function, point);
     }
 
-    private boolean optimize(DifferentiableFunction function, double[] point, final boolean maximize) {        
+    private boolean optimize(DifferentiableFunction function, double[] point) {        
         assert (function.getNumDimensions() == point.length);
         double[] gradient = new double[point.length];
-        LineSearch line = new LineSearch(function, maximize);
+        ParanoidLineSearch line = new ParanoidLineSearch(function);
         
         for (iterCount=0; iterCount < prm.iterations; iterCount++) {
             function.setPoint(point);
@@ -74,6 +62,7 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
             double value = function.getValue();
             log.info(String.format("Function value = %g at iteration = %d", value, iterCount));
             
+            
             // Get the gradient of the function.
             Arrays.fill(gradient, 0.0);
             function.getGradient(gradient);
@@ -81,33 +70,24 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
             
             // Take a step in the direction of the gradient.
             double lr = line.search(point, gradient);
+            
             log.info("step size = " + lr);
             for (int i=0; i<point.length; i++) {
-                if (maximize) {
-                    point[i] += lr * gradient[i];
-                } else {
-                    point[i] -= lr * gradient[i];
-                }
+            	point[i] -= lr * gradient[i];
             }
             log.info("function value = " + function.getValue(point));
+            if(lr < prm.min_step || line.converged()) {
+            	log.info("converged");
+                function.setPoint(point);
+            	break;
+            }
         }
         
         // Get the final value of the function on all the examples.
         double value = function.getValue();
         log.info(String.format("Final function value = %g", value));
         
-        // We don't test for convergence.
-        return false;
-    }
-
-    // Armijo rule: ensures that the step size decreases f 'sufficiently'
-    public static boolean sufficientDecrease(double new_value, double value, double step, double c1, double [] d, double [] g) {      
-        return new_value <= value+c1*step*Vectors.dotProduct(d, g);
-    }
-
-    // Curvature rule: ensures that the slope has been reduced 'sufficiently'
-    public static boolean sufficientCurvature(double [] d, double [] g, double [] new_g, double c2) {
-        return Vectors.dotProduct(d, new_g) >= c2*Vectors.dotProduct(d, g);
+        return true;
     }
     
 	@Override

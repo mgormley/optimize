@@ -24,6 +24,17 @@ public class GradientDescentWithLineSearchTest {
 	       opt.maximize(new FunctionOpts.NegateFunction(new XSquared()), max);
 	       assertEquals(0.0, max[0], 1e-10);      
 	    }
+	   
+	   @Test
+	   public void testXSquared2() {
+		   BasicConfigurator.configure();
+		   Logger.getRootLogger().setLevel(Level.DEBUG);
+	    	
+	       GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(100);
+	       double[] max = new double[]{ 13.3 };
+	       opt.minimize(new XSquared(), max);
+	       assertEquals(0.0, max[0], 1e-10);  
+	   }
 	    
 	    @Test
 	    public void testXSquared() {
@@ -34,6 +45,21 @@ public class GradientDescentWithLineSearchTest {
 	        double[] max = new double[]{ 9.0 };
 	        opt.minimize(new XSquared(), max);
 	        assertEquals(0.0, max[0], 1e-10);        
+	    }
+	    
+	    @Test
+	    public void testSumSquares() {
+	    	BasicConfigurator.configure();
+	    	Logger.getRootLogger().setLevel(Level.DEBUG);
+	    	
+	        GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(100);
+	        double[] initial = new double[3];
+	        initial[0] = 9;
+	        initial[1] = 2;
+	        initial[2] = -7;
+	        opt.minimize(new SumSquares(initial.length), initial);
+	        double[] max = initial;
+	        JUnitUtils.assertArrayEquals(new double[] {0.0, 0.0, 0.0} , max, 1e-10);
 	    }
 	    
 	    @Test
