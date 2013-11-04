@@ -3,6 +3,8 @@ package edu.jhu.hlt.optimize;
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+import edu.jhu.prim.vector.IntDoubleHashVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * AdaDelta -- Tweaks the AdaGrad (Duchi et al., 2010) method by adding momentum
@@ -58,12 +60,14 @@ public class AdaDelta extends SGD {
     }
 
     /** A tie-in for subclasses such as AdaGrad. */
-    protected void takeNoteOfGradient(double[] gradient) {
+    protected void takeNoteOfGradient(IntDoubleVector g) {
+        // TODO: This update is NOT sparse.
+        IntDoubleHashVector gradient = new IntDoubleHashVector(g);
         super.takeNoteOfGradient(gradient);        
-        for (int i=0; i<gradient.length; i++) {
-            gradAccum[i] = prm.decayRate * gradAccum[i] + (1.0 - prm.decayRate) * gradient[i] * gradient[i];
+        for (int i=0; i<gradAccum.length; i++) {
+            gradAccum[i] = prm.decayRate * gradAccum[i] + (1.0 - prm.decayRate) * gradient.get(i) * gradient.get(i);
             lr[i] = computeLearningRate(i);
-            double update = lr[i] * gradient[i];
+            double update = lr[i] * gradient.get(i);
             updAccum[i] = prm.decayRate * updAccum[i] + (1.0 - prm.decayRate) * update * update;
             
             assert !Double.isNaN(gradAccum[i]);

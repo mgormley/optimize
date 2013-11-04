@@ -15,7 +15,7 @@ import edu.jhu.hlt.util.math.Vectors;
  * @author noandrews
  */
 public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFunction>, 
-                                                      Minimizer<DifferentiableFunction> {
+                                                      Optimizer<DifferentiableFunction> {
 
     /** Options for this optimizer. */
     public static class GradientDescentWithLineSearchPrm {

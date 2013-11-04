@@ -2,6 +2,11 @@ package edu.jhu.hlt.optimize.function;
 
 import edu.jhu.hlt.util.math.Vectors;
 
+/**
+ * Batch function operations. 
+ * 
+ * @author mgormley
+ */
 public class BatchFunctionOpts {
 
     /** Wrapper which negates the input function. */

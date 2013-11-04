@@ -1,11 +1,13 @@
 package edu.jhu.hlt.optimize;
 
-import java.util.Arrays;
-
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
-import edu.jhu.hlt.util.Utilities;
+import edu.jhu.hlt.optimize.function.ValueGradient;
+import edu.jhu.prim.sort.IntSort;
+import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
+import edu.jhu.prim.vector.IntDoubleVector;
+import edu.jhu.util.Timer;
 
 /**
  * Stochastic gradient descent with minibatches.
@@ -16,7 +18,7 @@ import edu.jhu.hlt.util.Utilities;
  * 
  * @author mgormley
  */
-public class SGD implements Maximizer<DifferentiableBatchFunction>, Minimizer<DifferentiableBatchFunction> {
+public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     /** Options for this optimizer. */
     public static class SGDPrm {
@@ -101,93 +103,76 @@ public class SGD implements Maximizer<DifferentiableBatchFunction>, Minimizer<Di
      * Maximize the function starting at the given initial point.
      */
     @Override
-    public boolean maximize(DifferentiableBatchFunction function, double[] point) {
+    public boolean maximize(DifferentiableBatchFunction function, IntDoubleVector point) {
         return optimize(function, point, true);
     }
 
     /**
      * Minimize the function starting at the given initial point.
      */
-    public boolean minimize(DifferentiableBatchFunction function, double[] point) {
+    public boolean minimize(DifferentiableBatchFunction function, IntDoubleVector point) {
         return optimize(function, point, false);
     }
 
-    private boolean optimize(DifferentiableBatchFunction function, double[] point, final boolean maximize) {
+    private boolean optimize(DifferentiableBatchFunction function, IntDoubleVector point, final boolean maximize) {
         init(function);
         
-        assert (function.getNumDimensions() == point.length);
-        double[] gradient = new double[point.length];
-        
+        // TODO: This used to be possible: assert (function.getNumDimensions() == point.length);
+        IntDoubleVector gradient;
+
+        Timer timer = new Timer();
+        timer.start();
         int passCount = 0;
         double passCountFrac = 0;
         for (iterCount=0; iterCount < iterations; iterCount++) {
-            function.setPoint(point);
-            
             int[] batch = batchSampler.sampleBatch();
             
-            // Get the current value of the function.
-            double value = function.getValue(batch);
+            // Get the current value and gradient of the function.
+            ValueGradient vg = function.getValueGradient(point, batch);
+            double value = vg.getValue();
+            gradient = vg.getGradient();
             log.trace(String.format("Function value on batch = %g at iteration = %d", value, iterCount));
-            
-            // Get the gradient of the function.
-            Arrays.fill(gradient, 0.0);
-            function.getGradient(batch, gradient);
-            assert (gradient.length == point.length);                          
+            // TODO: This used to be possible: assert (gradient.length == point.length);            
             takeNoteOfGradient(gradient);
             
+            // Scale the gradient by the learning rate.
+            gradient.apply(new FnIntDoubleToDouble() {
+                @Override
+                public double call(int index, double value) {
+                    double lr = getLearningRate(iterCount, index);
+                    if (maximize) {
+                        return lr * value;
+                    } else {
+                        return - lr * value;
+                    }
+                }
+            });
+            
             // Take a step in the direction of the gradient.
-            double avgLr = 0.0;
-            int numNonZeros = 0;
-            for (int i=0; i<point.length; i++) {
-                double lr = getLearningRate(iterCount, i);
-                if (maximize) {
-                    point[i] += lr * gradient[i];
-                } else {
-                    point[i] -= lr * gradient[i];
-                }
-                assert !Double.isNaN(point[i]);
-                if (gradient[i] != 0.0) {
-                    avgLr += lr;
-                    numNonZeros++;
-                }
-            }
-            avgLr /= (double) numNonZeros;
+            point.add(gradient);
             
             // If a full pass through the data has been completed...
             passCountFrac = (double) iterCount * prm.batchSize / function.getNumExamples();
+            if ((int) Math.floor(passCountFrac) > passCount || iterCount == iterations - 1) {
+                // Another full pass through the data has been completed or we're on the last iteration.
+                // Get the value of the function on all the examples.
+                value = function.getValue(point, IntSort.getIndexArray(function.getNumExamples()));
+                log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
+                log.debug(String.format("Average time per pass (min): %.2g", timer.totSec() / 60.0 / passCountFrac));
+            }
             if ((int) Math.floor(passCountFrac) > passCount) {
                 // Another full pass through the data has been completed.
                 passCount++;
-                // Get the value of the function on all the examples.
-                value = function.getValue(Utilities.getIndexArray(function.getNumExamples()));
-                log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
-                log.debug("Average learning rate: " + avgLr);
             }
         }
-        
-        // Get the final value of the function on all the examples.
-        double value = function.getValue(Utilities.getIndexArray(function.getNumExamples()));
-        log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
         
         // We don't test for convergence.
         return false;
     }
 
     /** A tie-in for subclasses such as AdaGrad. */
-    protected void takeNoteOfGradient(double[] gradient) {
+    protected void takeNoteOfGradient(IntDoubleVector gradient) {
         // Do nothing. This is just for subclasses.
     }
-
-	@Override
-	public boolean minimize() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean maximize() {
-		// TODO Auto-generated method stub
-		return false;
-	}
     
 }

@@ -1,10 +1,10 @@
 package edu.jhu.hlt.optimize;
 
-import java.util.Arrays;
-
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.ValueGradient;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Stochastic gradient descent.
@@ -15,7 +15,7 @@ import edu.jhu.hlt.optimize.function.DifferentiableFunction;
  * 
  * @author mgormley
  */
-public class GradientDescent implements Maximizer<DifferentiableFunction>, Minimizer<DifferentiableFunction> {
+public class GradientDescent implements Optimizer<DifferentiableFunction> {
 
     /** Options for this optimizer. */
     public static class GradientDescentPrm {
@@ -89,64 +89,43 @@ public class GradientDescent implements Maximizer<DifferentiableFunction>, Minim
      * Maximize the function starting at the given initial point.
      */
     @Override
-    public boolean maximize(DifferentiableFunction function, double[] point) {
+    public boolean maximize(DifferentiableFunction function, IntDoubleVector point) {
         return optimize(function, point, true);
     }
 
     /**
      * Minimize the function starting at the given initial point.
      */
-    public boolean minimize(DifferentiableFunction function, double[] point) {
+    public boolean minimize(DifferentiableFunction function, IntDoubleVector point) {
         return optimize(function, point, false);
     }
 
-    private boolean optimize(DifferentiableFunction function, double[] point, final boolean maximize) {        
-        assert (function.getNumDimensions() == point.length);
-        double[] gradient = new double[point.length];
+    private boolean optimize(DifferentiableFunction function, IntDoubleVector point, final boolean maximize) {        
+        IntDoubleVector gradient;
         
-        int passCount = 0;
-        double passCountFrac = 0;
         for (iterCount=0; iterCount < prm.iterations; iterCount++) {
-            function.setPoint(point);
-            
-            // Get the current value of the function.
-            double value = function.getValue();
-            log.info(String.format("Function value on batch = %g at iteration = %d", value, iterCount));
-            
-            // Get the gradient of the function.
-            Arrays.fill(gradient, 0.0);
-            function.getGradient(gradient);
-            assert (gradient.length == point.length);
+            // Get the current value and gradient of the function.
+            ValueGradient vg = function.getValueGradient(point);
+            double value = vg.getValue();
+            gradient = vg.getGradient();
+            log.info(String.format("Function value on all examples = %g at iteration = %d", value, iterCount));
             
             // Take a step in the direction of the gradient.
             double lr = getLearningRate(iterCount);
-            for (int i=0; i<point.length; i++) {
-                if (maximize) {
-                    point[i] += lr * gradient[i];
-                } else {
-                    point[i] -= lr * gradient[i];
-                }
+            if (maximize) {
+                gradient.scale(lr);
+            } else {
+                gradient.scale(-lr);
             }
+            point.add(gradient);
         }
         
         // Get the final value of the function on all the examples.
-        double value = function.getValue();
-        log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
+        double value = function.getValue(point);
+        log.info(String.format("Function value on all examples = %g at iteration = %d", value, iterCount));
         
         // We don't test for convergence.
         return false;
     }
-
-	@Override
-	public boolean minimize() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean maximize() {
-		// TODO Auto-generated method stub
-		return false;
-	}
     
 }

@@ -3,6 +3,8 @@ package edu.jhu.hlt.optimize;
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * AdaGrad (Duchi et al., 2010) -- a first order stochastic gradient method with
@@ -47,12 +49,16 @@ public class AdaGrad extends SGD {
     }
 
     /** A tie-in for subclasses such as AdaGrad. */
-    protected void takeNoteOfGradient(double[] gradient) {
+    protected void takeNoteOfGradient(IntDoubleVector gradient) {
         super.takeNoteOfGradient(gradient);
-        for (int i=0; i<gradient.length; i++) {
-            gradSumSquares[i] += gradient[i] * gradient[i];
-            assert !Double.isNaN(gradSumSquares[i]);
-        }
+        gradient.apply(new FnIntDoubleToDouble() {            
+            @Override
+            public double call(int index, double value) {
+                gradSumSquares[index] += value * value;
+                assert !Double.isNaN(gradSumSquares[index]);
+                return value;
+            }
+        });
     }
     
     /**

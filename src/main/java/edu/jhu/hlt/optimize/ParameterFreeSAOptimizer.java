@@ -22,8 +22,8 @@ import org.apache.commons.math3.linear.MatrixUtils;
  * 
  * @author noandrews
  */
-public class ParameterFreeSAOptimizer extends    Optimizer<ConstrainedFunction>
-									  implements Minimizer<ConstrainedFunction> {
+public class ParameterFreeSAOptimizer extends    AbstractOptimizer<ConstrainedFunction>
+									  implements Optimizer<ConstrainedFunction> {
 
 	static Logger log = Logger.getLogger(ParameterFreeSAOptimizer.class);
 	

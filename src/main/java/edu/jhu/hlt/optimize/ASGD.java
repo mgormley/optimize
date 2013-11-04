@@ -11,8 +11,8 @@ import edu.jhu.hlt.optimize.function.DifferentiableFunction;
  * 
  * @author noandrews
  */
-public class ASGD extends    Optimizer<DifferentiableFunction>
-				  implements Minimizer<DifferentiableFunction>,
+public class ASGD extends    AbstractOptimizer<DifferentiableFunction>
+				  implements Optimizer<DifferentiableFunction>,
 							 Maximizer<DifferentiableFunction> {
 
     private static final Logger log = Logger.getLogger(ASGD.class);

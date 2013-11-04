@@ -19,9 +19,9 @@ import edu.jhu.hlt.optimize.function.DifferentiableFunction;
  * 
  * @author noandrews
  */
-public class SGDQNCorrected extends    Optimizer<DifferentiableFunction>
+public class SGDQNCorrected extends    AbstractOptimizer<DifferentiableFunction>
                             implements Maximizer<DifferentiableFunction>, 
-                                       Minimizer<DifferentiableFunction> {
+                                       Optimizer<DifferentiableFunction> {
 	
     private static final Logger log = Logger.getLogger(SGDQNCorrected.class);
 	

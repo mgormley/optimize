@@ -32,9 +32,9 @@ import edu.jhu.hlt.util.math.Vectors;
  * 
  * @author noandrews
  */
-public class NaturalNewton extends    Optimizer<DifferentiableFunction>
+public class NaturalNewton extends    AbstractOptimizer<DifferentiableFunction>
                            implements Maximizer<DifferentiableFunction>, 
-                                      Minimizer<DifferentiableFunction> {
+                                      Optimizer<DifferentiableFunction> {
 
     private static final Logger log = Logger.getLogger(NaturalNewton.class);
 	

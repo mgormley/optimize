@@ -13,9 +13,6 @@ public abstract class AbstractBatchFunction implements BatchFunction {
     public abstract int getNumDimensions();
 
     @Override
-    public abstract void setPoint(double[] point);
-
-    @Override
     public abstract double getValue(int[] batch);
     
     @Override

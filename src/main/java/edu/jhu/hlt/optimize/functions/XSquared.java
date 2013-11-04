@@ -1,50 +1,37 @@
 package edu.jhu.hlt.optimize.functions;
 
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.ValueGradient;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
-/** The function x^2. */
+/** 
+ * The function x^2.
+ * 
+ * @author mgormley
+ */
 public class XSquared implements DifferentiableFunction {
-
-	double x;
     
-	/** Constructor with 0 as the initial point. */
-	public XSquared() {
-        this.x = 0;
-    }
-	   
-	public XSquared(double x) {
-		this.x = x;
-	}
-	
-	@Override
-	public void setPoint(double[] point) {
-		x = point[0];
-	}
-
-	@Override
-	public double[] getPoint() {
-		return new double [] {x};
-	}
-
-	@Override
-	public double getValue() {
-		return x*x;
-	}
+	public XSquared() {  }
 
 	@Override
 	public int getNumDimensions() {
-		return getPoint().length;
+		return 1;
 	}
 
 	@Override
-	public void getGradient(double[] gradient) {
-		gradient[0] = 2*x;
+	public IntDoubleVector getGradient(IntDoubleVector point) {
+	    return new IntDoubleDenseVector(new double[]{ 2*point.get(0) });
 	}
 
 	@Override
-	public double getValue(double[] point) {
-		return point[0]*point[0];
+	public double getValue(IntDoubleVector point) {
+		return point.get(0)*point.get(0);
 	}
 
+    @Override
+    public ValueGradient getValueGradient(IntDoubleVector point) {
+        return new ValueGradient(getValue(point), getGradient(point));
+    }
 	
 }

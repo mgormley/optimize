@@ -1,7 +1,10 @@
 package edu.jhu.hlt.optimize.functions;
 
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * The function f(x) = \sum_i (x_i + o_i)^2, where x is the current point
@@ -13,12 +16,10 @@ public class SumSquares implements DifferentiableFunction {
     
     private int dim;
     private double[] offsets;
-    private double[] point;
     
     public SumSquares(int dim) {
         this.dim = dim;
         this.offsets = new double[dim];
-        this.point = new double[dim];
     }
     
     public SumSquares(double[] offsets) {
@@ -27,39 +28,30 @@ public class SumSquares implements DifferentiableFunction {
     }
     
     @Override
-    public double getValue() {
-        double[] ss = new double[point.length];
-        Vectors.add(ss, point);
-        Vectors.add(ss, offsets);
-        return Vectors.dotProduct(ss, ss);
+    public double getValue(IntDoubleVector point) {
+        IntDoubleDenseVector ss = new IntDoubleDenseVector(dim);
+        ss.add(point);
+        ss.add(new IntDoubleDenseVector(offsets));
+        return ss.dot(ss);
     }
 
     @Override
-    public void getGradient(double[] gradient) {
-        for (int i=0; i<gradient.length; i++) {
-            gradient[i] = 2*(point[i] + offsets[i]);
+    public IntDoubleVector getGradient(IntDoubleVector point) {
+        IntDoubleDenseVector gradient = new IntDoubleDenseVector(dim);
+        for (int i=0; i<dim; i++) {
+            gradient.set(i, 2*(point.get(i) + offsets[i]));
         }
+        return gradient;
+    }
+
+    @Override
+    public ValueGradient getValueGradient(IntDoubleVector point) {
+        return new ValueGradient(getValue(point), getGradient(point));
     }
 
     @Override
     public int getNumDimensions() {
         return dim;
     }
-
-    @Override
-    public void setPoint(double[] point) {
-        this.point = point;
-    }
-    
-	@Override
-	public double[] getPoint() {
-		return point;
-	}
-
-	@Override
-	public double getValue(double[] point) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
     
 }

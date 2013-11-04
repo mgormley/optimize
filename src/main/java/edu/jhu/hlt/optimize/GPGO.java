@@ -49,8 +49,8 @@ import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
  * 
  * @author noandrews
  */
-public class GPGO extends    Optimizer<Function>
-                  implements Minimizer<Function> {
+public class GPGO extends    AbstractOptimizer<Function>
+                  implements Optimizer<Function> {
 
 	static Logger log = Logger.getLogger(GPGO.class);
 	

@@ -1,7 +1,10 @@
 package edu.jhu.hlt.optimize.functions;
 
 import edu.jhu.hlt.optimize.function.Regularizer;
+import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * L1 regularizer on the parameters.
@@ -19,14 +22,9 @@ public class L1 implements Regularizer {
 
     private double lambda;
     private int numParams;
-    private double[] params;
     
     public L1(double lambda) {
         this.lambda = lambda;
-    }
-    
-    public void setPoint(double[] params) {
-        this.params = params;
     }
     
     /**
@@ -44,30 +42,36 @@ public class L1 implements Regularizer {
      * Gets - \lambda * |\theta|_1.
      */
     @Override
-    public double getValue() {
+    public double getValue(IntDoubleVector params) {
         double sum = 0.0;
-        for (int i=0; i<params.length; i++) {
-            sum += Math.abs(params[i]);
+        for (int i=0; i<numParams; i++) {
+            sum += Math.abs(params.get(i));
         }
         return - lambda * sum;
     }
 
     @Override
-    public void getGradient(double[] gradient) {
-        for (int j=0; j<gradient.length; j++) {
-            if (params[j] < 0) {
-                gradient[j] = - lambda;
-            } else if (params[j] > 0) {
-                gradient[j] = lambda;
+    public IntDoubleVector getGradient(IntDoubleVector params) {
+        IntDoubleDenseVector gradient = new IntDoubleDenseVector(numParams);
+        for (int j=0; j<numParams; j++) {
+            if (params.get(j) < 0) {
+                gradient.set(j, - lambda);
+            } else if (params.get(j) > 0) {
+                gradient.set(j, lambda);
             } else {
                 // This is just a hack to work around the fact that L1 is not
                 // differentiable at zero.
-                gradient[j] = 0;
-                //throw new RuntimeException("The derivative is undefined at zero.");
+                gradient.set(j, 0);
             }
         }
         // Since we're subtracting this norm.
-        Vectors.scale(gradient, -1);
+        gradient.scale(-1);
+        return gradient;
+    }
+
+    @Override
+    public ValueGradient getValueGradient(IntDoubleVector point) {
+        return new ValueGradient(getValue(point), getGradient(point));
     }
 
     @Override
@@ -78,17 +82,5 @@ public class L1 implements Regularizer {
     public void setNumDimensions(int numParams) {
         this.numParams = numParams ;
     }
-
-	@Override
-	public double[] getPoint() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public double getValue(double[] point) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
 }

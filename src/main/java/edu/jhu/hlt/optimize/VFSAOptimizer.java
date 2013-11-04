@@ -17,9 +17,9 @@ import edu.jhu.hlt.util.math.Vectors;
  * 
  * @author noandrews
  */
-public class VFSAOptimizer extends    Optimizer<ConstrainedDifferentiableFunction>
+public class VFSAOptimizer extends    AbstractOptimizer<ConstrainedDifferentiableFunction>
                            implements Maximizer<ConstrainedDifferentiableFunction>,
-                                      Minimizer<ConstrainedDifferentiableFunction> {
+                                      Optimizer<ConstrainedDifferentiableFunction> {
 	
 	static Logger log = Logger.getLogger(VFSAOptimizer.class);
 	
