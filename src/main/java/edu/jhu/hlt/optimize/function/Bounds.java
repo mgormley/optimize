@@ -1,4 +1,4 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.function;
 
 /**
  * This should probably be part of a specialized Function class.

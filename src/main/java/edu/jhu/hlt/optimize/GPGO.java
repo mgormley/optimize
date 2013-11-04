@@ -21,6 +21,11 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
+import edu.jhu.hlt.optimize.function.Bounds;
+import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
+import edu.jhu.hlt.optimize.function.ConstrainedFunction;
+import edu.jhu.hlt.optimize.function.Function;
+import edu.jhu.hlt.optimize.propose.Proposable;
 import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.hlt.util.stats.GPRegression;

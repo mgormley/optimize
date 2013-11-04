@@ -2,7 +2,7 @@ package edu.jhu.hlt.optimize.functions;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
-import edu.jhu.hlt.optimize.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 
 /**
  * Test area is usually restricted to hyphercube −600 ≤ x_i ≤ 600, i = 1, ..., n. 

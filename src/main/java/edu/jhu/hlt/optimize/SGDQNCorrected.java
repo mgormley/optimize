@@ -2,6 +2,8 @@ package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+
 /**
  * SGD-QN: Careful Quasi-Newton Stochastic Gradient Descent Antoine Bordes, Léon
  * Bottou, Patrick Gallinari; 10(Jul):1737--1754, 2009. JMLR.

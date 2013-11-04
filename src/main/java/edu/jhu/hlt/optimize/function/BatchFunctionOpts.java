@@ -1,4 +1,4 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.function;
 
 import edu.jhu.hlt.util.math.Vectors;
 

@@ -15,10 +15,10 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
-import edu.jhu.hlt.optimize.Bounds;
-import edu.jhu.hlt.optimize.Function;
-import edu.jhu.hlt.optimize.FunctionOpts;
-import edu.jhu.hlt.optimize.FunctionOpts.DifferentiableFunctionWithConstraints;
+import edu.jhu.hlt.optimize.function.Bounds;
+import edu.jhu.hlt.optimize.function.Function;
+import edu.jhu.hlt.optimize.function.FunctionOpts;
+import edu.jhu.hlt.optimize.function.FunctionOpts.DifferentiableFunctionWithConstraints;
 import edu.jhu.hlt.optimize.GradientDescentWithLineSearch;
 
 public class UnevenDecreasingMinimaOptimizedByGD implements Function {

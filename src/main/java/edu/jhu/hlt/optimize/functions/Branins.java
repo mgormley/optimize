@@ -2,7 +2,7 @@ package edu.jhu.hlt.optimize.functions;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
-import edu.jhu.hlt.optimize.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 
 /**
  * Three global optima equal f(x1, x2) = 0.397887

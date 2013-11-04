@@ -10,6 +10,9 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.function.Bounds;
+import edu.jhu.hlt.optimize.function.Function;
+import edu.jhu.hlt.optimize.propose.Proposable;
 import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.hlt.util.stats.GPRegression;

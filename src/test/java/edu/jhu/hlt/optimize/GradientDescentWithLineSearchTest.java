@@ -7,6 +7,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.optimize.functions.XSquared;
 import edu.jhu.hlt.util.JUnitUtils;

@@ -22,7 +22,7 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.StyleManager.ChartType;
 import com.xeiam.xchart.SwingWrapper;
 
-import edu.jhu.hlt.optimize.Function;
+import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.functions.Friedman;
 import edu.jhu.hlt.optimize.functions.XSquared;
 import edu.jhu.hlt.util.Prng;

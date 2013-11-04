@@ -7,7 +7,7 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
-import edu.jhu.hlt.optimize.Function;
+import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.util.Prng;
 
 /**

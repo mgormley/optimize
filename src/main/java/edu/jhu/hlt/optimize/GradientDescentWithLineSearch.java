@@ -4,6 +4,9 @@ import java.util.Arrays;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.FunctionOpts;
+import edu.jhu.hlt.optimize.linesearch.ParanoidLineSearch;
 import edu.jhu.hlt.util.math.Vectors;
 
 /**

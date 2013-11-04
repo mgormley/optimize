@@ -1,10 +1,14 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.linesearch;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.GradientDescentWithLineSearch;
+import edu.jhu.hlt.optimize.function.Bounds;
+import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.util.math.Vectors;
 
 /**

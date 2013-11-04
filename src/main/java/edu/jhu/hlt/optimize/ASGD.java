@@ -2,6 +2,8 @@ package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+
 /**
  * 
  * Wei Xu: Towards Optimal One Pass Large Scale Learning with Averaged Stochastic Gradient Descent, Technical report, 2010.

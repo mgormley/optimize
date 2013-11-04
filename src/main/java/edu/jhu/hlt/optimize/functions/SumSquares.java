@@ -1,6 +1,6 @@
 package edu.jhu.hlt.optimize.functions;
 
-import edu.jhu.hlt.optimize.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.util.math.Vectors;
 
 /**

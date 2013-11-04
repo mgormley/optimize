@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.util.Utilities;
 
 /**

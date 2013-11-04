@@ -2,6 +2,7 @@ package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.util.math.Vectors;
 
 /**

@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import edu.jhu.hlt.optimize.function.MultipleMultinomialLogLikelihood;
+import edu.jhu.hlt.optimize.function.UnconstrainedMultipleMultinomialFunction;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.Utilities;
 import edu.jhu.hlt.util.math.Vectors;

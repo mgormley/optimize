@@ -18,7 +18,7 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
-import edu.jhu.hlt.optimize.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 
 /**
  * A class for doing Gaussian process regression based on: 

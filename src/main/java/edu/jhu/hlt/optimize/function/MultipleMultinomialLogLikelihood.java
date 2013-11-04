@@ -1,4 +1,4 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.function;
 
 /**
  * The MultipleMultinomialLogLikelihood is defined as some function f(x) s.t.

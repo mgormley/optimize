@@ -28,8 +28,14 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
-import edu.jhu.hlt.optimize.FunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.GPGO.ExpectedMyopicLoss;
+import edu.jhu.hlt.optimize.function.Bounds;
+import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
+import edu.jhu.hlt.optimize.function.ConstrainedFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.Function;
+import edu.jhu.hlt.optimize.function.FunctionOpts;
+import edu.jhu.hlt.optimize.function.FunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.functions.Rastrigins;
 import edu.jhu.hlt.optimize.functions.SimpleCubicFunction;
 import edu.jhu.hlt.optimize.functions.UnevenDecreasingMaxima;

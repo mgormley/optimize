@@ -3,6 +3,11 @@ package edu.jhu.hlt.optimize;
 import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.Utilities;
 
+/**
+ * Sampler of batches.
+ * 
+ * @author mgormley
+ */
 public class BatchSampler {
 
     // Parameters.

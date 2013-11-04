@@ -6,6 +6,10 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 
 import edu.jhu.hlt.optimize.SGD.SGDPrm;
+import edu.jhu.hlt.optimize.function.BatchFunctionOpts;
+import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.FunctionAsBatchFunction;
 import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.optimize.functions.XSquared;
 import edu.jhu.hlt.util.JUnitUtils;

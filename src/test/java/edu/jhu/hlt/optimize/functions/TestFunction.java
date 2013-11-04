@@ -1,6 +1,6 @@
 package edu.jhu.hlt.optimize.functions;
 
-import edu.jhu.hlt.optimize.Function;
+import edu.jhu.hlt.optimize.function.Function;
 import junit.framework.Assert;
 
 /**

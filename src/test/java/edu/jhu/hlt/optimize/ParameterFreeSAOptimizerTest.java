@@ -18,6 +18,10 @@ import com.xeiam.xchart.SeriesMarker;
 import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
+import edu.jhu.hlt.optimize.function.Bounds;
+import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.functions.Rastrigins;
 import edu.jhu.hlt.util.Prng;
 

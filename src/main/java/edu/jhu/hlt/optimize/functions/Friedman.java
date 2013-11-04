@@ -2,8 +2,8 @@ package edu.jhu.hlt.optimize.functions;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
-import edu.jhu.hlt.optimize.DifferentiableFunction;
-import edu.jhu.hlt.optimize.Function;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.Function;
 
 /**
  * 

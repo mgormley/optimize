@@ -2,6 +2,8 @@ package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+
 /**
  * AdaGrad (Duchi et al., 2010) -- a first order stochastic gradient method with
  * parameter-specific learning rates.

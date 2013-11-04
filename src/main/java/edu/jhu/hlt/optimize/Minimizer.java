@@ -1,5 +1,7 @@
 package edu.jhu.hlt.optimize;
 
+import edu.jhu.hlt.optimize.function.Function;
+
 /**
  * An optimization technique for minimization.
  * 

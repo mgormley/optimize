@@ -1,6 +1,6 @@
 package edu.jhu.hlt.optimize.functions;
 
-import edu.jhu.hlt.optimize.Regularizer;
+import edu.jhu.hlt.optimize.function.Regularizer;
 import edu.jhu.hlt.util.math.Vectors;
 
 /**

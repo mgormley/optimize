@@ -2,6 +2,8 @@ package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+
 /**
  * AdaDelta -- Tweaks the AdaGrad (Duchi et al., 2010) method by adding momentum
  * to the gradient updates. On Neural Net training it seems to be far less

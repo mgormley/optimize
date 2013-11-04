@@ -7,6 +7,10 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import edu.jhu.hlt.optimize.function.Bounds;
+import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.functions.Rastrigins;
 import edu.jhu.hlt.util.Prng;
 

@@ -1,8 +1,11 @@
-package edu.jhu.hlt.optimize;
+package edu.jhu.hlt.optimize.linesearch;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.jhu.hlt.optimize.function.Bounds;
+import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
+import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.util.math.Vectors;
 
 /**

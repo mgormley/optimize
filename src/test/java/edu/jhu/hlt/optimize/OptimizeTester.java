@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.junit.Test;
 
+import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.Function;
+import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.functions.TestFunction;
 import edu.jhu.hlt.optimize.functions.XSquared;
 
