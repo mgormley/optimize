@@ -1,9 +1,7 @@
 package edu.jhu.hlt.optimize.functions;
 
-import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
-
-import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.optimize.function.Function;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * 
@@ -18,26 +16,10 @@ public class Friedman implements Function {
 	public Friedman() {
 		n = 5;
 	}
-	
-	@Override
-	public void setPoint(double[] point) {
-		this.point = point;
-		
-	}
 
 	@Override
-	public double[] getPoint() {
-		return point;
-	}
-
-	@Override
-	public double getValue(double[] x) {
-		return 10.0*Math.sin(Math.PI*x[0]*x[1])+20.0*(x[2]-0.5)+10.0*x[3]+5.0*x[4];
-	}
-
-	@Override
-	public double getValue() {
-		return getValue(point);
+	public double getValue(IntDoubleVector x) {
+		return 10.0*Math.sin(Math.PI*x.get(0)*x.get(1))+20.0*(x.get(2)-0.5)+10.0*x.get(3)+5.0*x.get(4);
 	}
 
 	@Override

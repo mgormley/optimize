@@ -3,6 +3,9 @@ package edu.jhu.hlt.optimize.functions;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.ValueGradient;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Test area is usually restricted to hyper-cube −5.12 ≤ xi ≤ 5.12, i = 1, ..., n. 
@@ -36,27 +39,14 @@ public class Rastrigins implements DifferentiableFunction {
 		
 		return value;
 	}
-	
+
 	@Override
-	public void setPoint(double[] point) {
+	public double getValue(IntDoubleVector point) {
+		double [] x = new double[n];
 		for(int i=0; i<n; i++) {
-			this.point[i] = point[i];
+			x[i] = point.get(i);
 		}
-	}
-
-	@Override
-	public double[] getPoint() {
-		return point;
-	}
-
-	@Override
-	public double getValue(double[] point) {
-		return AD_getValue(point).getValue();
-	}
-
-	@Override
-	public double getValue() {
-		return getValue(point);
+		return AD_getValue(x).getValue();
 	}
 
 	@Override
@@ -65,14 +55,23 @@ public class Rastrigins implements DifferentiableFunction {
 	}
 
 	@Override
-	public void getGradient(double[] gradient) {
+	public IntDoubleVector getGradient(IntDoubleVector pt) {
+		double [] x = new double[n];
+		double [] g = new double[n];
+		for(int i=0; i<n; i++) {
+			x[i] = pt.get(i);
+		}
 		DerivativeStructure value = AD_getValue(point);
 		for(int i=0; i<n; i++) {
 			int [] orders = new int[n];
 			orders[i] = 1;
-			gradient[i] = value.getPartialDerivative(orders);
+			g[i] = value.getPartialDerivative(orders);
 		}
+		return new IntDoubleDenseVector(g);
 	}
 
-	
+	@Override
+	public ValueGradient getValueGradient(IntDoubleVector point) {
+		return new ValueGradient(getValue(point), getGradient(point));
+	}
 }

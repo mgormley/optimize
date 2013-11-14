@@ -25,6 +25,7 @@ import edu.jhu.hlt.optimize.function.Bounds;
 import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
 import edu.jhu.hlt.optimize.function.ConstrainedFunction;
 import edu.jhu.hlt.optimize.function.Function;
+import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.optimize.propose.Proposable;
 import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.Vectors;
@@ -32,6 +33,7 @@ import edu.jhu.hlt.util.stats.GPRegression;
 import edu.jhu.hlt.util.stats.Kernel;
 import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
 import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
@@ -53,6 +55,9 @@ import edu.jhu.prim.vector.IntDoubleVector;
 public class GPGO implements Optimizer<Function> {
 
 	static Logger log = Logger.getLogger(GPGO.class);
+	
+	// Function to be optimized
+	Function f;
 	
 	// Observations
 	RealMatrix X;
@@ -94,7 +99,7 @@ public class GPGO implements Optimizer<Function> {
 	 */
 	// FIXME: don't take in bounds, but a BoundedFunction instead
 	public GPGO(ConstrainedFunction f, Kernel prior, double noise) {
-		super(f);
+		this.f = f;
 		this.prior = prior;
 		this.noise = noise;
 		this.loss = new ExpectedMyopicLoss(f.getNumDimensions(), f.getBounds());
@@ -141,8 +146,7 @@ public class GPGO implements Optimizer<Function> {
 		// Initialization
 		RealVector x = getInitialPoint();
 		double[] xarr = x.toArray();
-		f.setPoint(xarr);
-		double y = f.getValue();
+		double y = f.getValue(new IntDoubleDenseVector(xarr));
 		if(X==null){
 			X = MatrixUtils.createRealMatrix(new double[][]{xarr}).transpose();
 			this.y = this.y.append(y);
@@ -164,8 +168,8 @@ public class GPGO implements Optimizer<Function> {
 		RealVector min = minimizeExpectedLoss();
 		
 		// Compute f(min) = y
-		f.setPoint(min.toArray());
-		double y = f.getValue();
+		double [] min_arr = min.toArray();
+		double y = f.getValue(new IntDoubleDenseVector(min_arr));
 		
 		log.info("l(min) = " + y);
 		
@@ -189,8 +193,8 @@ public class GPGO implements Optimizer<Function> {
 		RealVector min = minimizeExpectedLoss();
 		
 		// Compute f(min) = y
-		f.setPoint(min.toArray());
-		double y = f.getValue();
+		double [] min_arr = min.toArray();
+		double y = f.getValue(new IntDoubleDenseVector(min_arr));
 		
 		log.info("l(min) = " + y);
 		
@@ -203,7 +207,9 @@ public class GPGO implements Optimizer<Function> {
 	 * @param minimize
 	 * @return
 	 */
-	boolean optimize(boolean minimize) {
+	boolean optimize(boolean minimize, IntDoubleVector initial) {
+		
+		// FIXME: this ignores the given point
 		
 		// Set some random initial points
 		setInitialPoint();
@@ -251,14 +257,14 @@ public class GPGO implements Optimizer<Function> {
 		// Run a local search starting from each of the returned points
 		for(RealVector pt : pts) {
 			GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(this.depth);
-			opt.minimize(loss, pt.toArray());
-			double [] x = loss.getPoint();
-			double y = loss.getValue();
+			IntDoubleDenseVector ret = new IntDoubleDenseVector(pt.toArray());
+			opt.minimize(loss, ret);
+			double y = loss.getValue(ret);
 			log.info("[GPGO] Improvement from local search = " + (temp-y));
 			if(y<best_y) {
 				log.info("[GPGO] Keeping the point from local search");
 				for(int i=0; i<best_x.length; i++) {
-					best_x[i] = x[i];
+					best_x[i] = ret.get(i);
 				}
 				best_y = y;
 			} else {
@@ -368,27 +374,27 @@ public class GPGO implements Optimizer<Function> {
 	public List<RealVector> getPointsToProbe() {
 		List<RealVector> points = new ArrayList<RealVector>();
 		
-		if(use_SA) {
-			double initial_loss = loss.getValue();
-			ParameterFreeSAOptimizer opt = new ParameterFreeSAOptimizer(loss, width);
-			opt.minimize();
-			double [] pt = loss.getPoint();
-			RealVector sa_min = new ArrayRealVector(pt);
-			
-			// Check to see if this resulted in significant improvement
-			double delta = Math.abs(initial_loss-loss.getValue());
-			if(delta < this.min_improve) {
-				// Pick a random point instead
-				log.info("SA failed to improve (delta="+delta+"), picking random point to eval");
-				RealVector x = getInitialPoint();
-				//log.info("random x="+x.getEntry(0));
-				points.add( x );
-			} else {
-				log.info("SA found minimum = " + loss.computeExpectedLoss(sa_min));
-				points.add( sa_min );
-			}	
-			
-		} else {
+//		if(use_SA) {
+//			double initial_loss = loss.getValue();
+//			ParameterFreeSAOptimizer opt = new ParameterFreeSAOptimizer(loss, width);
+//			opt.minimize();
+//			double [] pt = loss.getPoint();
+//			RealVector sa_min = new ArrayRealVector(pt);
+//			
+//			// Check to see if this resulted in significant improvement
+//			double delta = Math.abs(initial_loss-loss.getValue());
+//			if(delta < this.min_improve) {
+//				// Pick a random point instead
+//				log.info("SA failed to improve (delta="+delta+"), picking random point to eval");
+//				RealVector x = getInitialPoint();
+//				//log.info("random x="+x.getEntry(0));
+//				points.add( x );
+//			} else {
+//				log.info("SA found minimum = " + loss.computeExpectedLoss(sa_min));
+//				points.add( sa_min );
+//			}	
+//			
+//		} else {
 			
 			Bounds bounds = loss.getBounds();
 			for(int i=0; i<this.width; i++) {
@@ -401,7 +407,7 @@ public class GPGO implements Optimizer<Function> {
 				points.add( new ArrayRealVector(pt) );
 			}
 			
-		}
+		//}
 		
 		return points;
 	}
@@ -653,34 +659,19 @@ public class GPGO implements Optimizer<Function> {
 	    }
 		
 		@Override
-		public void getGradient(double[] gradient) {
+		public IntDoubleVector getGradient(IntDoubleVector pt) {
 			RealVector x = new ArrayRealVector(point);
 			double [] g = computeExpectedLossGradient(x);
-			for(int i=0; i<x.getDimension(); i++) {
-				gradient[i] = g[i];
+			return new IntDoubleDenseVector(g);
+		}
+
+		@Override
+		public double getValue(IntDoubleVector pt) {
+			double [] a = new double[f.getNumDimensions()];
+			for(int i=0; i<f.getNumDimensions(); i++) {
+				a[i] = pt.get(i);
 			}
-		}
-
-		@Override
-		public void setPoint(double[] point) {
-			for(int i=0; i<point.length; i++) {
-				this.point[i] = point[i];
-			}
-		}
-
-		@Override
-		public double[] getPoint() {
-			return point;
-		}
-
-		@Override
-		public double getValue(double[] pt) {
-			return computeExpectedLoss(new ArrayRealVector(pt));
-		}
-
-		@Override
-		public double getValue() {
-			return getValue(point);
+			return computeExpectedLoss(new ArrayRealVector(a));
 		}
 
 		@Override
@@ -698,32 +689,25 @@ public class GPGO implements Optimizer<Function> {
 			this.bounds = b;
 		}
 
+		@Override
+		public ValueGradient getValueGradient(IntDoubleVector point) {
+			double val = getValue(point);
+			IntDoubleVector grad = getGradient(point);
+			return new ValueGradient(val, grad);
+		}
+
 		
 	}
 	
 	@Override
-	public boolean minimize(Function function, double[] initial) {
-		
+	public boolean minimize(Function function, IntDoubleVector initial) {	
 		this.f = function;
-		this.f.setPoint(initial);
-		
-		return optimize(true);
+		return optimize(true, initial);
 	}
 
 	@Override
-	public boolean minimize() {
-		return optimize(true);
-	}
-
-	@Override
-	public boolean minimize(Function function, IntDoubleVector point) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean maximize(Function function, IntDoubleVector point) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean maximize(Function function, IntDoubleVector initial) {
+		this.f = function;
+		return optimize(false, initial);
 	}
 }

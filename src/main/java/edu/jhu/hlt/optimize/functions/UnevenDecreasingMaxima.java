@@ -21,6 +21,9 @@ import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.function.FunctionOpts.NegateFunction;
+import edu.jhu.hlt.optimize.function.ValueGradient;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 public class UnevenDecreasingMaxima implements DifferentiableFunction {
 
@@ -43,28 +46,13 @@ public class UnevenDecreasingMaxima implements DifferentiableFunction {
 		
 		return t1.multiply(t2);
 	}
-	
-	@Override
-	public void setPoint(double[] point) {
-		x = point[0];
-	}
 
 	@Override
-	public double[] getPoint() {
-		return new double [] {x};
-	}
-
-	@Override
-	public double getValue(double[] point) {
-		setPoint(point);
+	public double getValue(IntDoubleVector point) {
+		double x = point.get(0);
 		double tmp1 = -2*Math.log(2.0)*((x-0.08)/0.854)*((x-0.08)/0.854);
 	    double tmp2 = Math.sin( 5*Math.PI*(Math.pow(x,3.0/4.0)-0.05) );
 	    return Math.exp(tmp1) * Math.pow(tmp2, 6);
-	}
-
-	@Override
-	public double getValue() {
-		return getValue(getPoint());
 	}
 
 	@Override
@@ -73,7 +61,7 @@ public class UnevenDecreasingMaxima implements DifferentiableFunction {
 	}
 
 	@Override
-	public void getGradient(double[] gradient) {
+	public IntDoubleVector getGradient(IntDoubleVector point) {
 //		DerivativeStructure value = AD_getValue(getPoint());
 //		for(int i=0; i<n; i++) {
 //			int [] orders = new int[n];
@@ -81,22 +69,18 @@ public class UnevenDecreasingMaxima implements DifferentiableFunction {
 //			gradient[i] = value.getPartialDerivative(orders);
 //		}
 		
-		// Do a two-sided FD approximation
-		double [] prev_pt = getPoint();
+		// Do a two-sided FD approximation		
 		double eps = 1e-5;
-		double [] high_pt = new double[1];
-		double [] low_pt = new double[1];
-		high_pt[0] = prev_pt[0] + eps;
-		low_pt[0] = prev_pt[0] - eps;
+			
+		IntDoubleVector high_pt = point.copy();
+		IntDoubleVector low_pt = point.copy();
+		
+		high_pt.set(0, high_pt.get(0)+eps);
+		low_pt.set(0, low_pt.get(0)-eps);
 		double upper = getValue(high_pt);
 		double lower = getValue(low_pt);
-		//log.info("upper = " + upper);
-		//log.info("lower = " + lower);
-		gradient[0] = (upper-lower)/(2*eps);
-		//log.info("gradient = " + gradient[0]);
 		
-		// reset the point
-		setPoint(prev_pt);
+		return new IntDoubleDenseVector(new double[] {(upper-lower)/(2*eps)});
 	}
 	
 	public static void main(String [] args) {
@@ -118,7 +102,7 @@ public class UnevenDecreasingMaxima implements DifferentiableFunction {
 		
 		for(double x=grid_min; x<grid_max; x+=increment) {	
 			log.info("x="+x);
-			double y = f.getValue(new double[] {x});
+			double y = f.getValue(new IntDoubleDenseVector(new double[] {x}));
 			log.info("y="+y);
 			grid.add(x);
 			fvals.add(y);
@@ -143,5 +127,11 @@ public class UnevenDecreasingMaxima implements DifferentiableFunction {
 		chart.getStyleManager().setXAxisMax(1);
 		
 	    new SwingWrapper(chart).displayChart();
+	}
+
+	@Override
+	public ValueGradient getValueGradient(IntDoubleVector point) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

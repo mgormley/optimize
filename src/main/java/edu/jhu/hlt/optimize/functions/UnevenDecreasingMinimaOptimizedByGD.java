@@ -1,6 +1,5 @@
 package edu.jhu.hlt.optimize.functions;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +19,8 @@ import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.function.FunctionOpts.DifferentiableFunctionWithConstraints;
 import edu.jhu.hlt.optimize.GradientDescentWithLineSearch;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 	
@@ -28,27 +29,13 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 	Bounds b = Bounds.getUnitBounds(1);
 	DifferentiableFunctionWithConstraints f = new FunctionOpts.DifferentiableFunctionWithConstraints(new FunctionOpts.NegateFunction(new UnevenDecreasingMaxima()), b);
 	double x;
-	
-	@Override
-	public void setPoint(double[] point) {
-		x = point[0];
-	}
 
 	@Override
-	public double[] getPoint() {
-		return new double[] {x};
-	}
-
-	@Override
-	public double getValue(double[] point) {
+	public double getValue(IntDoubleVector point) {
 		GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(150);
-		opt.minimize(f, point);
-		return f.getValue();
-	}
-
-	@Override
-	public double getValue() {
-		return getValue(getPoint());
+		IntDoubleVector ret = point.copy();
+		opt.minimize(f, ret);
+		return f.getValue(ret);
 	}
 
 	@Override
@@ -78,8 +65,8 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 		
 		for(double x=grid_min; x<grid_max; x+=increment) {	
 			log.info("x="+x);
-			double y = f.getValue(new double[] {x});
-			double y2 = fopt.getValue(new double[] {x});
+			double y = f.getValue(new IntDoubleDenseVector(new double[] {x}));
+			double y2 = fopt.getValue(new IntDoubleDenseVector(new double[] {x}));
 			log.info("y="+y);
 			log.info("y2="+y2);
 			grid.add(x);

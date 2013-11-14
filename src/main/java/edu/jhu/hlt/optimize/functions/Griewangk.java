@@ -3,6 +3,9 @@ package edu.jhu.hlt.optimize.functions;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.ValueGradient;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Test area is usually restricted to hyphercube −600 ≤ x_i ≤ 600, i = 1, ..., n. 
@@ -40,26 +43,14 @@ public class Griewangk implements DifferentiableFunction {
 		
 		return lhs.subtract(rhs).add(1d);
 	}
-	
-	@Override
-	public void setPoint(double[] point) {
-		this.point = point;
-		
-	}
 
 	@Override
-	public double[] getPoint() {
-		return point;
-	}
-
-	@Override
-	public double getValue(double[] point) {
-		return AD_getValue(point).getValue();
-	}
-
-	@Override
-	public double getValue() {
-		return getValue(point);
+	public double getValue(IntDoubleVector point) {
+		double [] x = new double[n];
+		for(int i=0; i<n; i++) {
+			x[i] = point.get(i);
+		}
+		return AD_getValue(x).getValue();
 	}
 
 	@Override
@@ -68,13 +59,24 @@ public class Griewangk implements DifferentiableFunction {
 	}
 
 	@Override
-	public void getGradient(double[] gradient) {
-		DerivativeStructure value = AD_getValue(point);
+	public IntDoubleVector getGradient(IntDoubleVector pt) {
+		double [] x = new double[n];
+		double [] g = new double[n];
+		for(int i=0; i<n; i++) {
+			x[i] = pt.get(i);
+		}
+		DerivativeStructure value = AD_getValue(x);
 		for(int i=0; i<n; i++) {
 			int [] orders = new int[n];
 			orders[i] = 1;
-			gradient[i] = value.getPartialDerivative(orders);
+			g[i] = value.getPartialDerivative(orders);
 		}
+		return new IntDoubleDenseVector(g);
+	}
+
+	@Override
+	public ValueGradient getValueGradient(IntDoubleVector point) {
+		return new ValueGradient(getValue(point), getGradient(point));
 	}
 
 	

@@ -3,6 +3,9 @@ package edu.jhu.hlt.optimize.functions;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.ValueGradient;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Three global optima equal f(x1, x2) = 0.397887
@@ -40,25 +43,14 @@ public class Branins implements DifferentiableFunction {
 		return x[0].cos().multiply(e*(1-f)).add(x[1].subtract(x[0].pow(2).multiply(b)).add(x[0].multiply(c)).subtract(d).pow(2).multiply(a));		
 	}
 	
-	@Override
-	public void setPoint(double[] point) {
-		this.point = point;
-		
-	}
 
 	@Override
-	public double[] getPoint() {
-		return point;
-	}
-
-	@Override
-	public double getValue(double[] point) {
-		return AD_getValue(point).getValue();
-	}
-
-	@Override
-	public double getValue() {
-		return getValue(point);
+	public double getValue(IntDoubleVector point) {
+		double [] x = new double[n];
+		for(int i=0; i<n; i++) {
+			x[i] = point.get(i);
+		}
+		return AD_getValue(x).getValue();
 	}
 
 	@Override
@@ -67,13 +59,20 @@ public class Branins implements DifferentiableFunction {
 	}
 
 	@Override
-	public void getGradient(double[] gradient) {
+	public IntDoubleVector getGradient(IntDoubleVector pt) {
 		DerivativeStructure value = AD_getValue(point);
+		double [] gradient = new double[n];
 		for(int i=0; i<n; i++) {
 			int [] orders = new int[n];
 			orders[i] = 1;
 			gradient[i] = value.getPartialDerivative(orders);
 		}
+		return new IntDoubleDenseVector(gradient);
+	}
+
+	@Override
+	public ValueGradient getValueGradient(IntDoubleVector point) {
+		return new ValueGradient(getValue(point), getGradient(point));
 	}
 	
 }

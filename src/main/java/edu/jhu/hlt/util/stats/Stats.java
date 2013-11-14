@@ -9,6 +9,7 @@ import org.apache.commons.math3.linear.RealVector;
 
 import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.util.Prng;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
@@ -49,8 +50,10 @@ public class Stats {
 	
 	public static SampleLikelihood ellipticalSliceSampler(IntDoubleVector initial_pt, double initial_lnpdf, CholeskyDecomposition decomp, Function lnpdf) {	
 		
-		int D = initial_pt;
-		RealMatrix init_val = MatrixUtils.createColumnRealMatrix(initial_pt);
+		int D = lnpdf.getNumDimensions();
+		double [] x = new double[D];
+		for(int i=0; i<D; i++) x[i] = initial_pt.get(i);
+		RealMatrix init_val = MatrixUtils.createColumnRealMatrix(x);
 		RealMatrix L = decomp.getL();
 		RealMatrix r = MatrixUtils.createColumnRealMatrix(getNormalVector(D));
 		RealMatrix nu = L.multiply(r);
@@ -65,7 +68,7 @@ public class Stats {
 		while(true) {
 			// Compute xx for proposed angle difference and check if it's on the slice
 			RealMatrix xx_prop = init_val.scalarMultiply(phi).add(nu.scalarMultiply(Math.sin(phi)));
-			double cur_lnpdf = lnpdf.getValue(xx_prop.getColumn(0));
+			double cur_lnpdf = lnpdf.getValue(new IntDoubleDenseVector(xx_prop.getColumn(0)));
 			if(cur_lnpdf > hh) {
 				return new SampleLikelihood(xx_prop.getColumnVector(0).toArray(), cur_lnpdf);
 			}
