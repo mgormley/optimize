@@ -8,14 +8,14 @@ import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.linesearch.ParanoidLineSearch;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Gradient descent. A line search is used at each iteration to pick the step size.
  * 
  * @author noandrews
  */
-public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFunction>, 
-                                                      Optimizer<DifferentiableFunction> {
+public class GradientDescentWithLineSearch implements Optimizer<DifferentiableFunction> {
 
     /** Options for this optimizer. */
     public static class GradientDescentWithLineSearchPrm {
@@ -42,65 +42,52 @@ public class GradientDescentWithLineSearch implements Maximizer<DifferentiableFu
     public GradientDescentWithLineSearch(GradientDescentWithLineSearchPrm prm) {
         this.prm = prm;
     }
-    
-    @Override
-    public boolean maximize(DifferentiableFunction function, double[] point) {
-        return optimize(FunctionOpts.negate(function), point);
-    }
 
-    @Override
-    public boolean minimize(DifferentiableFunction function, double[] point) {
-        return optimize(function, point);
-    }
-
-    private boolean optimize(DifferentiableFunction function, double[] point) {        
-        assert (function.getNumDimensions() == point.length);
-        double[] gradient = new double[point.length];
+    private boolean optimize(DifferentiableFunction function, IntDoubleVector point) {        
+        IntDoubleVector gradient;
         ParanoidLineSearch line = new ParanoidLineSearch(function);
         
         for (iterCount=0; iterCount < prm.iterations; iterCount++) {
-            function.setPoint(point);
             
             // Get the current value of the function.
-            double value = function.getValue();
+            double value = function.getValue(point);
             log.info(String.format("Function value = %g at iteration = %d", value, iterCount));
             
             
             // Get the gradient of the function.
-            Arrays.fill(gradient, 0.0);
-            function.getGradient(gradient);
-            assert (gradient.length == point.length);
+            gradient = function.getGradient(point);
             
             // Take a step in the direction of the gradient.
             double lr = line.search(point, gradient);
-            
+            gradient.scale(-lr);
             log.info("step size = " + lr);
-            for (int i=0; i<point.length; i++) {
-            	point[i] -= lr * gradient[i];
-            }
+            point.add(gradient);
             log.info("function value = " + function.getValue(point));
             if(lr < prm.min_step || line.converged()) {
             	log.info("converged");
-                function.setPoint(point);
             	break;
             }
         }
         
         // Get the final value of the function on all the examples.
-        double value = function.getValue();
+        double value = function.getValue(point);
         log.info(String.format("Final function value = %g", value));
         
         return true;
     }
     
 	@Override
-	public boolean minimize() {
-		throw new UnsupportedOperationException();
+	public boolean minimize(DifferentiableFunction function,
+			IntDoubleVector point) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	@Override
-	public boolean maximize() {
-		throw new UnsupportedOperationException();
+	public boolean maximize(DifferentiableFunction function,
+			IntDoubleVector point) {
+		// TODO Auto-generated method stub
+		return false;
 	}
     
 }

@@ -6,7 +6,8 @@ import java.util.List;
 import edu.jhu.hlt.optimize.function.Bounds;
 import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
 import edu.jhu.hlt.optimize.function.Function;
-import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Basic implementation of a line search. If the initial step size is set incorrectly,
@@ -59,27 +60,34 @@ public class LineSearch {
 	 * @param g				Gradient of the function evaluated at x
 	 * @return				Step size
 	 */
-	public double search(double [] x, double [] g) {
+	public double search(IntDoubleVector x, IntDoubleVector g) {
     	
     	double step = prm.initial_step;
     	
         int iter = 0;
-        double [] d = g;
-        double value = f.getValue();
-        double [] new_x = new double[f.getNumDimensions()];
+        IntDoubleVector d = g.copy();
+        double value = f.getValue(x);
         boolean decrease;
 		boolean constraints;
 				
-		do {                        
-        	for(int i=0; i<f.getNumDimensions(); i++) {
-        		if(maximize){
-        			new_x[i] = x[i] + step*g[i];
-        		} else {
-        			new_x[i] = x[i] - step*g[i];
-        		}
-        	}
-        	f.setPoint(new_x);
-        	double new_value = f.getValue();
+		do {
+			final double lr = step;
+			
+			// Scale the gradient by the learning rate.
+            g.apply(new FnIntDoubleToDouble() {
+                @Override
+                public double call(int index, double value) {
+                    if (maximize) {
+                        return lr * value;
+                    } else {
+                        return - lr * value;
+                    }
+                }
+            });
+			
+            IntDoubleVector new_x = x.copy();
+            new_x.add(g);   	
+        	double new_value = f.getValue(new_x);
         	
         	decrease = sufficientDecrease(new_value, value, step, prm.c1, d, g, maximize);
         	
@@ -110,20 +118,20 @@ public class LineSearch {
     }
 	
 	// Armijo rule: ensures that the step size improves f 'sufficiently'
-    public boolean sufficientDecrease(double new_value, double value, double step, double c1, double [] d, double [] g, boolean maximize) {      
+    public boolean sufficientDecrease(double new_value, double value, double step, double c1, IntDoubleVector d, IntDoubleVector g, boolean maximize) {      
     	if(maximize) {
     		if(new_value < value) return false;
-        	return new_value >= value+c1*step*Vectors.dotProduct(d, g);
+        	return new_value >= value+c1*step*d.dot(g);
         } else {
         	if(new_value > value) return false;
-        	return new_value <= value+c1*step*Vectors.dotProduct(d, g);
+        	return new_value <= value+c1*step*d.dot(g);
         }
     }
     
-    public boolean satisfiesBounds(double [] new_pt) {
+    public boolean satisfiesBounds(IntDoubleVector new_pt) {
     	for(int i=0; i<f.getNumDimensions(); i++) {
-    		if(new_pt[i] > b.getUpper(i) ||
-    		   new_pt[i] < b.getLower(i)) {
+    		if(new_pt.get(i) > b.getUpper(i) ||
+    		   new_pt.get(i) < b.getLower(i)) {
     			return false;
     		}
     	}

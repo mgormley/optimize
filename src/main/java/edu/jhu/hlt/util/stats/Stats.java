@@ -9,6 +9,7 @@ import org.apache.commons.math3.linear.RealVector;
 
 import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.util.Prng;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * 
@@ -40,14 +41,15 @@ public class Stats {
 		return ret;
 	}
 	
-	public static SampleLikelihood ellipticalSliceSampler(double [] initial_pt, CholeskyDecomposition decomp, Function lnpdf) {
+	public static SampleLikelihood ellipticalSliceSampler(IntDoubleVector initial_pt, CholeskyDecomposition decomp, Function lnpdf) {
 		double initial_lnpdf = lnpdf.getValue(initial_pt);
+		// FIXME: what's the point of the line above?
 		return ellipticalSliceSampler(initial_pt, decomp, lnpdf);
 	}
 	
-	public static SampleLikelihood ellipticalSliceSampler(double [] initial_pt, double initial_lnpdf, CholeskyDecomposition decomp, Function lnpdf) {	
+	public static SampleLikelihood ellipticalSliceSampler(IntDoubleVector initial_pt, double initial_lnpdf, CholeskyDecomposition decomp, Function lnpdf) {	
 		
-		int D = initial_pt.length;
+		int D = initial_pt;
 		RealMatrix init_val = MatrixUtils.createColumnRealMatrix(initial_pt);
 		RealMatrix L = decomp.getL();
 		RealMatrix r = MatrixUtils.createColumnRealMatrix(getNormalVector(D));

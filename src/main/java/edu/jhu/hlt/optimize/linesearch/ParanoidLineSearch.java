@@ -10,6 +10,8 @@ import edu.jhu.hlt.optimize.function.Bounds;
 import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * This line search does some fancy things to ensure the returned step sizes
@@ -62,7 +64,7 @@ public class ParanoidLineSearch {
 	 * @param g				Gradient of the function evaluated at x
 	 * @return				Step size
 	 */
-	public double search(double [] x, double [] g) {
+	public double search(IntDoubleVector x, IntDoubleVector g) {
     	
 		List<Double> alphas = new ArrayList<Double>(); // list of previously set step sizes
 		alphas.add(0.0);
@@ -142,12 +144,21 @@ public class ParanoidLineSearch {
 	 * @param 	step
 	 * @return	f(x+step*g)
 	 */
-	public double Theta(double [] x, double [] g, double step) {
-		double [] new_x = new double[f.getNumDimensions()];
-		for(int i=0; i<f.getNumDimensions(); i++) {
-			new_x[i] = x[i] - step*g[i];
-		}
-		return f.getValue(new_x);
+	public double Theta(IntDoubleVector x, IntDoubleVector g, final double step) {
+		
+		// Scale the gradient by the learning rate.
+        g.apply(new FnIntDoubleToDouble() {
+            @Override
+            public double call(int index, double value) {
+            	return - step * value;
+            }
+        });
+		
+        IntDoubleVector new_x = x.copy();
+        new_x.add(g);   	
+    	double new_value = f.getValue(new_x);
+		
+		return new_value;
 	}
 	
 	/**
@@ -156,15 +167,21 @@ public class ParanoidLineSearch {
 	 * @param step  Step size
 	 * @return		g dot f'(x+step*g)
 	 */
-	public double ThetaGrad(double [] x, double [] g, double step) {
-		double [] new_x = new double[f.getNumDimensions()];
-		for(int i=0; i<f.getNumDimensions(); i++) {
-			new_x[i] = x[i] - step*g[i];
-		}
-		f.setPoint(new_x);
-		double [] new_g = new double[f.getNumDimensions()];
-		f.getGradient(new_g);
-		return -Vectors.dotProduct(new_g, g);
+	public double ThetaGrad(IntDoubleVector x, IntDoubleVector g, final double step) {
+		
+		// Scale the gradient by the learning rate.
+        g.apply(new FnIntDoubleToDouble() {
+            @Override
+            public double call(int index, double value) {
+            	return - step * value;
+            }
+        });
+		
+        IntDoubleVector new_x = x.copy();
+        new_x.add(g);   	
+		
+		IntDoubleVector new_g = f.getGradient(new_x);
+		return -new_g.dot(g);
 	}
     
     // Assume rate of change in current iteration will be the same
@@ -180,7 +197,7 @@ public class ParanoidLineSearch {
     
     public double zoom(double alpha_min, double alpha_max, 
     				   double theta_zero, double theta_dot_zero,
-    		           double [] x, double [] g) {
+    		           IntDoubleVector x, IntDoubleVector g) {
     	
     	log.info("zoom: " + alpha_min + ", " + alpha_max);
     	

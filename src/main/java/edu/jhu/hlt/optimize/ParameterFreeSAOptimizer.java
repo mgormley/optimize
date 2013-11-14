@@ -6,6 +6,7 @@ import edu.jhu.hlt.optimize.function.ConstrainedFunction;
 import edu.jhu.hlt.optimize.propose.Proposable;
 import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -20,10 +21,11 @@ import org.apache.commons.math3.linear.MatrixUtils;
  * These papers suggest a bunch of heuristics to pick the temperature schedule.
  * The generating function is an N-dimension Gaussian centered at the current point.
  * 
+ * FIXME: Not tested with the new interface.
+ * 
  * @author noandrews
  */
-public class ParameterFreeSAOptimizer extends    AbstractOptimizer<ConstrainedFunction>
-									  implements Optimizer<ConstrainedFunction> {
+public class ParameterFreeSAOptimizer implements Optimizer<ConstrainedFunction> {
 
 	static Logger log = Logger.getLogger(ParameterFreeSAOptimizer.class);
 	
@@ -31,54 +33,64 @@ public class ParameterFreeSAOptimizer extends    AbstractOptimizer<ConstrainedFu
 	int max_trials = 100; // maximum # of trials to find a point inside the bounds
 	double K;             // damping to track acceptance rate
 	double T = 0.5;       // initial accept temperature: its adapted from here
-	double [] curr;
+	IntDoubleVector curr;
 	int max_eval;
-	double [] covar;
+	IntDoubleVector covar;
 	MultivariateNormalDistribution N;
+	ConstrainedFunction f;
 	
 	public ParameterFreeSAOptimizer(ConstrainedFunction f, int max_eval) {
-		super(f);
+		this.f = f;
 		this.max_eval = max_eval;
 		this.K = (double)max_eval * 0.1;
 	}
 	
 	private void updateCovar(double frac) {
-		for(int i=0; i<covar.length; i++) {
+		for(int i=0; i<f.getNumDimensions(); i++) {
 			double L = (f.getBounds().getUpper(i)-f.getBounds().getLower(i));
-			covar[i] = (1-frac)*L;
+			covar.set(i, (1-frac)*L);
 			//log.info("covar " + i + " = " + covar[i]);
 		}
 	}
 
-	private void nextRandomState(double [] curr, double [] next) {
+	private void nextRandomState(IntDoubleVector curr, IntDoubleVector next) {
 		
 		// FIXME: take into account the current state and the temperature
 		if(f instanceof Proposable) {
 			Proposable p = (Proposable)f;
 			double [] pt = p.samplePoint();
-			for(int i=0; i<curr.length; i++) {
-				next[i] = pt[i];
+			for(int i=0; i<f.getNumDimensions(); i++) {
+				next.set(i, pt[i]);
 			}
 			return;
 		}
 		
-		double [][] C = MatrixUtils.createRealDiagonalMatrix(covar).getData();
+		double [] Carr = new double[f.getNumDimensions()];
+		for(int i=0; i<Carr.length; i++) {
+			Carr[i] = covar.get(i); 
+		}
+		double [][] C = MatrixUtils.createRealDiagonalMatrix(Carr).getData();
 		double [] m = new double[f.getNumDimensions()];
-		N = new MultivariateNormalDistribution(curr, C);
+		// FIXME: need a method to get an array from a vector
+		double [] pt = new double[f.getNumDimensions()];
+		for(int i=0; i<pt.length; i++) {
+			pt[i] = curr.get(i);
+		}
+		N = new MultivariateNormalDistribution(pt, C);
 		double [] sample = N.sample();
 		for(int i=0; i<sample.length; i++) {
-			next[i] = sample[i];
+			next.set(i, sample[i]);
 		}
 	}
 	
 	@Override
-	public boolean minimize(ConstrainedFunction f, double[] initial) {
+	public boolean minimize(ConstrainedFunction f, IntDoubleVector initial) {
 		
-		curr = new double[f.getNumDimensions()];
-		covar = new double[f.getNumDimensions()];	
-		double [] next = new double[f.getNumDimensions()];
-		double [] best = new double[f.getNumDimensions()];
-		double curr_E = f.getValue();
+		curr = initial.copy();
+		covar = initial.copy();	
+		IntDoubleVector next = initial.copy();
+		IntDoubleVector best = next.copy();
+		double curr_E = f.getValue(initial);
 		double best_E = curr_E;
 		double next_E;
 		
@@ -97,14 +109,14 @@ public class ParameterFreeSAOptimizer extends    AbstractOptimizer<ConstrainedFu
 			
 			for(int j=0; j<max_trials; j++) {
 				nextRandomState(curr, next);
-				if(f.getBounds().inBounds(next)) 
+				if(f.getBounds().inBounds(next)) {
 					break;
+				}
 			}
 			
 			//log.info( "euc(curr,next) = " + Vectors.euclid(curr, next) );
 				
-			f.setPoint(next);
-			next_E = f.getValue();
+			next_E = f.getValue(next);
 			
 			//log.info("next=("+next[0]+"), energy = " + next_E);
 			
@@ -131,16 +143,12 @@ public class ParameterFreeSAOptimizer extends    AbstractOptimizer<ConstrainedFu
 				
 				// Update current point and associated energy
 				curr_E = next_E;
-				for(int j=0; j<curr.length; j++) {
-					curr[j] = next[j];
-				}
+				curr = next.copy();
 				
 				// Check if current updated point is the best so far
 				if(curr_E < best_E) {
 					best_E = curr_E;
-					for(int j=0; j<curr.length; j++) {
-						best[j] = curr[j];
-					}
+					best = curr.copy();
 				}
 			}
 			
@@ -163,19 +171,19 @@ public class ParameterFreeSAOptimizer extends    AbstractOptimizer<ConstrainedFu
 			//log.info("iter " + i + ": T="+T+" best_E="+best_E);
 		}
 				
-		log.info("[SA] total accepted = " + total_accept);
-		log.info("[SA] final point = " + best[0]);
-		log.info("[SA] final energy = " + best_E);
+		//log.info("[SA] total accepted = " + total_accept);
+		//log.info("[SA] final point = " + best[0]);
+		//log.info("[SA] final energy = " + best_E);
 		
 		// Set the best point
-		f.setPoint(best);
+		initial = best;
 		
 		return true;
 	}
 
 	@Override
-	public boolean minimize() {
-		return minimize(f, curr);
+	public boolean maximize(ConstrainedFunction function, IntDoubleVector point) {
+		throw new UnsupportedOperationException();
 	}
 	
 }

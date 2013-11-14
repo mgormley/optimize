@@ -18,6 +18,8 @@ import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.hlt.util.stats.GPRegression;
 import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
 import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Random function search: given a function f(x), generate
@@ -78,8 +80,11 @@ public class RandomFunctionSearch {
     	for(int iter=0;iter<numTimes;iter++){
     		points[iter] = getInitialPointArray();
     		x= new ArrayRealVector(points[iter]);
-    		function.setPoint(x.toArray());
-    		double y = function.getValue();
+    		IntDoubleVector xv = new IntDoubleDenseVector(x.toArray());
+    		//function.setPoint(x.toArray());
+    		//double y = function.getValue();
+    		double y = function.getValue(xv);
+    		
     		//updateObservations(x, y);				
     		// Take (x,y) and add it to observations
     		currTime = System.currentTimeMillis();

@@ -32,6 +32,7 @@ import edu.jhu.hlt.util.stats.GPRegression;
 import edu.jhu.hlt.util.stats.Kernel;
 import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
 import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Gaussian Process Global Optimization (GPGO). 
@@ -49,8 +50,7 @@ import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
  * 
  * @author noandrews
  */
-public class GPGO extends    AbstractOptimizer<Function>
-                  implements Optimizer<Function> {
+public class GPGO implements Optimizer<Function> {
 
 	static Logger log = Logger.getLogger(GPGO.class);
 	
@@ -713,5 +713,17 @@ public class GPGO extends    AbstractOptimizer<Function>
 	@Override
 	public boolean minimize() {
 		return optimize(true);
+	}
+
+	@Override
+	public boolean minimize(Function function, IntDoubleVector point) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean maximize(Function function, IntDoubleVector point) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

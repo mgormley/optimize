@@ -1,5 +1,7 @@
 package edu.jhu.hlt.optimize.function;
 
+import edu.jhu.prim.vector.IntDoubleVector;
+
 /**
  * This should probably be part of a specialized Function class.
  * 
@@ -32,6 +34,14 @@ public class Bounds {
     	for(int i=0; i<pt.length; i++) {
     		if (pt[i] > B[i]) return false;
     		if (pt[i] < A[i]) return false;
+    	}
+    	return true;
+    }
+    
+    public boolean inBounds(IntDoubleVector pt) {
+    	for(int i=0; i<A.length; i++) {
+    		if (pt.get(i) > B[i]) return false;
+    		if (pt.get(i) < A[i]) return false;
     	}
     	return true;
     }
