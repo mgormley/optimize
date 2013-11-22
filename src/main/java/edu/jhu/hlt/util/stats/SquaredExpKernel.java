@@ -11,6 +11,7 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.GPGO;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 public class SquaredExpKernel implements Kernel {
 
@@ -146,6 +147,12 @@ public class SquaredExpKernel implements Kernel {
 	@Override
 	public int getNumParameters() {
 		return 2;
+	}
+
+	@Override
+	public void setParameters(IntDoubleVector phi) {
+		this.var = phi.get(0);
+		this.len_scale = phi.get(1);
 	}
 	
 }

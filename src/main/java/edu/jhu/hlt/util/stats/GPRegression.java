@@ -19,6 +19,9 @@ import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.ValueGradient;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * A class for doing Gaussian process regression based on: 
@@ -128,10 +131,9 @@ public class GPRegression {
 			return X.getColumnVector(i);
 		}
 
-		@Override
-		public void setPoint(double[] point) {
+		public void setPoint(IntDoubleVector pt) {
 			
-			kernel.setParameters(new ArrayRealVector(point));
+			kernel.setParameters(pt);
 			
 			// Recompute things
 			K = kernel.K(X);
@@ -146,17 +148,17 @@ public class GPRegression {
 			
 		}
 
-		@Override
-		public double[] getPoint() {
-			return kernel.getParameters().toArray();
-		}
+//		@Override
+//		public double[] getPoint() {
+//			return kernel.getParameters().toArray();
+//		}
 
 		@Override
-		public double getValue(double[] point) {
-			throw new UnsupportedOperationException();
+		public double getValue(IntDoubleVector point) {
+			setPoint(point);
+			return getValue();
 		}
 
-		@Override
 		public double getValue() {
 			// Compute the log-determinant
 			RealMatrix L = decomp.getL();
@@ -176,7 +178,12 @@ public class GPRegression {
 
 		// O(N^2) per hyper-parameter
 		@Override
-		public void getGradient(double[] gradient) {
+		public IntDoubleVector getGradient(IntDoubleVector point) {
+			
+			setPoint(point);
+			
+			IntDoubleVector g = new IntDoubleDenseVector(this.getNumDimensions());
+			
 			RealMatrix col_alpha = MatrixUtils.createColumnRealMatrix(alpha.toArray());
 			RealMatrix LHS = col_alpha.multiply(col_alpha.transpose()).subtract(Kinv);
 			List<RealMatrix> RHSs = kernel.getPartials(K);
@@ -188,8 +195,9 @@ public class GPRegression {
 						trace += LHS.getEntry(row, col)*RHS.getEntry(row, col);
 					}
 				}
-				gradient[i] = 0.5*trace;
+				g.set(i, 0.5*trace);
 			}
+			return g;
 		}
 		
 		public void getSlowGradient(double[] gradient) {
@@ -201,6 +209,32 @@ public class GPRegression {
 				double trace = LHS.multiply(RHSs.get(i)).getTrace();
 				gradient[i] = 0.5*trace;
 			}
+		}
+
+		@Override
+		public ValueGradient getValueGradient(IntDoubleVector point) {
+			
+			setPoint(point);
+			
+			double value = getValue();
+			
+			IntDoubleVector g = new IntDoubleDenseVector(this.getNumDimensions());
+			
+			RealMatrix col_alpha = MatrixUtils.createColumnRealMatrix(alpha.toArray());
+			RealMatrix LHS = col_alpha.multiply(col_alpha.transpose()).subtract(Kinv);
+			List<RealMatrix> RHSs = kernel.getPartials(K);
+			for(int i=0; i < kernel.getNumParameters(); i++) {
+				RealMatrix RHS = RHSs.get(i);
+				double trace = 0;
+				for(int row=0; row<Kinv.getRowDimension(); row++) {
+					for(int col=0; col<Kinv.getColumnDimension(); col++) {
+						trace += LHS.getEntry(row, col)*RHS.getEntry(row, col);
+					}
+				}
+				g.set(i, 0.5*trace);
+			}
+			
+			return new ValueGradient(value, g);
 		}
 	}
 	

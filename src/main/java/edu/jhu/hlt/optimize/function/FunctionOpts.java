@@ -1,6 +1,7 @@
 package edu.jhu.hlt.optimize.function;
 
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Function operations.
@@ -34,22 +35,12 @@ public class FunctionOpts {
 			this.b = b;
 		}
 		
+
 		@Override
-		public void setPoint(double[] point) {
-			f.setPoint(point);
-		}
-		@Override
-		public double[] getPoint() {
-			return f.getPoint();
-		}
-		@Override
-		public double getValue(double[] point) {
+		public double getValue(IntDoubleVector point) {
 			return f.getValue(point);
 		}
-		@Override
-		public double getValue() {
-			return f.getValue();
-		}
+
 		@Override
 		public int getNumDimensions() {
 			return f.getNumDimensions();
@@ -75,24 +66,13 @@ public class FunctionOpts {
 		}
 		
 		@Override
-		public void getGradient(double[] gradient) {
-			f.getGradient(gradient);
+		public IntDoubleVector getGradient(IntDoubleVector pt) {
+			return f.getGradient(pt);
 		}
+
 		@Override
-		public void setPoint(double[] point) {
-			f.setPoint(point);
-		}
-		@Override
-		public double[] getPoint() {
-			return f.getPoint();
-		}
-		@Override
-		public double getValue(double[] point) {
+		public double getValue(IntDoubleVector point) {
 			return f.getValue(point);
-		}
-		@Override
-		public double getValue() {
-			return f.getValue();
 		}
 		@Override
 		public int getNumDimensions() {
@@ -105,6 +85,11 @@ public class FunctionOpts {
 		@Override
 		public void setBounds(Bounds b) {
 			this.b = b;
+		}
+
+		@Override
+		public ValueGradient getValueGradient(IntDoubleVector point) {
+			return f.getValueGradient(point);
 		}
 		
 	}
@@ -133,20 +118,12 @@ public class FunctionOpts {
             this.multiplier = multiplier;
         }
         
-        @Override
-        public void setPoint(double[] point) {
-            function.setPoint(point);
-        }
-        
-        @Override
-        public double getValue() {
-            return multiplier * function.getValue();
-        }
     
         @Override
-        public void getGradient(double[] gradient) {
-            function.getGradient(gradient);
-            Vectors.scale(gradient, multiplier);
+        public IntDoubleVector getGradient(IntDoubleVector pt) {
+            IntDoubleVector g = function.getGradient(pt);
+            g.scale(multiplier);
+            return g;
         }
     
         @Override
@@ -155,13 +132,14 @@ public class FunctionOpts {
         }
 
 		@Override
-		public double[] getPoint() {
-			return function.getPoint();
+		public double getValue(IntDoubleVector point) {
+			return multiplier*function.getValue(point);
 		}
 
+
 		@Override
-		public double getValue(double[] point) {
-			return multiplier*function.getValue(point);
+		public ValueGradient getValueGradient(IntDoubleVector point) {
+			return new ValueGradient(getValue(point), getGradient(point));
 		}
     
     }
@@ -188,30 +166,16 @@ public class FunctionOpts {
             this.function = function;
             this.multiplier = multiplier;
         }
-        
-        @Override
-        public void setPoint(double[] point) {
-            function.setPoint(point);
-        }
-        
-        @Override
-        public double getValue() {
-            return multiplier * function.getValue();
-        }
     
         @Override
         public int getNumDimensions() {
             return function.getNumDimensions();
         }
 
-        @Override
-        public double[] getPoint() {
-            return function.getPoint();
-        }
 
         @Override
-        public double getValue(double[] point) {
-            return multiplier*function.getValue(point);
+        public double getValue(IntDoubleVector pt) {
+            return multiplier*function.getValue(pt);
         }
     
     }
@@ -230,30 +194,23 @@ public class FunctionOpts {
             }
             this.functions = functions;
         }
-        
-        @Override
-        public void setPoint(double[] point) {
-            for (DifferentiableFunction function : functions) {
-                function.setPoint(point);
-            }
-        }
-        
-        @Override
-        public double getValue() {
-            double sum = 0.0;
-            for (DifferentiableFunction f : functions) {
-                sum += f.getValue();                
-            }
-            return sum;
-        }
     
         @Override
-        public void getGradient(double[] gradient) {
-            double[] g = new double[getNumDimensions()];
-            for (DifferentiableFunction f : functions) {
-                f.getGradient(g);
-                Vectors.add(gradient, g);
-            }
+        public double getValue(IntDoubleVector val) {
+        	double sum = 0.0;
+        	for(DifferentiableFunction f : functions) {
+        		sum += f.getValue(val);
+        	}
+        	return sum;
+        }
+        
+        @Override
+        public IntDoubleVector getGradient(IntDoubleVector pt) {
+        	IntDoubleVector ret = functions[0].getGradient(pt);
+        	for(int i=1; i<functions.length; i++){
+        		ret.add(functions[i].getGradient(pt));
+        	}
+        	return ret;
         }
     
         @Override
@@ -262,15 +219,8 @@ public class FunctionOpts {
         }
 
 		@Override
-		public double[] getPoint() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public double getValue(double[] point) {
-			// TODO Auto-generated method stub
-			return 0;
+		public ValueGradient getValueGradient(IntDoubleVector point) {
+			return new ValueGradient(getValue(point), getGradient(point));
 		}
     
     }

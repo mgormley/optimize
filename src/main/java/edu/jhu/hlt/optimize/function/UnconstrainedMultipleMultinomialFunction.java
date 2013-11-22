@@ -1,6 +1,7 @@
 package edu.jhu.hlt.optimize.function;
 
 import edu.jhu.hlt.util.stats.Multinomials;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Wrapper of a MultipleMultinomialLogLikelihood which uses a softmax transform
@@ -35,20 +36,23 @@ public class UnconstrainedMultipleMultinomialFunction implements Function {
         this.numDimensions = getNumEntries(logProbs);
     }
 
-    @Override
-    public void setPoint(double[] point) {
-        this.point = point;
+    public void setPoint(IntDoubleVector pt) {
+    	
+    	for(int i=0; i<this.getNumDimensions(); i++) {
+    		this.point[i] = pt.get(i);
+    	}
+    	
         updateLogProbsFromReals();
         ll.setLogProbabilities(logProbs);
     }
 
-    @Override
-    public double[] getPoint() {
-        if (point == null) {
-            updateRealsFromLogProbs();
-        }
-        return point;
-    }
+//    @Override
+//    public double[] getPoint() {
+//        if (point == null) {
+//            updateRealsFromLogProbs();
+//        }
+//        return point;
+//    }
 
     private void updateLogProbsFromReals() {
         int idx=0;
@@ -74,8 +78,8 @@ public class UnconstrainedMultipleMultinomialFunction implements Function {
         }
     }
 
-    @Override
-    public double getValue() {
+    public double getValue(IntDoubleVector point) {
+    	setPoint(point);
         return ll.getLogLikelihood();
     }
 
@@ -93,10 +97,10 @@ public class UnconstrainedMultipleMultinomialFunction implements Function {
         return size;
     }
 
-    @Override
-    public double getValue(double[] point) {
-        // TODO remove.
-        throw new RuntimeException();
-    }
+//    @Override
+//    public double getValue(double[] point) {
+//        // TODO remove.
+//        throw new RuntimeException();
+//    }
 
 }

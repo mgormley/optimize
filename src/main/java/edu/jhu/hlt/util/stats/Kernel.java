@@ -6,6 +6,8 @@ import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
+import edu.jhu.prim.vector.IntDoubleVector;
+
 public interface Kernel {
 	public DerivativeStructure k(DerivativeStructure [] x, DerivativeStructure [] y);
 	public DerivativeStructure k(RealVector x, DerivativeStructure [] x_star);
@@ -14,6 +16,7 @@ public interface Kernel {
 	public List<RealMatrix> KWithPartials(RealMatrix X);
 	public List<RealMatrix> getPartials(RealMatrix K);
 	public void setParameters(RealVector phi);
+	public void setParameters(IntDoubleVector phi);
 	public RealVector getParameters();
 	public int getNumParameters();
 	public void grad_k(RealVector x1, RealVector x2, double [] grad);
