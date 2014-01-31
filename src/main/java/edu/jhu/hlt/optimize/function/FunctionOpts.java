@@ -136,7 +136,6 @@ public class FunctionOpts {
 			return multiplier*function.getValue(point);
 		}
 
-
 		@Override
 		public ValueGradient getValueGradient(IntDoubleVector point) {
 			return new ValueGradient(getValue(point), getGradient(point));

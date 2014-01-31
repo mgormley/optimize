@@ -11,6 +11,21 @@ public class FunctionAsBatchFunction extends AbstractDifferentiableBatchFunction
         this.fn = fn;
         this.numExamples = numExamples;
     }
+    
+    @Override
+    public double getValue(IntDoubleVector point, int[] batch) {
+        return fn.getValue(point);
+    }
+
+    @Override
+    public IntDoubleVector getGradient(IntDoubleVector point, int[] batch) {
+        return fn.getGradient(point);
+    }
+    
+    @Override
+    public ValueGradient getValueGradient(IntDoubleVector point, int[] batch) {
+        return fn.getValueGradient(point);
+    }
 
     @Override
     public int getNumDimensions() {
@@ -26,45 +41,4 @@ public class FunctionAsBatchFunction extends AbstractDifferentiableBatchFunction
         this.numExamples = numExamples;
     }
 
-
-	@Override
-	public double getValue(IntDoubleVector point, int[] batch) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-
-	@Override
-	public double getValue(IntDoubleVector point) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-
-	@Override
-	public IntDoubleVector getGradient(IntDoubleVector point) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public ValueGradient getValueGradient(IntDoubleVector point) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public IntDoubleVector getGradient(IntDoubleVector point, int[] batch) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public ValueGradient getValueGradient(IntDoubleVector point, int[] batch) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
