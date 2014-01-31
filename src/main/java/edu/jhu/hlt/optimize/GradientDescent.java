@@ -7,7 +7,7 @@ import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
- * Stochastic gradient descent.
+ * Gradient descent.
  * 
  * We use the learning rate from "Introduction to Stochastic Search and
  * Optimization (James Spall). See eq. (4.14) pg. 113 and the constants
