@@ -1,6 +1,7 @@
 package edu.jhu.hlt.optimize.function;
 
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
  * Batch function operations. 
@@ -28,22 +29,6 @@ public class BatchFunctionOpts {
             this.function = function;
             this.multiplier = multiplier;
         }
-        
-        @Override
-        public void setPoint(double[] point) {
-            function.setPoint(point);
-        }
-        
-        @Override
-        public double getValue(int[] batch) {
-            return multiplier * function.getValue(batch);
-        }
-    
-        @Override
-        public void getGradient(int[] batch, double[] gradient) {
-            function.getGradient(batch, gradient);
-            Vectors.scale(gradient, multiplier);
-        }
     
         @Override
         public int getNumDimensions() {
@@ -56,14 +41,39 @@ public class BatchFunctionOpts {
         }
 
 		@Override
-		public double[] getPoint() {
-			return function.getPoint();
+		public double getValue(IntDoubleVector point, int[] batch) {
+			// TODO Auto-generated method stub
+			return 0;
 		}
 
 		@Override
-		public double getValue(double[] point) {
+		public double getValue(IntDoubleVector point) {
 			// TODO Auto-generated method stub
 			return 0;
+		}
+
+		@Override
+		public IntDoubleVector getGradient(IntDoubleVector point) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public ValueGradient getValueGradient(IntDoubleVector point) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public IntDoubleVector getGradient(IntDoubleVector point, int[] batch) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public ValueGradient getValueGradient(IntDoubleVector point, int[] batch) {
+			// TODO Auto-generated method stub
+			return null;
 		}
     
     }
@@ -86,31 +96,7 @@ public class BatchFunctionOpts {
             }
             this.functions = functions;
         }
-        
-        @Override
-        public void setPoint(double[] point) {
-            for (DifferentiableBatchFunction function : functions) {
-                function.setPoint(point);
-            }
-        }
-        
-        @Override
-        public double getValue(int[] batch) {
-            double sum = 0.0;
-            for (DifferentiableBatchFunction f : functions) {
-                sum += f.getValue(batch);                
-            }
-            return sum;
-        }
-    
-        @Override
-        public void getGradient(int[] batch, double[] gradient) {
-            double[] g = new double[getNumDimensions()];
-            for (DifferentiableBatchFunction f : functions) {
-                f.getGradient(batch, g);
-                Vectors.add(gradient, g);
-            }
-        }
+ 
     
         @Override
         public int getNumDimensions() {
@@ -122,16 +108,46 @@ public class BatchFunctionOpts {
             return functions[0].getNumExamples();
         }
 
-		@Override
-		public double[] getPoint() {
-			// FIXME: This should probably return both points?
-			return functions[0].getPoint();
-		}
 
 		@Override
-		public double getValue(double[] point) {
+		public double getValue(IntDoubleVector point, int[] batch) {
 			// TODO Auto-generated method stub
 			return 0;
+		}
+
+
+		@Override
+		public double getValue(IntDoubleVector point) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+
+		@Override
+		public IntDoubleVector getGradient(IntDoubleVector point) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+
+		@Override
+		public ValueGradient getValueGradient(IntDoubleVector point) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+
+		@Override
+		public IntDoubleVector getGradient(IntDoubleVector point, int[] batch) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+
+		@Override
+		public ValueGradient getValueGradient(IntDoubleVector point, int[] batch) {
+			// TODO Auto-generated method stub
+			return null;
 		}
     
     }

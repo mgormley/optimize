@@ -12,7 +12,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import edu.jhu.hlt.optimize.SGDQNCorrectedTest;
 import edu.jhu.hlt.util.stats.SquaredExpKernel;
 
 /**

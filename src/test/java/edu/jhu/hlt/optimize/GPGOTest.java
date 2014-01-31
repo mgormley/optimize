@@ -43,6 +43,7 @@ import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.stats.Kernel;
 import edu.jhu.hlt.util.stats.SquaredExpKernel;
 import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class GPGOTest {
 
@@ -69,7 +70,7 @@ public class GPGOTest {
 		RealMatrix X = MatrixUtils.createRealMatrix(xs).transpose();
 		double [] ys = new double[xs.length];
 		for(int i=0; i<ys.length; i++) {
-			ys[i] = f.getValue(xs[i]);
+			ys[i] = f.getValue(new IntDoubleDenseVector(xs[i]));
 		}
 		RealVector y = new ArrayRealVector(ys);
 		
@@ -105,7 +106,7 @@ public class GPGOTest {
 		log.info("Initial loss = l(" + start_pt[0] + ")="+start_loss);
 		
 		GradientDescentWithLineSearch local_opt = new GradientDescentWithLineSearch(25);
-		local_opt.minimize(opt.loss, start_pt);
+		local_opt.minimize(opt.loss, new IntDoubleDenseVector(start_pt));
 		double [] xguess = opt.loss.getPoint();
 		double yguess = opt.loss.getValue();
 		

@@ -31,6 +31,7 @@ import edu.jhu.hlt.util.stats.Kernel;
 import edu.jhu.hlt.util.stats.SquaredExpKernel;
 import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
 import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class GPRegressionTest {
 
@@ -61,8 +62,8 @@ public class GPRegressionTest {
 		double [] ys = new double[X.getColumnDimension()];
 		double [] ys_eval = new double[X_star.getColumnDimension()];
 		for(int i=0; i<N; i++) {
-			ys[i] = f.getValue(X.getColumn(i));
-			ys_eval[i] = f.getValue(X_star.getColumn(i));
+			ys[i] = f.getValue(new IntDoubleDenseVector(X.getColumn(i)));
+			ys_eval[i] = f.getValue(new IntDoubleDenseVector(X_star.getColumn(i)));
 		}
 		
 		RealVector y = new ArrayRealVector(ys);
@@ -155,7 +156,7 @@ public class GPRegressionTest {
 		RealMatrix X = MatrixUtils.createRealMatrix(xs).transpose();
 		double [] ys = new double[xs.length];
 		for(int i=0; i<ys.length; i++) {
-			ys[i] = f.getValue(xs[i]);
+			ys[i] = f.getValue(new IntDoubleDenseVector(xs[i]));
 		}
 		RealVector y = new ArrayRealVector(ys);
 
@@ -203,7 +204,7 @@ public class GPRegressionTest {
 		RealMatrix X = MatrixUtils.createRealMatrix(xs).transpose();
 		double [] ys = new double[xs.length];
 		for(int i=0; i<ys.length; i++) {
-			ys[i] = f.getValue(xs[i]);
+			ys[i] = f.getValue(new IntDoubleDenseVector(xs[i]));
 		}
 		RealVector y = new ArrayRealVector(ys);
 

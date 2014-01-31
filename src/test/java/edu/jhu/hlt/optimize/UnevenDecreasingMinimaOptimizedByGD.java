@@ -24,6 +24,8 @@ import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.function.FunctionOpts.DifferentiableFunctionWithConstraints;
 import edu.jhu.hlt.optimize.functions.UnevenDecreasingMaxima;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
+import edu.jhu.prim.vector.IntDoubleVector;
 
 public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 	
@@ -36,28 +38,6 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 	
 	public UnevenDecreasingMinimaOptimizedByGD(int niter) {
 		this.niter = niter;
-	}
-	
-	@Override
-	public void setPoint(double[] point) {
-		x = point[0];
-	}
-
-	@Override
-	public double[] getPoint() {
-		return new double[] {x};
-	}
-
-	@Override
-	public double getValue(double[] point) {
-		GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(niter);
-		opt.minimize(f, point);
-		return f.getValue();
-	}
-
-	@Override
-	public double getValue() {
-		return getValue(getPoint());
 	}
 
 	@Override
@@ -85,11 +65,11 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 		List<Number> grid = new ArrayList<Number>();
 		List<Number> fvals = new ArrayList<Number>();
 		List<Number> foptvals = new ArrayList<Number>();
-		
+				
 		for(double x=grid_min; x<grid_max; x+=increment) {	
 			log.info("x="+x);
-			double y = f.getValue(new double[] {x});
-			double y2 = fopt.getValue(new double[] {x});
+			double y = f.getValue(new IntDoubleDenseVector(new double[] {x}));
+			double y2 = fopt.getValue(new IntDoubleDenseVector(new double[] {x}));
 			log.info("y="+y);
 			log.info("y2="+y2);
 			grid.add(x);
@@ -137,5 +117,11 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 		} catch (IOException ex){
 		    // handle me
 		}  
+	}
+
+	@Override
+	public double getValue(IntDoubleVector point) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

@@ -79,8 +79,7 @@ public class GradientDescentWithLineSearch implements Optimizer<DifferentiableFu
 	@Override
 	public boolean minimize(DifferentiableFunction function,
 			IntDoubleVector point) {
-		// TODO Auto-generated method stub
-		return false;
+		return optimize(function, point);
 	}
 
 	@Override

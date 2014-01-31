@@ -1,5 +1,7 @@
 package edu.jhu.hlt.optimize.function;
 
+import edu.jhu.prim.vector.IntDoubleVector;
+
 public class FunctionAsBatchFunction extends AbstractDifferentiableBatchFunction implements DifferentiableBatchFunction {
 
     private DifferentiableFunction fn;
@@ -8,21 +10,6 @@ public class FunctionAsBatchFunction extends AbstractDifferentiableBatchFunction
     public FunctionAsBatchFunction(DifferentiableFunction fn, int numExamples) {
         this.fn = fn;
         this.numExamples = numExamples;
-    }
-    
-    @Override
-    public void setPoint(double[] point) {
-        fn.setPoint(point);
-    }
-
-    @Override
-    public double getValue(int[] batch) {
-        return fn.getValue();
-    }
-
-    @Override
-    public void getGradient(int[] batch, double[] gradient) {
-        fn.getGradient(gradient);
     }
 
     @Override
@@ -39,16 +26,45 @@ public class FunctionAsBatchFunction extends AbstractDifferentiableBatchFunction
         this.numExamples = numExamples;
     }
 
-	@Override
-	public double[] getPoint() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
-	public double getValue(double[] point) {
+	public double getValue(IntDoubleVector point, int[] batch) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
+
+	@Override
+	public double getValue(IntDoubleVector point) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	@Override
+	public IntDoubleVector getGradient(IntDoubleVector point) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public ValueGradient getValueGradient(IntDoubleVector point) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public IntDoubleVector getGradient(IntDoubleVector point, int[] batch) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public ValueGradient getValueGradient(IntDoubleVector point, int[] batch) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

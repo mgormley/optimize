@@ -12,6 +12,7 @@ import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.optimize.functions.XSquared;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class GradientDescentWithLineSearchTest {
 
@@ -22,7 +23,7 @@ public class GradientDescentWithLineSearchTest {
 		   
 	       GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(100);
 	       double[] max = new double[]{ 9.0 };
-	       opt.maximize(new FunctionOpts.NegateFunction(new XSquared()), max);
+	       opt.maximize(new FunctionOpts.NegateFunction(new XSquared()), new IntDoubleDenseVector(max));
 	       assertEquals(0.0, max[0], 1e-10);      
 	    }
 	   
@@ -33,7 +34,7 @@ public class GradientDescentWithLineSearchTest {
 	    	
 	       GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(100);
 	       double[] max = new double[]{ 13.3 };
-	       opt.minimize(new XSquared(), max);
+	       opt.minimize(new XSquared(), new IntDoubleDenseVector(max));
 	       assertEquals(0.0, max[0], 1e-10);  
 	   }
 	    
@@ -44,7 +45,7 @@ public class GradientDescentWithLineSearchTest {
 	    	
 	        GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(100);
 	        double[] max = new double[]{ 9.0 };
-	        opt.minimize(new XSquared(), max);
+	        opt.minimize(new XSquared(), new IntDoubleDenseVector(max));
 	        assertEquals(0.0, max[0], 1e-10);        
 	    }
 	    
@@ -58,7 +59,7 @@ public class GradientDescentWithLineSearchTest {
 	        initial[0] = 9;
 	        initial[1] = 2;
 	        initial[2] = -7;
-	        opt.minimize(new SumSquares(initial.length), initial);
+	        opt.minimize(new SumSquares(initial.length), new IntDoubleDenseVector(initial));
 	        double[] max = initial;
 	        JUnitUtils.assertArrayEquals(new double[] {0.0, 0.0, 0.0} , max, 1e-10);
 	    }
@@ -73,7 +74,7 @@ public class GradientDescentWithLineSearchTest {
 	        initial[0] = 9;
 	        initial[1] = 2;
 	        initial[2] = -7;
-	        opt.maximize(new FunctionOpts.NegateFunction(new SumSquares(initial.length)), initial);
+	        opt.maximize(new FunctionOpts.NegateFunction(new SumSquares(initial.length)), new IntDoubleDenseVector(initial));
 	        double[] max = initial;
 	        JUnitUtils.assertArrayEquals(new double[] {0.0, 0.0, 0.0} , max, 1e-10);
 	    }
@@ -86,7 +87,7 @@ public class GradientDescentWithLineSearchTest {
 	        GradientDescentWithLineSearch opt = new GradientDescentWithLineSearch(100);
 	        double[] initial = new double[] { 9, 2, -7};
 	        double[] offsets = new double[] { 3, -5, 11};
-	        opt.maximize(new FunctionOpts.NegateFunction(new SumSquares(offsets)), initial);
+	        opt.maximize(new FunctionOpts.NegateFunction(new SumSquares(offsets)), new IntDoubleDenseVector(initial));
 	        double[] max = initial;
 	        Vectors.scale(offsets, -1.0);
 	        JUnitUtils.assertArrayEquals(offsets, max, 1e-10);

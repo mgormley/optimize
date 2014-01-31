@@ -54,21 +54,5 @@ public class UnconstrainedMultipleMultinomialFunctionTest {
         }
         
     }
-    
-    @Test
-    public void testGetSetAndValue() {
-        int[][] data = new int[][] {{1, 2}, {3, 4, 5}, {6, 7}};
-        double[][] uniformLogProbs = new double[][] {{0.5, 0.5}, {1./3., 1./3., 1./3.}, {0.5, 0.5}};
-        Vectors.log(uniformLogProbs);
-        
-        MockMMLL ll = new MockMMLL(data, Utilities.copyOf(uniformLogProbs));
-        UnconstrainedMultipleMultinomialFunction ummf = new UnconstrainedMultipleMultinomialFunction(ll);
-        
-        assertEquals(7, ummf.getNumDimensions());
-        assertEquals((1+2)*Math.log(0.5) + (3+4+5)*Math.log(1./3.) + (6+7)*Math.log(0.5), ummf.getValue(), 1e-13);
-        ummf.setPoint(new double[]{0, 0, 0, 0, 0, 0, 0});
-        JUnitUtils.assertArrayEquals(new double[]{0, 0, 0, 0, 0, 0, 0}, ummf.getPoint(), 1e-13);
-        JUnitUtils.assertArrayEquals(uniformLogProbs, ll.getLogProbabilities(), 1e-13);
-    }
 
 }
