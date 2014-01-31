@@ -43,7 +43,7 @@ public class GradientDescentWithLineSearch implements Optimizer<DifferentiableFu
         this.prm = prm;
     }
 
-    private boolean optimize(DifferentiableFunction function, IntDoubleVector point) {        
+    private boolean optimize(DifferentiableFunction function, IntDoubleVector point, final boolean maximize) {        
         IntDoubleVector gradient;
         ParanoidLineSearch line = new ParanoidLineSearch(function);
         
@@ -59,7 +59,11 @@ public class GradientDescentWithLineSearch implements Optimizer<DifferentiableFu
             
             // Take a step in the direction of the gradient.
             double lr = line.search(point, gradient);
-            gradient.scale(-lr);
+            if (maximize) {
+                gradient.scale(lr);
+            } else {
+                gradient.scale(-lr);
+            }
             log.info("step size = " + lr);
             point.add(gradient);
             log.info("function value = " + function.getValue(point));
@@ -79,14 +83,13 @@ public class GradientDescentWithLineSearch implements Optimizer<DifferentiableFu
 	@Override
 	public boolean minimize(DifferentiableFunction function,
 			IntDoubleVector point) {
-		return optimize(function, point);
+	    return optimize(function, point, false);
 	}
 
 	@Override
 	public boolean maximize(DifferentiableFunction function,
 			IntDoubleVector point) {
-		// TODO Auto-generated method stub
-		return false;
+	    return optimize(function, point, true);
 	}
     
 }
