@@ -95,8 +95,7 @@ public class GPGOTest {
 		opt.estimatePosterior();
 		
 		double [] start_pt = new double[] {-1.5};
-		opt.loss.setPoint(start_pt);
-		double start_loss = opt.loss.getValue();
+		double start_loss = opt.loss.getValue(new IntDoubleDenseVector(start_pt));
 		List<Number> start_x = new ArrayList<Number>();
 		List<Number> start_y = new ArrayList<Number>();
 		
@@ -106,11 +105,11 @@ public class GPGOTest {
 		log.info("Initial loss = l(" + start_pt[0] + ")="+start_loss);
 		
 		GradientDescentWithLineSearch local_opt = new GradientDescentWithLineSearch(25);
-		local_opt.minimize(opt.loss, new IntDoubleDenseVector(start_pt));
-		double [] xguess = opt.loss.getPoint();
-		double yguess = opt.loss.getValue();
+		IntDoubleDenseVector v = new IntDoubleDenseVector(start_pt);
+		local_opt.minimize(opt.loss, v);
+		double yguess = opt.loss.getValue(v);
 		
-		log.info("xguess = " + xguess[0]);
+		log.info("xguess = " + v.get(0));
 		log.info("yguess = " + yguess);
 		
 		// Test some other points of the loss function
@@ -122,7 +121,7 @@ public class GPGOTest {
 		//log.info("loss("+pt2[0]+")="+opt.loss.getValue());
 		
 		List<Number> next_x = new ArrayList<Number>();
-		next_x.add(xguess[0]);
+		next_x.add(v.get(0));
 		List<Number> next_y = new ArrayList<Number>();
 		next_y.add(yguess);
 		
@@ -157,11 +156,11 @@ public class GPGOTest {
 			//log.info("x = " + x);
 			
 			grid.add(x);
-			fvals.add(f.getValue(new double[] {x}));
+			fvals.add(f.getValue(new IntDoubleDenseVector(new double[] {x})));
 			RealVector x_star = new ArrayRealVector(new double[] {x});
 			RegressionResult pred = opt.getRegressor().predict(new ArrayRealVector(new double[] {x}));
 			double obj1 = opt.getExpectedLoss().computeExpectedLoss(new ArrayRealVector(new double[] {x}));
-			double obj2 = opt.loss.getValue(new double[] {x});
+			double obj2 = opt.loss.getValue(new IntDoubleDenseVector(new double[] {x}));
 			//double obj = 0;
 			
 			log.info("loss1("+x+")="+obj1);
@@ -266,7 +265,6 @@ public class GPGOTest {
 			U[i] = 5.12;
 			start[i] = Prng.nextDouble();
 		}
-		f.setPoint(start);
 		log.info("starting pt = ("+start[0]+", "+start[1]+")");
 		Bounds b = new Bounds(L, U);
 
@@ -275,18 +273,13 @@ public class GPGOTest {
 		SquaredExpKernel kernel = new SquaredExpKernel();
 		GPGO opt = new GPGO(g, kernel, noise, maxiter);
 
-		opt.minimize();
+		IntDoubleDenseVector opt_point = new IntDoubleDenseVector(start);
+		opt.minimize(g, opt_point);
 
-		double [] opt_point = f.getPoint();
-		double opt_val = f.getValue();
+		double opt_val = f.getValue(opt_point);
 
 		log.info("found opt val = " + opt_val);
 		assertEquals(0, opt_val, 0.1);
-
-		// see how close we are to the opt point
-		for(int i=0; i<D; i++) {
-			assertEquals(0, opt_point[i], 0.1);
-		}
 	}
 	
 	@Test
@@ -310,7 +303,7 @@ public class GPGOTest {
 		List<Number> fvals = new ArrayList<Number>();
 		
 		for(double x=grid_min; x<grid_max; x+=increment) {	
-			double y = f.getValue(new double[] {x});
+			double y = f.getValue(new IntDoubleDenseVector(new double[] {x}));
 			grid.add(x);
 			fvals.add(y);
 		}
@@ -373,7 +366,7 @@ public class GPGOTest {
 				posterior_mean.add(pred.mean);
 				posterior_var.add(pred.var);
 				
-				double l = opt.loss.getValue(new double[] {x});
+				double l = opt.loss.getValue(new IntDoubleDenseVector(new double[] {x}));
 				//log.info("loss("+x+")="+l);
 				ls.add(l);
 			}
@@ -407,7 +400,7 @@ public class GPGOTest {
 			new SwingWrapper(chart).displayChart();
 			
 			// Update observations for the next iteration
-			opt.updateObservations(min_vec, h.getValue(min_vec.toArray()));
+			opt.updateObservations(min_vec, h.getValue(new IntDoubleDenseVector(min_vec.toArray())));
 		}
 	}
 	
@@ -436,7 +429,7 @@ public class GPGOTest {
 		List<Number> fvals = new ArrayList<Number>();
 		
 		for(double x=grid_min; x<grid_max; x+=increment) {	
-			double y = f.getValue(new double[] {x});
+			double y = f.getValue(new IntDoubleDenseVector(new double[] {x}));
 			grid.add(x);
 			fvals.add(y);
 		}
@@ -499,7 +492,7 @@ public class GPGOTest {
 				posterior_mean.add(pred.mean);
 				posterior_var.add(pred.var);
 				
-				double l = opt.loss.getValue(new double[] {x});
+				double l = opt.loss.getValue(new IntDoubleDenseVector(new double[] {x}));
 				//log.info("loss("+x+")="+l);
 				ls.add(l);
 			}
@@ -558,7 +551,7 @@ public class GPGOTest {
 			new SwingWrapper(chart).displayChart();
 			
 			// Update observations for the next iteration
-			opt.updateObservations(min_vec, h.getValue(min_vec.toArray()));
+			opt.updateObservations(min_vec, h.getValue(new IntDoubleDenseVector(min_vec.toArray())));
 		}
 	}
 	

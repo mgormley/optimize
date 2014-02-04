@@ -148,7 +148,7 @@ public class GPRegressionTest {
 		
     	// Parameters
     	Kernel kernel = new SquaredExpKernel(1d, 1d);
-    	Function f = new XSquared(0);
+    	Function f = new XSquared();
     	double noise = 0d;
     	
     	// Training data
@@ -196,7 +196,7 @@ public class GPRegressionTest {
 		
     	// Parameters
     	Kernel kernel = new SquaredExpKernel(1d, 1d);
-    	Function f = new XSquared(0);
+    	Function f = new XSquared();
     	double noise = 0d;
     	
     	// Training data
