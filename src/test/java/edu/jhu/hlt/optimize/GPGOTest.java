@@ -238,7 +238,8 @@ public class GPGOTest {
 		
 	}
 	
-	@Test
+	// This unit test takes too long. Run via main().
+	// @Test
 	public void Rastrigins() {
 
 		BasicConfigurator.configure();
@@ -281,8 +282,9 @@ public class GPGOTest {
 		log.info("found opt val = " + opt_val);
 		assertEquals(0, opt_val, 0.1);
 	}
-	
-	@Test
+
+    // This unit test takes too long. Run via main().
+    // @Test
 	public void UnevenDecreasingMaxima() {
 		
 		BasicConfigurator.configure();
@@ -403,8 +405,9 @@ public class GPGOTest {
 			opt.updateObservations(min_vec, h.getValue(new IntDoubleDenseVector(min_vec.toArray())));
 		}
 	}
-	
-	@Test
+
+    // This unit test takes too long. Run via main().
+    // @Test
 	public void UnevenDecreasingMaximaOptimizedByGD() {
 		
 		Prng.seed(54);
@@ -557,6 +560,7 @@ public class GPGOTest {
 	
 	public static void main(String [] args) {
 		GPGOTest tester = new GPGOTest();
+		tester.Rastrigins();
 		tester.UnevenDecreasingMaxima();
 		tester.UnevenDecreasingMaximaOptimizedByGD();
 	}
