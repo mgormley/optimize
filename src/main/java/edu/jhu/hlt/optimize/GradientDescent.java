@@ -112,11 +112,7 @@ public class GradientDescent implements Optimizer<DifferentiableFunction> {
             
             // Take a step in the direction of the gradient.
             double lr = getLearningRate(iterCount);
-            if (maximize) {
-                gradient.scale(lr);
-            } else {
-                gradient.scale(-lr);
-            }
+            gradient.scale(maximize ? lr : -lr);
             point.add(gradient);
         }
         

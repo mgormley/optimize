@@ -1,7 +1,8 @@
 package edu.jhu.hlt.optimize;
 
 import edu.jhu.hlt.util.Prng;
-import edu.jhu.hlt.util.Utilities;
+import edu.jhu.prim.arrays.IntArrays;
+import edu.jhu.prim.sort.IntSort;
 
 /**
  * Sampler of batches.
@@ -26,7 +27,7 @@ public class BatchSampler {
         this.batchSize = batchSize;
         
         if (!withReplacement) {
-            indices = Utilities.getIndexArray(numExamples);
+            indices = IntSort.getIndexArray(numExamples);
             cur = 0;
         }
     }
@@ -57,7 +58,7 @@ public class BatchSampler {
                 cur = 0;
             }
             if (cur == 0) {
-                Utilities.shuffle(indices);
+                IntArrays.shuffle(indices);
             }
             batch[i] = indices[cur++];
         }

@@ -1,10 +1,13 @@
 package edu.jhu.hlt.optimize;
 
+import java.util.Date;
+
+import org.apache.commons.lang3.mutable.MutableDouble;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
-import edu.jhu.prim.sort.IntSort;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
 import edu.jhu.prim.vector.IntDoubleVector;
 import edu.jhu.util.Timer;
@@ -12,9 +15,7 @@ import edu.jhu.util.Timer;
 /**
  * Stochastic gradient descent with minibatches.
  * 
- * We use the learning rate from "Introduction to Stochastic Search and
- * Optimization (James Spall). See eq. (4.14) pg. 113 and the constants
- * suggested on page pg. 164.
+ * We use the learning rate suggested in Leon Bottou's (2012) SGD Tricks paper.
  * 
  * @author mgormley
  */
@@ -44,6 +45,10 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         public int batchSize = 15;
         /** Whether batches should be sampled with replacement. */
         public boolean withReplacement = false;
+        /** Date by which to stop. */
+        public Date stopBy = null;
+        /** Whether to compute the function value on the 0th iteration. */
+        public boolean computeValueOnIterZero = true;
         public SGDPrm() { } 
         public SGDPrm(double initialLr, int numPasses, int batchSize) {
             this.initialLr = initialLr;
@@ -114,28 +119,36 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         return optimize(function, point, false);
     }
 
-    private boolean optimize(DifferentiableBatchFunction function, IntDoubleVector point, final boolean maximize) {
+    private boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize) {
         init(function);
+        if (prm.stopBy != null) {
+            log.debug("Max time alloted (hr): " + (prm.stopBy.getTime() - new Date().getTime()) / 1000. / 3600.);  
+        }
+
+        int passCount = 0;
+        double passCountFrac = 0;
+
+        if (prm.computeValueOnIterZero) {
+            double value = function.getValue(point);
+            log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
+        }
         
         // TODO: This used to be possible: assert (function.getNumDimensions() == point.length);
-        IntDoubleVector gradient;
 
         Timer timer = new Timer();
         timer.start();
-        int passCount = 0;
-        double passCountFrac = 0;
         for (iterCount=0; iterCount < iterations; iterCount++) {
             int[] batch = batchSampler.sampleBatch();
             
             // Get the current value and gradient of the function.
             ValueGradient vg = function.getValueGradient(point, batch);
             double value = vg.getValue();
-            gradient = vg.getGradient();
+            final IntDoubleVector gradient = vg.getGradient();
             log.trace(String.format("Function value on batch = %g at iteration = %d", value, iterCount));
             // TODO: This used to be possible: assert (gradient.length == point.length);            
             takeNoteOfGradient(gradient);
             
-            // Scale the gradient by the learning rate.
+            // Scale the gradient by the parameter-specific learning rate.
             gradient.apply(new FnIntDoubleToDouble() {
                 @Override
                 public double call(int index, double value) {
@@ -150,19 +163,50 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             
             // Take a step in the direction of the gradient.
             point.add(gradient);
+
+            // Compute the average learning rate and the average step size.
+            final MutableDouble avgLr = new MutableDouble(0.0);
+            final MutableDouble avgStep = new MutableDouble(0d);
+            final MutableInt numNonZeros = new MutableInt(0);
+            gradient.apply(new FnIntDoubleToDouble() {
+                @Override
+                public double call(int index, double value) {
+                    double lr = getLearningRate(iterCount, index);
+                    assert !Double.isNaN(point.get(index));
+                    if (value != 0.0) {
+                        avgLr.add(lr);
+                        avgStep.add(gradient.get(index));
+                        numNonZeros.increment();
+                    }
+                    return value;
+                }
+            });
+            avgLr.setValue(avgLr.doubleValue() / numNonZeros.doubleValue());
+            avgStep.setValue(avgStep.doubleValue() / numNonZeros.doubleValue());
             
             // If a full pass through the data has been completed...
             passCountFrac = (double) iterCount * prm.batchSize / function.getNumExamples();
             if ((int) Math.floor(passCountFrac) > passCount || iterCount == iterations - 1) {
                 // Another full pass through the data has been completed or we're on the last iteration.
                 // Get the value of the function on all the examples.
-                value = function.getValue(point, IntSort.getIndexArray(function.getNumExamples()));
+                value = function.getValue(point);
                 log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
+                log.debug("Average learning rate: " + avgLr);
+                log.debug("Average step size: " + avgStep);
                 log.debug(String.format("Average time per pass (min): %.2g", timer.totSec() / 60.0 / passCountFrac));
             }
             if ((int) Math.floor(passCountFrac) > passCount) {
                 // Another full pass through the data has been completed.
                 passCount++;
+            }
+            
+            if (prm.stopBy != null) {
+                Date now = new Date();
+                if (now.after(prm.stopBy)) {
+                    log.info(String.format("Current time is after stop-by time. now=%s, stopBy=%s", now.toString(), prm.stopBy.toString()));
+                    log.info("Stopping training early.");
+                    break;
+                }
             }
         }
         
