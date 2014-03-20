@@ -100,4 +100,19 @@
     	<version>3.1</version>
     </dependency>
   </dependencies>
+    
+  <!-- For deploying to CLSP. -->
+  <distributionManagement>
+    <repository>
+      <id>checker</id>
+      <name>checker-releases</name>
+      <url>http://localhost:8081/artifactory/libs-release-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>checker</id>
+      <name>checker-snapshots</name>
+      <url>http://localhost:8081/artifactory/libs-snapshot-local</url>
+    </snapshotRepository>
+  </distributionManagement>
+  
 </project>
