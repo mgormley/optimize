@@ -128,10 +128,12 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     private boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize) {
         init(function);
-        return optimizeWithoutInit(function, point, maximize);
+        optimizeWithoutInit(function, point, maximize);        
+        // We don't test for convergence.
+        return false;
     }
 
-    private boolean optimizeWithoutInit(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize) {
+    private double optimizeWithoutInit(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize) {
         if (prm.stopBy != null) {
             log.debug("Max time alloted (hr): " + (prm.stopBy.getTime() - new Date().getTime()) / 1000. / 3600.);  
         }
@@ -143,8 +145,9 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             autoSelectLr(function, point, maximize, prm);
         }
         
+        double value = Double.NaN;
         if (prm.computeValueOnIterZero) {
-            double value = function.getValue(point);
+            value = function.getValue(point);
             log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
         }
         assert (function.getNumDimensions() == point.getDimension());
@@ -156,7 +159,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             
             // Get the current value and gradient of the function.
             ValueGradient vg = function.getValueGradient(point, batch);
-            double value = vg.getValue();
+            value = vg.getValue();
             final IntDoubleVector gradient = vg.getGradient();
             log.trace(String.format("Function value on batch = %g at iteration = %d", value, iterCount));
             takeNoteOfGradient(gradient);
@@ -228,8 +231,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             }
         }
         
-        // We don't test for convergence.
-        return false;
+        return value;
     }
 
     protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm) {
@@ -295,9 +297,9 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         // Make sure we start off the learning rate schedule at the proper place.
         sgd.iterCount += iterCount;
         sgd.iterations += iterCount;
-        sgd.optimizeWithoutInit(sampFunction, point, maximize);
+        double obj = sgd.optimizeWithoutInit(sampFunction, point, maximize);
         log.setEnabled(true);
-        return sampFunction.getValue(point);
+        return obj;
     }
 
     private static boolean isBetter(double obj, double bestObj, boolean maximize) {
