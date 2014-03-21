@@ -89,9 +89,9 @@ public class BatchFunctionOpts {
     
         @Override
         public IntDoubleVector getGradient(IntDoubleVector point, int[] batch) {
-            IntDoubleVector ret = functions[0].getGradient(point);
+            IntDoubleVector ret = functions[0].getGradient(point, batch);
             for(int i=1; i<functions.length; i++){
-                ret.add(functions[i].getGradient(point));
+                ret.add(functions[i].getGradient(point, batch));
             }
             return ret;
         }
