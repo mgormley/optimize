@@ -139,18 +139,19 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         int passCount = 0;
         double passCountFrac = 0;
 
+        if (prm.autoSelectLr) {
+            autoSelectLr(function, point, maximize, prm);
+        }
+        
         if (prm.computeValueOnIterZero) {
             double value = function.getValue(point);
             log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
-        }
-        if (prm.autoSelectLr) {
-            autoSelectLr(function, point, maximize, prm);
         }
         assert (function.getNumDimensions() == point.getDimension());
 
         Timer timer = new Timer();
         timer.start();
-        for (iterCount=0; iterCount < iterations; iterCount++) {
+        for (; iterCount < iterations; iterCount++) {
             int[] batch = batchSampler.sampleBatch();
             
             // Get the current value and gradient of the function.
@@ -236,6 +237,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
     
     private static double autoSelectLrStatic(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm, int iterCount) {
+        log.info("Auto-selecting the best learning rate constant");
         // Parameters for how we perform auto selection of the intial learning rate.        
         double factor = 2;
         int numEvals = 10;
@@ -285,6 +287,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         prm.initialLr = eta;
         prm.numPasses = 1; // Only one epoch.
         prm.autoSelectLr = false; // Don't recurse.
+        prm.computeValueOnIterZero = false;
         
         SGD sgd = new SGD(prm);
         log.setEnabled(false);
