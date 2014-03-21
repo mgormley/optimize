@@ -2,6 +2,7 @@ package edu.jhu.hlt.optimize;
 
 import org.junit.Test;
 
+import edu.jhu.hlt.optimize.BottouSchedule.BottouSchedulePrm;
 import edu.jhu.hlt.optimize.SGD.SGDPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.optimize.functions.SumSquares;
@@ -14,7 +15,7 @@ public class SGDTest extends AbstractBatchOptimizerTest {
     @Override
     protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
         SGDPrm prm = new SGDPrm();
-        prm.initialLr = 0.1 * 10;
+        prm.sched.setEta0(0.1 * 10);
         prm.numPasses = 100;
         prm.batchSize = 1;
         prm.autoSelectLr = false;
@@ -25,40 +26,35 @@ public class SGDTest extends AbstractBatchOptimizerTest {
     public void testSgdAutoSelectLr() {
         {
             // Test with the initial learning rate too small
-            SGDPrm prm = new SGDPrm();
-            prm.initialLr = 0.005;
-            prm.lambda = 0.01;
-            prm.lambda = 0.1;
-            prm.numPasses = 7;
-            prm.batchSize = 1;
-            prm.autoSelectLr = true;
-            SGD opt = new SGD(prm);
-            
-            double[] initial = new double[] { 9, 2, -7};
-            double[] offsets = new double[] { 3, -5, 11};
-            opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
-            double[] max = initial;
-            Vectors.scale(offsets, -1.0);
-            JUnitUtils.assertArrayEquals(offsets, max, 1e-1);        
+            BottouSchedulePrm sched = new BottouSchedulePrm();
+            sched.initialLr = 0.005;
+            sched.lambda = 0.1;
+            runSgdAutoSelectLr(new BottouSchedule(sched));        
         }
 
         {
             // Test with the initial learning rate too large
-            SGDPrm prm = new SGDPrm();
-            prm.initialLr = 10;
-            prm.lambda = 0.01;
-            prm.numPasses = 7;
-            prm.batchSize = 1;
-            prm.autoSelectLr = true;
-            SGD opt = new SGD(prm);
-            
-            double[] initial = new double[] { 9, 2, -7};
-            double[] offsets = new double[] { 3, -5, 11};
-            opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
-            double[] max = initial;
-            Vectors.scale(offsets, -1.0);
-            JUnitUtils.assertArrayEquals(offsets, max, 1e-1);        
+            BottouSchedulePrm sched = new BottouSchedulePrm();
+            sched.initialLr = 10;
+            sched.lambda = 0.01;
+            runSgdAutoSelectLr(new BottouSchedule(sched));        
         }
+    }
+
+    public static void runSgdAutoSelectLr(GainSchedule sched) {
+        SGDPrm prm = new SGDPrm();
+        prm.sched = sched;
+        prm.numPasses = 7;
+        prm.batchSize = 1;
+        prm.autoSelectLr = true;
+        SGD opt = new SGD(prm);
+        
+        double[] initial = new double[] { 9, 2, -7};
+        double[] offsets = new double[] { 3, -5, 11};
+        opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
+        double[] max = initial;
+        Vectors.scale(offsets, -1.0);
+        JUnitUtils.assertArrayEquals(offsets, max, 1e-1);
     }
 
 }

@@ -6,6 +6,7 @@ import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.BottouSchedule.BottouSchedulePrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.optimize.function.SampleFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
@@ -26,26 +27,12 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     /** Options for this optimizer. */
     public static class SGDPrm extends Prm {
-        /**
-         * The initial learning rate. (i.e. \gamma_0 in where \gamma_t =
-         * \frac{\gamma_0}{1 + \gamma_0 \lambda t})
-         */
-        public double initialLr = 0.1;
+        /** The gain schedule which defines the learning rate at each iteration. */
+        public GainSchedule sched = new BottouSchedule(new BottouSchedulePrm());
         /** Whether to automatically select the learning rate. (Leon Bottou's "secret ingredient".) */
         public boolean autoSelectLr = true;
         /** How many epochs between auto-select runs. */
         public int autoSelectFreq = 5;
-        /**
-         * Learning rate scaler. (i.e. \lambda in where \gamma_t =
-         * \frac{\gamma_0}{1 + \gamma_0 \lambda t})
-         * 
-         * According to Leon Bottou's (2012) SGD tricks paper, when using an L2
-         * regularizer of the form \frac{\lambda}{2} ||w||^2, where w is the
-         * weight vector, this should be set to the value \lambda. If the L2
-         * regularizer is instead parameterized by the variance of the L2 (i.e.
-         * Guassian) prior, then we should set \lambda = 1 / \sigma^2.
-         */
-        public double lambda = 1.0;
         /** The number of passes over the dataset to perform. */
         public double numPasses = 10;
         /** The batch size to use at each step. */
@@ -58,7 +45,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         public boolean computeValueOnIterZero = true;
         public SGDPrm() { } 
         public SGDPrm(double initialLr, int numPasses, int batchSize) {
-            this.initialLr = initialLr;
+            this.sched.setEta0(initialLr);
             this.numPasses = numPasses;
             this.batchSize = batchSize;
         }
@@ -96,19 +83,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         // Constants
         iterations = (int) Math.ceil((double) prm.numPasses * numExamples / prm.batchSize);
         log.info("Setting number of batch gradient steps: " + iterations);
-    }
-
-    /**
-     * Updates the learning rate for the next iteration.
-     * @param iterCount The current iteration.
-     * @param i The index of the current model parameter. 
-     */
-    protected double getLearningRate(int iterCount, int i) {
-        // We use the learning rate suggested in Leon Bottou's (2012) SGD Tricks paper.
-        // 
-        // \gamma_t = \frac{\gamma_0}{1 + \gamma_0 \lambda t})
-        //
-        return prm.initialLr / (1 + prm.initialLr * prm.lambda * iterCount);
+        
+        prm.sched.init(function);
     }
 
     /**
@@ -162,13 +138,13 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             value = vg.getValue();
             final IntDoubleVector gradient = vg.getGradient();
             log.trace(String.format("Function value on batch = %g at iteration = %d", value, iterCount));
-            takeNoteOfGradient(gradient);
+            prm.sched.takeNoteOfGradient(gradient);
             
             // Scale the gradient by the parameter-specific learning rate.
             gradient.apply(new FnIntDoubleToDouble() {
                 @Override
                 public double call(int index, double value) {
-                    double lr = getLearningRate(iterCount, index);
+                    double lr = prm.sched.getLearningRate(iterCount, index);
                     if (maximize) {
                         return lr * value;
                     } else {
@@ -190,7 +166,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 gradient.apply(new FnIntDoubleToDouble() {
                     @Override
                     public double call(int index, double value) {
-                        double lr = getLearningRate(iterCount, index);
+                        double lr = prm.sched.getLearningRate(iterCount, index);
                         assert !Double.isNaN(point.get(index));
                         if (value != 0.0) {
                             avgLr.add(lr);
@@ -235,7 +211,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
 
     protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm) {
-        origPrm.initialLr = autoSelectLrStatic(function, point, maximize, origPrm, iterCount);
+        double eta0 = autoSelectLrStatic(function, point, maximize, origPrm, iterCount);
+        prm.sched.setEta0(eta0);
     }
     
     private static double autoSelectLrStatic(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm, int iterCount) {
@@ -251,11 +228,12 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         double startObj = sampFunction.getValue(point);
         log.info("Initial sample obj="+startObj);
         // Initialize the "best" values.
-        double bestEta = origPrm.initialLr;
+        double origEta0 = origPrm.sched.getEta0();
+        double bestEta = origEta0;
         double bestObj = startObj;
         
         boolean increasing = true;
-        double eta = origPrm.initialLr;
+        double eta = origEta0;
         for (int i=0; i<numEvals; i++) {
             double obj = evaluateInitialLr(sampFunction, point, maximize, origPrm, eta, iterCount);
             log.info(String.format("Evaluated initial learning rate: eta="+eta+" obj="+obj));
@@ -267,7 +245,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 // If training caused the objective to worsen, then switch from
                 // increasing the learning rate to decreasing it.
                 increasing = false;
-                eta = origPrm.initialLr;
+                eta = origEta0;
             }
             if (increasing) {
                 // Increase eta by a factor.
@@ -287,7 +265,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     private static double evaluateInitialLr(DifferentiableBatchFunction sampFunction, IntDoubleVector origPoint, boolean maximize, SGDPrm origPrm, double eta, int iterCount) {
         SGDPrm prm = Prm.clonePrm(origPrm);
         IntDoubleVector point = origPoint.copy();
-        prm.initialLr = eta;
+        prm.sched = prm.sched.copy();
+        prm.sched.setEta0(eta);
         prm.numPasses = 1; // Only one epoch.
         prm.autoSelectLr = false; // Don't recurse.
         prm.computeValueOnIterZero = false;
@@ -305,11 +284,6 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     private static boolean isBetter(double obj, double bestObj, boolean maximize) {
         return maximize ? obj > bestObj : obj < bestObj;
-    }
-
-    /** A tie-in for subclasses such as AdaGrad. */
-    protected void takeNoteOfGradient(IntDoubleVector gradient) {
-        // Do nothing. This is just for subclasses.
     }
     
 }

@@ -2,8 +2,11 @@ package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.AdaGrad.AdaGradPrm;
 import edu.jhu.hlt.optimize.SGD.SGDPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+import edu.jhu.hlt.util.Prm;
+import edu.jhu.prim.arrays.DoubleArrays;
 import edu.jhu.prim.vector.IntDoubleHashVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 
@@ -18,15 +21,14 @@ import edu.jhu.prim.vector.IntDoubleVector;
  * 
  * @author mgormley
  */
-public class AdaDelta extends SGD {
+public class AdaDelta implements GainSchedule {
 
     /** Options for this optimizer. */
-    public static class AdaDeltaPrm {
+    public static class AdaDeltaPrm extends Prm {
         /** The decay rate (rho) for exponential decay averaging. */
         public double decayRate = 0.95;
         /** The amount added (epsilon) to the sum of squares inside the square root. */
         public double constantAddend = Math.pow(Math.E, -6);
-        public SGDPrm sgdPrm = new SGDPrm();
     }
     
     private static final Logger log = Logger.getLogger(AdaDelta.class);
@@ -43,28 +45,23 @@ public class AdaDelta extends SGD {
      * Constructs an SGD optimizer.
      */
     public AdaDelta(AdaDeltaPrm prm) {
-        super(prm.sgdPrm);
         this.prm = prm;
         if (prm.constantAddend <= 0) {
             throw new IllegalArgumentException("Constant added must be positive: " + prm.constantAddend);
         }
     }
-
-    /**
-     * Initializes all the parameters for optimization.
-     */
-    protected void init(DifferentiableBatchFunction function) {
-        super.init(function);
+    
+    @Override
+    public void init(DifferentiableBatchFunction function) {
         gradAccum = new double[function.getNumDimensions()];
         lr = new double[function.getNumDimensions()];
         updAccum = new double[function.getNumDimensions()];
     }
 
-    /** A tie-in for subclasses such as AdaGrad. */
-    protected void takeNoteOfGradient(IntDoubleVector g) {
+    @Override
+    public void takeNoteOfGradient(IntDoubleVector g) {
         // TODO: This update is NOT sparse.
         IntDoubleHashVector gradient = new IntDoubleHashVector(g);
-        super.takeNoteOfGradient(gradient);        
         for (int i=0; i<gradAccum.length; i++) {
             gradAccum[i] = prm.decayRate * gradAccum[i] + (1.0 - prm.decayRate) * gradient.get(i) * gradient.get(i);
             lr[i] = computeLearningRate(i);
@@ -104,16 +101,33 @@ public class AdaDelta extends SGD {
     }
     
     /**
-     * Updates the learning rate for the next iteration.
+     * Gets the learning rate for the current iteration.
      * @param iterCount The current iteration.
      * @param i The index of the current model parameter. 
      */
-    protected double getLearningRate(int iterCount, int i) {
+    @Override
+    public double getLearningRate(int iterCount, int i) {
         return lr[i];
     }
-
-    protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm) {
-        log.warn("Auto-selection of initial learning rate not supported for AdaGrad.");
-    }
     
+    @Override
+    public GainSchedule copy() {
+        AdaDeltaPrm otherPrm = Prm.clonePrm(this.prm);
+        AdaDelta other = new AdaDelta(otherPrm);
+        other.gradAccum = DoubleArrays.copyOf(this.gradAccum);
+        other.lr = DoubleArrays.copyOf(this.lr);
+        other.updAccum = DoubleArrays.copyOf(this.updAccum);
+        return other;
+    }
+
+    @Override
+    public double getEta0() {
+        throw new IllegalStateException("This gain schedule has no eta0 parameter.");
+    }
+
+    @Override
+    public void setEta0(double eta0) {
+        throw new IllegalStateException("This gain schedule has no eta0 parameter.");
+    }
+
 }

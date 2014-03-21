@@ -1,9 +1,11 @@
 package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
+import org.assertj.core.internal.Doubles;
 
-import edu.jhu.hlt.optimize.SGD.SGDPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+import edu.jhu.hlt.util.Prm;
+import edu.jhu.prim.arrays.DoubleArrays;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
 import edu.jhu.prim.vector.IntDoubleVector;
 
@@ -13,10 +15,10 @@ import edu.jhu.prim.vector.IntDoubleVector;
  * 
  * @author mgormley
  */
-public class AdaGrad extends SGD {
+public class AdaGrad implements GainSchedule {
 
     /** Options for this optimizer. */
-    public static class AdaGradPrm {
+    public static class AdaGradPrm extends Prm {
         /** The scaling parameter for the learning rate. */
         public double eta = 0.1;
         /**
@@ -25,7 +27,6 @@ public class AdaGrad extends SGD {
          * optimization off early on.
          */
         public double constantAddend = 1e-9;
-        public SGDPrm sgdPrm = new SGDPrm();
     }
     
     private static final Logger log = Logger.getLogger(AdaGrad.class);
@@ -37,21 +38,19 @@ public class AdaGrad extends SGD {
      * Constructs an SGD optimizer.
      */
     public AdaGrad(AdaGradPrm prm) {
-        super(prm.sgdPrm);
         this.prm = prm;
     }
 
     /**
      * Initializes all the parameters for optimization.
      */
-    protected void init(DifferentiableBatchFunction function) {
-        super.init(function);
+    @Override
+    public void init(DifferentiableBatchFunction function) {
         gradSumSquares = new double[function.getNumDimensions()];
     }
 
     /** A tie-in for subclasses such as AdaGrad. */
-    protected void takeNoteOfGradient(IntDoubleVector gradient) {
-        super.takeNoteOfGradient(gradient);
+    public void takeNoteOfGradient(IntDoubleVector gradient) {
         gradient.apply(new FnIntDoubleToDouble() {            
             @Override
             public double call(int index, double value) {
@@ -63,11 +62,11 @@ public class AdaGrad extends SGD {
     }
     
     /**
-     * Updates the learning rate for the next iteration.
+     * Gets the learning rate for the current iteration.
      * @param iterCount The current iteration.
      * @param i The index of the current model parameter. 
      */
-    protected double getLearningRate(int iterCount, int i) {
+    public double getLearningRate(int iterCount, int i) {
         if (gradSumSquares[i] < 0) {
             throw new RuntimeException("Gradient sum of squares entry is < 0: " + gradSumSquares[i]);
         }
@@ -83,7 +82,22 @@ public class AdaGrad extends SGD {
         return learningRate;
     }
 
-    protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm) {
-        log.warn("Auto-selection of initial learning rate not supported for AdaGrad.");
+    @Override
+    public GainSchedule copy() {
+        AdaGradPrm otherPrm = Prm.clonePrm(this.prm);
+        AdaGrad other = new AdaGrad(otherPrm);
+        other.gradSumSquares = DoubleArrays.copyOf(this.gradSumSquares);
+        return other;
     }
+
+    @Override
+    public double getEta0() {
+        return prm.eta;
+    }
+
+    @Override
+    public void setEta0(double eta0) {
+        prm.eta = eta0;
+    }
+
 }
