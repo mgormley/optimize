@@ -3,12 +3,12 @@ package edu.jhu.hlt.util;
 import org.apache.log4j.Logger;
 
 
-public class DisablerLogger {
+public class OnOffLogger {
 
     private Logger log;
     private boolean enabled = true;
 
-    public DisablerLogger(Logger log) {
+    public OnOffLogger(Logger log) {
         this.log = log;
     }
 

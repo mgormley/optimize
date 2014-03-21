@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.optimize.function.SampleFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
-import edu.jhu.hlt.util.DisablerLogger;
+import edu.jhu.hlt.util.OnOffLogger;
 import edu.jhu.hlt.util.Prm;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
 import edu.jhu.prim.vector.IntDoubleVector;
@@ -64,7 +64,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         }
     }
     
-    private static final DisablerLogger log = new DisablerLogger(Logger.getLogger(SGD.class));
+    private static final OnOffLogger log = new OnOffLogger(Logger.getLogger(SGD.class));
 
     /** The number of gradient steps to run. */   
     private int iterations;
