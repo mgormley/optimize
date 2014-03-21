@@ -7,7 +7,10 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+import edu.jhu.hlt.optimize.function.SampleFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
+import edu.jhu.hlt.util.DisablerLogger;
+import edu.jhu.hlt.util.Prm;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
 import edu.jhu.prim.vector.IntDoubleVector;
 import edu.jhu.util.Timer;
@@ -15,19 +18,23 @@ import edu.jhu.util.Timer;
 /**
  * Stochastic gradient descent with minibatches.
  * 
- * We use the learning rate suggested in Leon Bottou's (2012) SGD Tricks paper.
+ * We use the gain schedule suggested in Leon Bottou's (2012) SGD Tricks paper.
  * 
  * @author mgormley
  */
 public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     /** Options for this optimizer. */
-    public static class SGDPrm {
+    public static class SGDPrm extends Prm {
         /**
          * The initial learning rate. (i.e. \gamma_0 in where \gamma_t =
          * \frac{\gamma_0}{1 + \gamma_0 \lambda t})
          */
         public double initialLr = 0.1;
+        /** Whether to automatically select the learning rate. (Leon Bottou's "secret ingredient".) */
+        public boolean autoSelectLr = true;
+        /** How many epochs between auto-select runs. */
+        public int autoSelectFreq = 5;
         /**
          * Learning rate scaler. (i.e. \lambda in where \gamma_t =
          * \frac{\gamma_0}{1 + \gamma_0 \lambda t})
@@ -57,7 +64,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         }
     }
     
-    private static final Logger log = Logger.getLogger(SGD.class);
+    private static final DisablerLogger log = new DisablerLogger(Logger.getLogger(SGD.class));
 
     /** The number of gradient steps to run. */   
     private int iterations;
@@ -121,6 +128,10 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     private boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize) {
         init(function);
+        return optimizeWithoutInit(function, point, maximize);
+    }
+
+    private boolean optimizeWithoutInit(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize) {
         if (prm.stopBy != null) {
             log.debug("Max time alloted (hr): " + (prm.stopBy.getTime() - new Date().getTime()) / 1000. / 3600.);  
         }
@@ -132,8 +143,10 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             double value = function.getValue(point);
             log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
         }
-        
-        // TODO: This used to be possible: assert (function.getNumDimensions() == point.length);
+        if (prm.autoSelectLr) {
+            autoSelectLr(function, point, maximize, prm);
+        }
+        assert (function.getNumDimensions() == point.getDimension());
 
         Timer timer = new Timer();
         timer.start();
@@ -145,7 +158,6 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             double value = vg.getValue();
             final IntDoubleVector gradient = vg.getGradient();
             log.trace(String.format("Function value on batch = %g at iteration = %d", value, iterCount));
-            // TODO: This used to be possible: assert (gradient.length == point.length);            
             takeNoteOfGradient(gradient);
             
             // Scale the gradient by the parameter-specific learning rate.
@@ -198,6 +210,11 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             if ((int) Math.floor(passCountFrac) > passCount) {
                 // Another full pass through the data has been completed.
                 passCount++;
+
+                if (prm.autoSelectLr && (passCount % prm.autoSelectFreq == 0)) {
+                    // Auto select every autoSelecFreq epochs.
+                    autoSelectLr(function, point, maximize, prm);
+                }
             }
             
             if (prm.stopBy != null) {
@@ -212,6 +229,76 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         
         // We don't test for convergence.
         return false;
+    }
+
+    protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm) {
+        origPrm.initialLr = autoSelectLrStatic(function, point, maximize, origPrm, iterCount);
+    }
+    
+    private static double autoSelectLrStatic(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm, int iterCount) {
+        // Parameters for how we perform auto selection of the intial learning rate.        
+        double factor = 2;
+        int numEvals = 10;
+        // This sample size equates to a single epoch.
+        int sampleSize = (int) Math.ceil((double) function.getNumExamples() / numEvals);
+        SampleFunction sampFunction = new SampleFunction(function, sampleSize); 
+        //
+        // Get the objective value with no training.
+        double startObj = sampFunction.getValue(point);
+        // Initialize the "best" values.
+        double bestEta = origPrm.initialLr;
+        double bestObj = startObj;
+        
+        boolean increasing = true;
+        double eta = origPrm.initialLr;
+        for (int i=0; i<numEvals; i++) {
+            double obj = evaluateInitialLr(sampFunction, point, maximize, origPrm, eta, iterCount);
+            log.info(String.format("Evaluated initial learning rate: eta="+eta+" obj="+obj));
+            if (isBetter(obj, bestObj, maximize)) {
+                bestObj = obj;
+                bestEta = eta;
+            }
+            if (!isBetter(obj, startObj, maximize) && increasing) {
+                // If training caused the objective to worsen, then switch from
+                // increasing the learning rate to decreasing it.
+                increasing = false;
+                eta = origPrm.initialLr;
+            }
+            if (increasing) {
+                // Increase eta by a factor.
+                eta *= factor;
+            } else {
+                // Decrease eta by a factor.
+                eta /= factor;
+            }
+        }
+        // Conservatively return the value for eta smaller than the best one.
+        bestEta = bestEta / factor;
+        log.info("Chose initial learning rate: eta="+bestEta);
+        
+        return bestEta;
+    }
+
+    private static double evaluateInitialLr(DifferentiableBatchFunction sampFunction, IntDoubleVector origPoint, boolean maximize, SGDPrm origPrm, double eta, int iterCount) {
+        SGDPrm prm = Prm.clonePrm(origPrm);
+        IntDoubleVector point = origPoint.copy();
+        prm.initialLr = eta;
+        prm.numPasses = 1; // Only one epoch.
+        prm.autoSelectLr = false; // Don't recurse.
+        
+        SGD sgd = new SGD(prm);
+        log.setEnabled(false);
+        sgd.init(sampFunction);
+        // Make sure we start off the learning rate schedule at the proper place.
+        sgd.iterCount += iterCount;
+        sgd.iterations += iterCount;
+        sgd.optimizeWithoutInit(sampFunction, point, maximize);
+        log.setEnabled(true);
+        return sampFunction.getValue(point);
+    }
+
+    private static boolean isBetter(double obj, double bestObj, boolean maximize) {
+        return maximize ? obj > bestObj : obj < bestObj;
     }
 
     /** A tie-in for subclasses such as AdaGrad. */

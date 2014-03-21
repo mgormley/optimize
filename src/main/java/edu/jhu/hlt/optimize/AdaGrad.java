@@ -2,6 +2,7 @@ package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.SGD.SGDPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
 import edu.jhu.prim.vector.IntDoubleVector;
@@ -80,5 +81,9 @@ public class AdaGrad extends SGD {
             return 0.0;
         }
         return learningRate;
+    }
+
+    protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm) {
+        log.warn("Auto-selection of initial learning rate not supported for AdaGrad.");
     }
 }

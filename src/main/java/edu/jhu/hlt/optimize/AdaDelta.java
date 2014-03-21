@@ -2,6 +2,7 @@ package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.hlt.optimize.SGD.SGDPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.prim.vector.IntDoubleHashVector;
 import edu.jhu.prim.vector.IntDoubleVector;
@@ -109,6 +110,10 @@ public class AdaDelta extends SGD {
      */
     protected double getLearningRate(int iterCount, int i) {
         return lr[i];
+    }
+
+    protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm) {
+        log.warn("Auto-selection of initial learning rate not supported for AdaGrad.");
     }
     
 }
