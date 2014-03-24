@@ -41,8 +41,8 @@ import edu.jhu.hlt.optimize.functions.SimpleCubicFunction;
 import edu.jhu.hlt.optimize.functions.UnevenDecreasingMaxima;
 import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.stats.Kernel;
+import edu.jhu.hlt.util.stats.RegressionResult;
 import edu.jhu.hlt.util.stats.SquaredExpKernel;
-import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class GPGOTest {

@@ -9,6 +9,7 @@ import org.apache.commons.math3.linear.CholeskyDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.xeiam.xchart.Chart;
@@ -34,18 +35,10 @@ import edu.jhu.prim.vector.IntDoubleVector;
  * @author noandrews
  */
 
+@Deprecated
 public class GPRegression {
 	
 	static Logger log = Logger.getLogger(GPRegression.class);
-	
-	public static class RegressionResult {
-		public double mean;
-		public double var;
-		public RegressionResult(double mean, double var) {
-			this.mean = mean;
-			this.var = var;
-		}
-	}
 	
 	// TODO: this should implement a generic "Regressor" interface
 	public static class GPRegressor implements DifferentiableFunction {
@@ -71,14 +64,10 @@ public class GPRegression {
 		public RegressionResult predict(RealVector x_star) {
 			double x_star_covar = kernel.k(x_star, x_star);
 			RealVector k_star = vectorCovar(X, x_star, kernel);
-			//for(int k=0; k<k_star.getDimension(); k++) {
-			//	log.info("k_star["+k+"]="+k_star.getEntry(k));
-			//}
 			double predicted_mean = k_star.dotProduct(alpha);
 			RealVector v = k_star.copy();
 			MatrixUtils.solveLowerTriangularSystem(decomp.getL(), v);
 			double predicted_var = x_star_covar - v.dotProduct(v);
-			//assert(predicted_var > 0) : "variance not strictly positive";
 			return new RegressionResult(predicted_mean, predicted_var+noise);
 		}
 		
@@ -147,11 +136,6 @@ public class GPRegression {
 			Kinv = decomp.getSolver().getInverse();
 			
 		}
-
-//		@Override
-//		public double[] getPoint() {
-//			return kernel.getParameters().toArray();
-//		}
 
 		@Override
 		public double getValue(IntDoubleVector point) {
@@ -261,11 +245,11 @@ public class GPRegression {
 		return G.transpose();
 	}
 	
-	public static GPRegressor trainRegressor(RealMatrix X, // train inputs
-								             RealVector y, // train outputs
-								             Kernel kernel,
-								             double noise  // noise level in inputs 
-								             ) {
+	public static GPRegressor computePosterior(RealMatrix X, // train inputs
+								               RealVector y, // train outputs
+								               Kernel kernel,
+								               double noise  // noise level in inputs 
+								               ) {
 		RealMatrix K = kernel.K(X);
 		assert(K.getColumnDimension() == y.getDimension()) : "dimension mismatch: " + K.getColumnDimension() + " != " + y.getDimension();
 		RealMatrix temp = K.add(MatrixUtils.createRealIdentityMatrix(K.getColumnDimension()).scalarMultiply(noise));
@@ -300,6 +284,10 @@ public class GPRegression {
 	}
 	
 	public static void main(String [] args) {
+		
+		// Turn on debugging
+		Logger.getRootLogger().setLevel(Level.DEBUG);
+		
 		// Parameters
     	Kernel kernel = new SquaredExpKernel(1d, 1d);
     	double noise = 0d;
@@ -308,12 +296,15 @@ public class GPRegression {
     	double [][] xs = {{-3},{-2},{-1}, {1}, {2}, {3}};
 		RealMatrix X = MatrixUtils.createRealMatrix(xs).transpose();
 		double [] ys = new double[xs.length];
+		
+		// X squared
 		for(int i=0; i<ys.length; i++) {
 			ys[i] = xs[i][0]*xs[i][0];
 		}
 		RealVector y = new ArrayRealVector(ys);
 
-		GPRegressor reg = GPRegression.trainRegressor(X, y, kernel, noise);
+		// Train the kernel parameters
+		GPRegressor reg = GPRegression.computePosterior(X, y, kernel, noise);
 		
 		// generates data
 		List<Number> xData1 = new ArrayList<Number>();

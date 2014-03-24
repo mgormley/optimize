@@ -17,7 +17,6 @@ import edu.jhu.hlt.util.Prng;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.hlt.util.stats.GPRegression;
 import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
-import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 

@@ -30,7 +30,6 @@ import edu.jhu.hlt.util.stats.GPRegression;
 import edu.jhu.hlt.util.stats.Kernel;
 import edu.jhu.hlt.util.stats.SquaredExpKernel;
 import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
-import edu.jhu.hlt.util.stats.GPRegression.RegressionResult;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class GPRegressionTest {
@@ -70,7 +69,7 @@ public class GPRegressionTest {
 		RealVector y_star = new ArrayRealVector(ys_eval);
 		
 		Kernel kernel = new SquaredExpKernel();
-		GPRegressor reg = GPRegression.trainRegressor(X, y, kernel, 0.1);
+		GPRegressor reg = GPRegression.computePosterior(X, y, kernel, 0.1);
 		
 		// Compute initial RMSE
 		double RMSE = 0;
@@ -112,7 +111,7 @@ public class GPRegressionTest {
 		}
 		RealVector y = new ArrayRealVector(ys);
 
-		GPRegressor reg = GPRegression.trainRegressor(X, y, kernel, noise);
+		GPRegressor reg = GPRegression.computePosterior(X, y, kernel, noise);
 		
 		double [] g = new double[xs[0].length];
 		double eps = 1e-6;
@@ -160,7 +159,7 @@ public class GPRegressionTest {
 		}
 		RealVector y = new ArrayRealVector(ys);
 
-		GPRegressor reg = GPRegression.trainRegressor(X, y, kernel, noise);
+		GPRegressor reg = GPRegression.computePosterior(X, y, kernel, noise);
 		
 		double [] g = new double[1];
 		double eps = 1e-6;
@@ -208,7 +207,7 @@ public class GPRegressionTest {
 		}
 		RealVector y = new ArrayRealVector(ys);
 
-		GPRegressor reg = GPRegression.trainRegressor(X, y, kernel, noise);
+		GPRegressor reg = GPRegression.computePosterior(X, y, kernel, noise);
 		
 		// generates data
 		List<Number> xData1 = new ArrayList<Number>();
