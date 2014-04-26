@@ -1,10 +1,5 @@
 package edu.jhu.hlt.optimize;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
-import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
@@ -14,9 +9,6 @@ import edu.jhu.hlt.optimize.function.Bounds;
 import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.propose.Proposable;
 import edu.jhu.hlt.util.Prng;
-import edu.jhu.hlt.util.math.Vectors;
-import edu.jhu.hlt.util.stats.GPRegression;
-import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 

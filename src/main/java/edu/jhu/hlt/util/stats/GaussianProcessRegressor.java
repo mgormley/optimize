@@ -41,12 +41,19 @@ public class GaussianProcessRegressor implements Regressor {
 
 	@Override
 	public Regression predict(RealMatrix Xstar) {
-//		double x_star_covar = kernel.k(x_star, x_star);
-//		RealVector k_star = vectorCovar(X, x_star, kernel);
-//		double predicted_mean = k_star.dotProduct(alpha);
-//		RealVector v = k_star.copy();
-//		MatrixUtils.solveLowerTriangularSystem(decomp.getL(), v);
-//		double predicted_var = x_star_covar - v.dotProduct(v);
+		RealMatrix means = MatrixUtils.createRealMatrix(1, Xstar.getColumnDimension());
+		RealMatrix vars = MatrixUtils.createRealMatrix(1, Xstar.getColumnDimension());
+		for(int i=0; i<Xstar.getColumnDimension(); i++) {
+			RealVector x_star = Xstar.getColumnVector(i);
+			double x_star_covar = kernel.k(x_star, x_star);
+			// FIXME
+			// RealVector k_star = vectorCovar(X, x_star, kernel);
+			RealVector k_star = null;
+			double predicted_mean = k_star.dotProduct(alpha);
+			RealVector v = k_star.copy();
+			MatrixUtils.solveLowerTriangularSystem(decomp.getL(), v);
+			double predicted_var = x_star_covar - v.dotProduct(v);
+		}
 		return null;
 	}
 }
