@@ -79,6 +79,8 @@ public class SampleFunctionTest {
         f.selected = null;
         sf.getValueGradient(point, batch);
         JUnitUtils.assertArrayEquals(expectedBatch, f.selected);
+        
+        // TODO: test no-argument version of getValue().
     }
     
 }
