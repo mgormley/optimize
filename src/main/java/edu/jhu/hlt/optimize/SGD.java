@@ -126,7 +126,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             value = function.getValue(point);
             log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
         }
-        //assert (function.getNumDimensions() >= point.getNumImplicitEntries());
+        assert (function.getNumDimensions() >= point.getNumImplicitEntries());
 
         Timer timer = new Timer();
         timer.start();
