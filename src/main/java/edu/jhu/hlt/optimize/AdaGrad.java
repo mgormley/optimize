@@ -1,12 +1,11 @@
 package edu.jhu.hlt.optimize;
 
 import org.apache.log4j.Logger;
-import org.assertj.core.internal.Doubles;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.util.Prm;
 import edu.jhu.prim.arrays.DoubleArrays;
-import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
+import edu.jhu.prim.util.Lambda.FnIntDoubleToVoid;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
@@ -51,12 +50,11 @@ public class AdaGrad implements GainSchedule {
 
     /** A tie-in for subclasses such as AdaGrad. */
     public void takeNoteOfGradient(IntDoubleVector gradient) {
-        gradient.apply(new FnIntDoubleToDouble() {            
+        gradient.iterate(new FnIntDoubleToVoid() {            
             @Override
-            public double call(int index, double value) {
+            public void call(int index, double value) {
                 gradSumSquares[index] += value * value;
                 assert !Double.isNaN(gradSumSquares[index]);
-                return value;
             }
         });
     }
