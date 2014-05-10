@@ -15,9 +15,9 @@ import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
 
 import edu.jhu.hlt.optimize.function.Bounds;
+import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts;
+import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts.DifferentiableFunctionWithConstraints;
 import edu.jhu.hlt.optimize.function.Function;
-import edu.jhu.hlt.optimize.function.FunctionOpts;
-import edu.jhu.hlt.optimize.function.FunctionOpts.DifferentiableFunctionWithConstraints;
 import edu.jhu.hlt.optimize.GradientDescentWithLineSearch;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
@@ -27,7 +27,7 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 	static Logger log = Logger.getLogger(UnevenDecreasingMinimaOptimizedByGD.class);
 
 	Bounds b = Bounds.getUnitBounds(1);
-	DifferentiableFunctionWithConstraints f = new FunctionOpts.DifferentiableFunctionWithConstraints(new FunctionOpts.NegateFunction(new UnevenDecreasingMaxima()), b);
+	DifferentiableFunctionOpts.DifferentiableFunctionWithConstraints f = new DifferentiableFunctionOpts.DifferentiableFunctionWithConstraints(new DifferentiableFunctionOpts.NegateFunction(new UnevenDecreasingMaxima()), b);
 	double x;
 
 	@Override
@@ -49,7 +49,7 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 		Logger.getRootLogger().setLevel(Level.DEBUG);
 		
 		UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
-		Function f = new FunctionOpts.NegateFunction(g);
+		Function f = new DifferentiableFunctionOpts.NegateFunction(g);
 		
 		Function fopt = new UnevenDecreasingMinimaOptimizedByGD();
 		

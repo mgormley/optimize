@@ -25,17 +25,17 @@ import com.xeiam.xchart.ChartBuilder;
 import com.xeiam.xchart.Series;
 import com.xeiam.xchart.SeriesLineStyle;
 import com.xeiam.xchart.SeriesMarker;
-import com.xeiam.xchart.SwingWrapper;
 import com.xeiam.xchart.StyleManager.ChartType;
+import com.xeiam.xchart.SwingWrapper;
 
-import edu.jhu.hlt.optimize.GPGO.ExpectedMyopicLoss;
 import edu.jhu.hlt.optimize.function.Bounds;
 import edu.jhu.hlt.optimize.function.ConstrainedDifferentiableFunction;
 import edu.jhu.hlt.optimize.function.ConstrainedFunction;
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts.DifferentiableFunctionWithConstraints;
+import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.function.FunctionOpts;
-import edu.jhu.hlt.optimize.function.FunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.functions.Rastrigins;
 import edu.jhu.hlt.optimize.functions.SimpleCubicFunction;
 import edu.jhu.hlt.optimize.functions.UnevenDecreasingMaxima;
@@ -257,7 +257,7 @@ public class GPGOTest {
 		DifferentiableFunction f = new Rastrigins(D);
 		// The rastrigin optimum is at vec(0)
 
-		// Optimization bounds: −5.12 ≤ xi ≤ 5.12
+		// Optimization bounds: 5.12 xi 5.12
 		double [] L = new double[D];
 		double [] U = new double[D];
 		double [] start = new double[D];
@@ -269,7 +269,7 @@ public class GPGOTest {
 		log.info("starting pt = ("+start[0]+", "+start[1]+")");
 		Bounds b = new Bounds(L, U);
 
-		ConstrainedDifferentiableFunction g = new FunctionOpts.DifferentiableFunctionWithConstraints(f, b);
+		ConstrainedDifferentiableFunction g = new DifferentiableFunctionWithConstraints(f, b);
 		
 		SquaredExpKernel kernel = new SquaredExpKernel();
 		GPGO opt = new GPGO(g, kernel, noise, maxiter);
@@ -291,7 +291,7 @@ public class GPGOTest {
 		Logger.getRootLogger().setLevel(Level.DEBUG);
 		
 		UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
-		Function f = new FunctionOpts.NegateFunction(g);
+		Function f = new NegateFunction(g);
 		
 		double grid_min = 0.0;
 		double grid_max = 1.0;

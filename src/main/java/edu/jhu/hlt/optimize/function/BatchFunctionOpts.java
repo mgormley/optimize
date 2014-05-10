@@ -54,7 +54,9 @@ public class BatchFunctionOpts {
 
         @Override
         public ValueGradient getValueGradient(IntDoubleVector point, int[] batch) {
-            return new ValueGradient(getValue(point, batch), getGradient(point, batch));
+            ValueGradient vg = function.getValueGradient(point, batch);
+            vg.getGradient().scale(multiplier);     
+            return new ValueGradient(vg.getValue() * multiplier, vg.getGradient());
         }
     
     }
@@ -108,7 +110,18 @@ public class BatchFunctionOpts {
 
         @Override
         public ValueGradient getValueGradient(IntDoubleVector point, int[] batch) {
-            return new ValueGradient(getValue(point, batch), getGradient(point, batch));
+            double sum = 0.0;
+            IntDoubleVector ret = null;
+            for(int i=0; i<functions.length; i++){
+                ValueGradient vg = functions[i].getValueGradient(point, batch);
+                sum += vg.getValue();
+                if (i==0) {
+                    ret = vg.getGradient();
+                } else {
+                    ret.add(vg.getGradient());
+                }
+            }
+            return new ValueGradient(sum, ret);
         }
     
     }

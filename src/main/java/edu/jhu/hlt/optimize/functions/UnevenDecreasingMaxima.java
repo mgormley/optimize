@@ -20,7 +20,7 @@ import com.xeiam.xchart.StyleManager.ChartType;
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.function.FunctionOpts;
-import edu.jhu.hlt.optimize.function.FunctionOpts.NegateFunction;
+import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
@@ -89,7 +89,7 @@ public class UnevenDecreasingMaxima implements DifferentiableFunction {
 		Logger.getRootLogger().setLevel(Level.DEBUG);
 		
 		UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
-		Function f = new FunctionOpts.NegateFunction(g);
+		Function f = new NegateFunction(g);
 		
 		double grid_min = 0.05;
 		double grid_max = 0.95;
