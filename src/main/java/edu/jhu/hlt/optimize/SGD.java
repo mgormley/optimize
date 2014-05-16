@@ -146,10 +146,13 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 public double call(int index, double value) {
                     double lr = prm.sched.getLearningRate(iterCount, index);
                     if (maximize) {
-                        return lr * value;
+                        value = lr * value;
                     } else {
-                        return - lr * value;
+                        value = - lr * value;
                     }
+                    assert !Double.isNaN(value);
+                    assert !Double.isInfinite(value);
+                    return value;
                 }
             });
             
