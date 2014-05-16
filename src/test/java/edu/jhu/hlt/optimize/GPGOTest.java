@@ -39,7 +39,7 @@ import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.functions.Rastrigins;
 import edu.jhu.hlt.optimize.functions.SimpleCubicFunction;
 import edu.jhu.hlt.optimize.functions.UnevenDecreasingMaxima;
-import edu.jhu.hlt.util.Prng;
+import edu.jhu.util.Prng;
 import edu.jhu.hlt.util.stats.Kernel;
 import edu.jhu.hlt.util.stats.RegressionResult;
 import edu.jhu.hlt.util.stats.SquaredExpKernel;

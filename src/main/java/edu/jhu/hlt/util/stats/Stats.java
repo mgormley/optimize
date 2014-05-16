@@ -1,16 +1,16 @@
 package edu.jhu.hlt.util.stats;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.CholeskyDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well44497b;
 
 import edu.jhu.hlt.optimize.function.Function;
-import edu.jhu.hlt.util.Prng;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
+import edu.jhu.util.Prng;
 
 /**
  * 
@@ -34,8 +34,9 @@ public class Stats {
 	 * @return	Vector of iid normally distributed random variables
 	 */
 	public static double [] getNormalVector(int D) {
+	    RandomGenerator rng = new Well44497b(Prng.nextLong()); 
 		double [] ret = new double[D];
-		NormalDistribution N = new NormalDistribution(Prng.getRandom(), 0, 1, 1e-6);
+		NormalDistribution N = new NormalDistribution(rng, 0, 1, 1e-6);
 		for(int i=0; i<D; i++) {
 			ret[i] = N.sample();
 		}

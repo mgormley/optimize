@@ -1,6 +1,6 @@
 package edu.jhu.hlt.optimize;
 
-import edu.jhu.hlt.util.Prng;
+import edu.jhu.util.Prng;
 import edu.jhu.prim.arrays.IntArrays;
 import edu.jhu.prim.sort.IntSort;
 

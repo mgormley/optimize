@@ -7,7 +7,7 @@ import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 
-import edu.jhu.hlt.util.Prng;
+import edu.jhu.util.Prng;
 
 public class BatchSamplerTest {
 

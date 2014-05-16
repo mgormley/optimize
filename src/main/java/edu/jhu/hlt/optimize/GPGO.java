@@ -27,7 +27,7 @@ import edu.jhu.hlt.optimize.function.ConstrainedFunction;
 import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.optimize.propose.Proposable;
-import edu.jhu.hlt.util.Prng;
+import edu.jhu.util.Prng;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.hlt.util.stats.GPRegression;
 import edu.jhu.hlt.util.stats.Kernel;

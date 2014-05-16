@@ -12,6 +12,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import edu.jhu.util.Prng;
+
 public class Utilities {
 
     private static final double DEFAULT_DELTA = 1e-13;

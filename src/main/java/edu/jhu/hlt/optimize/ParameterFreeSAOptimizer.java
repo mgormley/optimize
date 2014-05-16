@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.function.ConstrainedFunction;
 import edu.jhu.hlt.optimize.propose.Proposable;
-import edu.jhu.hlt.util.Prng;
+import edu.jhu.util.Prng;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.prim.vector.IntDoubleVector;
 
