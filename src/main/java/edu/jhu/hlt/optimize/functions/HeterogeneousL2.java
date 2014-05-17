@@ -9,7 +9,7 @@ import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
- * L2 penalty where you can't have different means and variances
+ * L2 penalty where you can have different means and variances
  * for each dimension (but no covariance).
  * 
  * @author travis

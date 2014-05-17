@@ -159,36 +159,15 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             // Take a step in the direction of the gradient.
             point.add(gradient);
 
-            // If a full pass through the data has been completed...
             passCountFrac = (double) iterCount * prm.batchSize / function.getNumExamples();
             if ((int) Math.floor(passCountFrac) > passCount || iterCount == iterations - 1) {
-                // Compute the average learning rate and the average step size.
-                final MutableDouble avgLr = new MutableDouble(0.0);
-                final MutableDouble avgStep = new MutableDouble(0d);
-                final MutableInt numNonZeros = new MutableInt(0);
-                gradient.apply(new FnIntDoubleToDouble() {
-                    @Override
-                    public double call(int index, double value) {
-                        double lr = prm.sched.getLearningRate(iterCount, index);
-                        assert !Double.isNaN(point.get(index));
-                        if (value != 0.0) {
-                            avgLr.add(lr);
-                            avgStep.add(gradient.get(index));
-                            numNonZeros.increment();
-                        }
-                        return value;
-                    }
-                });
-                avgLr.setValue(avgLr.doubleValue() / numNonZeros.doubleValue());
-                avgStep.setValue(avgStep.doubleValue() / numNonZeros.doubleValue());
-                log.debug("Average learning rate: " + avgLr);
-                log.debug("Average step size: " + avgStep);
-                
                 // Another full pass through the data has been completed or we're on the last iteration.
-                // Get the value of the function on all the examples.
+                logAvgLrAndStepSize(point, gradient);
+                
+                log.debug(String.format("Average time per pass (min): %.2g", timer.totSec() / 60.0 / passCountFrac));
+                // Report the value of the function on all the examples.
                 value = function.getValue(point);
                 log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
-                log.debug(String.format("Average time per pass (min): %.2g", timer.totSec() / 60.0 / passCountFrac));
             }
             if ((int) Math.floor(passCountFrac) > passCount) {
                 // Another full pass through the data has been completed.
@@ -211,6 +190,30 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         }
         
         return value;
+    }
+
+    private void logAvgLrAndStepSize(final IntDoubleVector point, final IntDoubleVector gradient) {
+        // Compute the average learning rate and the average step size.
+        final MutableDouble avgLr = new MutableDouble(0.0);
+        final MutableDouble avgStep = new MutableDouble(0d);
+        final MutableInt numNonZeros = new MutableInt(0);
+        gradient.apply(new FnIntDoubleToDouble() {
+            @Override
+            public double call(int index, double value) {
+                double lr = prm.sched.getLearningRate(iterCount, index);
+                assert !Double.isNaN(point.get(index));
+                if (value != 0.0) {
+                    avgLr.add(lr);
+                    avgStep.add(gradient.get(index));
+                    numNonZeros.increment();
+                }
+                return value;
+            }
+        });
+        avgLr.setValue(avgLr.doubleValue() / numNonZeros.doubleValue());
+        avgStep.setValue(avgStep.doubleValue() / numNonZeros.doubleValue());
+        log.debug("Average learning rate: " + avgLr);
+        log.debug("Average step size: " + avgStep);
     }
 
     protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm) {
