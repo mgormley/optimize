@@ -41,8 +41,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         public boolean withReplacement = false;
         /** Date by which to stop. */
         public Date stopBy = null;
-        /** Whether to compute the function value on the 0th iteration. */
-        public boolean computeValueOnIterZero = true;
+        /** Whether to compute the function value on the non-final iterations. */
+        public boolean computeValueOnNonFinalIter = true;
         public SGDPrm() { } 
         public SGDPrm(double initialLr, int numPasses, int batchSize) {
             this.sched.setEta0(initialLr);
@@ -117,19 +117,23 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         int passCount = 0;
         double passCountFrac = 0;
 
+        Timer tuneTimer = new Timer();
         if (prm.autoSelectLr) {
-            autoSelectLr(function, point, maximize, prm);
+            tuneTimer.start();
+            autoSelectLr(function, point, maximize);
+            tuneTimer.stop();
+            log.info("Average time (min) per tuning pass: " + tuneTimer.avgSec() / 60.0);
         }
         
         double value = Double.NaN;
-        if (prm.computeValueOnIterZero) {
+        if (prm.computeValueOnNonFinalIter) {
             value = function.getValue(point);
             log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
         }
         assert (function.getNumDimensions() >= point.getNumImplicitEntries());
 
-        Timer timer = new Timer();
-        timer.start();
+        Timer passTimer = new Timer();
+        passTimer.start();
         for (; iterCount < iterations; iterCount++) {
             int[] batch = batchSampler.sampleBatch();
             
@@ -159,23 +163,29 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             // Take a step in the direction of the gradient.
             point.add(gradient);
 
-            passCountFrac = (double) iterCount * prm.batchSize / function.getNumExamples();
-            if ((int) Math.floor(passCountFrac) > passCount || iterCount == iterations - 1) {
+            int nextIterCount = iterCount + 1;
+            passCountFrac = (double) nextIterCount * prm.batchSize / function.getNumExamples();
+            boolean completedPass = (int) Math.floor(passCountFrac) > passCount;
+            if ((completedPass && prm.computeValueOnNonFinalIter) || nextIterCount == iterations) {
                 // Another full pass through the data has been completed or we're on the last iteration.
                 logAvgLrAndStepSize(point, gradient);
-                
-                log.debug(String.format("Average time per pass (min): %.2g", timer.totSec() / 60.0 / passCountFrac));
                 // Report the value of the function on all the examples.
                 value = function.getValue(point);
-                log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
+                log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, nextIterCount, passCountFrac));                
+                log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / passCountFrac));
             }
-            if ((int) Math.floor(passCountFrac) > passCount) {
+            if (completedPass) {
                 // Another full pass through the data has been completed.
                 passCount++;
 
                 if (prm.autoSelectLr && (passCount % prm.autoSelectFreq == 0)) {
+                    passTimer.stop();
+                    tuneTimer.start();
                     // Auto select every autoSelecFreq epochs.
-                    autoSelectLr(function, point, maximize, prm);
+                    autoSelectLr(function, point, maximize);
+                    tuneTimer.stop();
+                    log.info("Average time (min) per tuning pass: " + tuneTimer.avgSec() / 60.0);
+                    passTimer.start();
                 }
             }
             
@@ -216,16 +226,18 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         log.debug("Average step size: " + avgStep);
     }
 
-    protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm) {
-        double eta0 = autoSelectLrStatic(function, point, maximize, origPrm, iterCount);
+    protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize) {
+        double eta0 = autoSelectLrStatic(function, point, maximize, prm, iterCount);
         prm.sched.setEta0(eta0);
     }
     
     private static double autoSelectLrStatic(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize, SGDPrm origPrm, int iterCount) {
         log.info("Auto-selecting the best learning rate constant");
-        // Parameters for how we perform auto selection of the intial learning rate.        
-        double factor = 2;
+        // Parameters for how we perform auto selection of the initial learning rate.
+        // The max number of iterations.
         int numEvals = 10;
+        // How to update the learning rate at each iteration (e.g. 2 yeilds doubling, then halving)
+        double factor = 2;
         // This sample size equates to a single epoch.
         int sampleSize = (int) Math.ceil((double) function.getNumExamples() / numEvals);
         SampleFunction sampFunction = new SampleFunction(function, sampleSize); 
@@ -275,7 +287,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         prm.sched.setEta0(eta);
         prm.numPasses = 1; // Only one epoch.
         prm.autoSelectLr = false; // Don't recurse.
-        prm.computeValueOnIterZero = false;
+        prm.computeValueOnNonFinalIter = false;
         
         SGD sgd = new SGD(prm);
         log.setEnabled(false);
