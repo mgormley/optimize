@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.BottouSchedule.BottouSchedulePrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+import edu.jhu.hlt.optimize.function.NonstationaryFunction;
 import edu.jhu.hlt.optimize.function.SampleFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.util.OnOffLogger;
@@ -136,6 +137,10 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         passTimer.start();
         for (; iterCount < iterations; iterCount++) {
             int[] batch = batchSampler.sampleBatch();
+            
+            if (function instanceof NonstationaryFunction) {
+                ((NonstationaryFunction) function).updatateIterAndMax(iterCount, iterations);
+            }
             
             // Get the current value and gradient of the function.
             ValueGradient vg = function.getValueGradient(point, batch);
