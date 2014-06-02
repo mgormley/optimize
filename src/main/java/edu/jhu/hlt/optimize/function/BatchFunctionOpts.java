@@ -62,7 +62,8 @@ public class BatchFunctionOpts {
     }
     
     /** Wrapper which adds the input functions. */
-    public static class AddFunctions extends AbstractDifferentiableBatchFunction implements DifferentiableBatchFunction {
+    public static class AddFunctions extends AbstractDifferentiableBatchFunction implements
+            DifferentiableBatchFunction, NonstationaryFunction {
     
         private DifferentiableBatchFunction[] functions;
         
@@ -122,6 +123,15 @@ public class BatchFunctionOpts {
                 }
             }
             return new ValueGradient(sum, ret);
+        }
+
+        @Override
+        public void updatateIterAndMax(int curIter, int maxIter) {
+            for (DifferentiableBatchFunction f : functions) {
+                if (f instanceof NonstationaryFunction) {
+                    ((NonstationaryFunction) f).updatateIterAndMax(curIter, maxIter);
+                }
+            }
         }
     
     }

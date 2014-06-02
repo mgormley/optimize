@@ -121,6 +121,9 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         Timer tuneTimer = new Timer();
         if (prm.autoSelectLr) {
             tuneTimer.start();
+            if (function instanceof NonstationaryFunction) {
+                ((NonstationaryFunction) function).updatateIterAndMax(iterCount, iterations);
+            }
             autoSelectLr(function, point, maximize);
             tuneTimer.stop();
             log.info("Average time (min) per tuning pass: " + tuneTimer.avgSec() / 60.0);

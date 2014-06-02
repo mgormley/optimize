@@ -9,7 +9,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
  * 
  * @author mgormley
  */
-public class SampleFunction extends AbstractDifferentiableBatchFunction implements DifferentiableBatchFunction {
+public class SampleFunction extends AbstractDifferentiableBatchFunction implements DifferentiableBatchFunction, NonstationaryFunction {
 
     private DifferentiableBatchFunction function;
     private int[] sample;
@@ -67,4 +67,10 @@ public class SampleFunction extends AbstractDifferentiableBatchFunction implemen
         return function.getValueGradient(point, convertBatch(batch));
     }
 
+    @Override
+    public void updatateIterAndMax(int curIter, int maxIter) {
+        if (function instanceof NonstationaryFunction) {
+            ((NonstationaryFunction) function).updatateIterAndMax(curIter, maxIter);
+        }
+    }
 }
