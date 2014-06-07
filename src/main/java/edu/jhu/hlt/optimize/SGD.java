@@ -13,6 +13,7 @@ import edu.jhu.hlt.optimize.function.SampleFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.util.OnOffLogger;
 import edu.jhu.hlt.util.Prm;
+import edu.jhu.prim.arrays.DoubleArrays;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
 import edu.jhu.prim.vector.IntDoubleVector;
 import edu.jhu.util.Timer;
@@ -117,13 +118,13 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
         int passCount = 0;
         double passCountFrac = 0;
-
+        if (function instanceof NonstationaryFunction) {
+            ((NonstationaryFunction) function).updatateIterAndMax(iterCount, iterations);
+        }
+        
         Timer tuneTimer = new Timer();
         if (prm.autoSelectLr) {
             tuneTimer.start();
-            if (function instanceof NonstationaryFunction) {
-                ((NonstationaryFunction) function).updatateIterAndMax(iterCount, iterations);
-            }
             autoSelectLr(function, point, maximize);
             tuneTimer.stop();
             log.info("Average time (min) per tuning pass: " + tuneTimer.avgSec() / 60.0);
@@ -171,6 +172,12 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             // Take a step in the direction of the gradient.
             point.add(gradient);
 
+//            System.out.print(DoubleArrays.toString( gradient.toNativeArray(), "%.3g"));
+//            System.out.print("   ");
+//            System.out.println(DoubleArrays.toString(point.toNativeArray(), "%.3g"));
+                        
+            logStatsAboutPoint(point);
+            
             int nextIterCount = iterCount + 1;
             passCountFrac = (double) nextIterCount * prm.batchSize / function.getNumExamples();
             boolean completedPass = (int) Math.floor(passCountFrac) > passCount;
@@ -230,6 +237,10 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         });
         avgLr.setValue(avgLr.doubleValue() / numNonZeros.doubleValue());
         avgStep.setValue(avgStep.doubleValue() / numNonZeros.doubleValue());
+        if (numNonZeros.doubleValue() == 0) {
+            avgLr.setValue(0.0);
+            avgStep.setValue(0.0);
+        }
         log.debug("Average learning rate: " + avgLr);
         log.debug("Average step size: " + avgStep);
     }
@@ -310,6 +321,12 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     private static boolean isBetter(double obj, double bestObj, boolean maximize) {
         return maximize ? obj > bestObj : obj < bestObj;
+    }
+
+    private void logStatsAboutPoint(IntDoubleVector point) {
+        if (log.isTraceEnabled()) {
+            log.trace(String.format("min=%g max=%g infnorm=%g l2=%g", point.getMin(), point.getMax(), point.getInfNorm(), point.getL2Norm()));
+        }
     }
     
 }

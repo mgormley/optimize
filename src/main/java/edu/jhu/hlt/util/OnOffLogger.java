@@ -44,4 +44,8 @@ public class OnOffLogger {
         if (enabled) { log.trace(message); }
     }
     
+    public boolean isTraceEnabled() {
+        return log.isTraceEnabled();
+    }
+    
 }

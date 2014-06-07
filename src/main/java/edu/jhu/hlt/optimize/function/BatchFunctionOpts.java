@@ -20,7 +20,8 @@ public class BatchFunctionOpts {
     }
 
     /** Wrapper which scales the input function. */
-    public static class ScaleFunction extends AbstractDifferentiableBatchFunction implements DifferentiableBatchFunction {
+    public static class ScaleFunction extends AbstractDifferentiableBatchFunction implements
+            DifferentiableBatchFunction, NonstationaryFunction {
     
         private DifferentiableBatchFunction function;
         private double multiplier;
@@ -57,6 +58,13 @@ public class BatchFunctionOpts {
             ValueGradient vg = function.getValueGradient(point, batch);
             vg.getGradient().scale(multiplier);     
             return new ValueGradient(vg.getValue() * multiplier, vg.getGradient());
+        }
+
+        @Override
+        public void updatateIterAndMax(int curIter, int maxIter) {
+            if (function instanceof NonstationaryFunction) {
+                ((NonstationaryFunction) function).updatateIterAndMax(curIter, maxIter);
+            }
         }
     
     }
