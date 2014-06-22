@@ -1,0 +1,223 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>edu.jhu.hlt.optimize</groupId>
+  <artifactId>optimize</artifactId>
+  <version>2.0.1</version>
+  <packaging>jar</packaging>
+
+
+  <name>${project.groupId}:${project.artifactId}</name>
+  <description>Prim - A Java Primitives Library.</description>
+  <url>https://github.com/mgormley/prim</url>
+
+  <organization>
+    <name>Johns Hopkins University</name>
+  </organization>
+
+  <developers>
+    <developer>
+      <email>mrg@cs.jhu.edu</email>
+      <name>Matt Gormley</name>
+      <url>https://github.com/mgormley</url>
+      <id>mgormley</id>
+    </developer>
+    <developer>
+      <email>noa@jhu.edu</email>
+      <name>Nicholas Andrews</name>
+      <url>https://github.com/noa</url>
+      <id>noa</id>
+    </developer>
+    <developer>
+      <email>ferraro@cs.jhu.edu</email>
+      <name>Frank Ferraro</name>
+      <url>https://github.com/fmof</url>
+      <id>fmof</id>
+    </developer>
+    <developer>
+      <email>travis@cs.jhu.edu</email>
+      <name>Travis Wolfe</name>
+      <url>https://github.com/twolfe18</url>
+      <id>twolfe18</id>
+    </developer>
+  </developers>
+  
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+
+  <scm>
+    <connection>scm:git:git@github.com:minyans/optimize.git</connection>
+    <url>scm:git:git@github.com:minyans/optimize.git</url>
+    <developerConnection>scm:git:git@github.com:minyans/optimize.git</developerConnection>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+      <!-- Nexus Staging Maven plugin for deploying to Maven Central -->
+      <plugin>
+	<groupId>org.sonatype.plugins</groupId>
+	<artifactId>nexus-staging-maven-plugin</artifactId>
+	<version>1.6.1</version>
+	<extensions>true</extensions>
+	<configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+	</configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile> 
+      <id>release</id>
+      <build>
+	<plugins>
+	  <!-- These plugins will only run at release time -->
+	  <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-source-plugin</artifactId>
+	    <executions>
+	      <execution>
+		<id>attach-sources</id>
+		<phase>verify</phase>
+		<goals>
+		  <goal>jar-no-fork</goal>
+		</goals>
+	      </execution>
+	    </executions>
+	    <version>2.2.1</version>
+	  </plugin>
+	  <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-javadoc-plugin</artifactId>
+	    <configuration>
+	      <quiet />
+	    </configuration>
+	    <executions>
+	      <execution>
+		<id>attach-javadoc</id>
+		<phase>verify</phase>
+		<goals>
+		  <goal>jar</goal>
+		</goals>
+	      </execution>
+	    </executions>
+	    <version>2.9.1</version>
+	  </plugin>
+	  <!-- GPG signing plugin for deploying to Maven Central -->
+	  <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-gpg-plugin</artifactId>
+	    <version>1.5</version>
+	    <executions>
+              <execution>
+		<id>sign-artifacts</id>
+		<phase>verify</phase>
+		<goals>
+		  <goal>sign</goal>
+		</goals>
+              </execution>
+	    </executions>
+	  </plugin>
+	</plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <!-- For deploying to Maven Central -->
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+  <!-- For deploying to CLSP. -->
+  <!-- 
+  <distributionManagement>
+    <repository>
+      <id>checker</id>
+      <name>checker-releases</name>
+      <url>http://localhost:8081/artifactory/libs-release-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>checker</id>
+      <name>checker-snapshots</name>
+      <url>http://localhost:8081/artifactory/libs-snapshot-local</url>
+    </snapshotRepository>
+  </distributionManagement>
+  -->
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.jhu.prim</groupId>
+      <artifactId>prim</artifactId>
+      <version>2.0.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>3.2</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.assertj</groupId>
+    	<artifactId>assertj-core</artifactId>
+    	<version>1.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+    <dependency>
+    	<groupId>com.xeiam.xchart</groupId>
+    	<artifactId>xchart</artifactId>
+    	<version>2.2.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.commons</groupId>
+    	<artifactId>commons-lang3</artifactId>
+    	<version>3.1</version>
+    </dependency>
+  </dependencies>
+  
+</project>
