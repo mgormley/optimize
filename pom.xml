@@ -35,6 +35,12 @@
       <url>https://github.com/fmof</url>
       <id>fmof</id>
     </developer>
+    <developer>
+      <email>travis@cs.jhu.edu</email>
+      <name>Travis Wolfe</name>
+      <url>https://github.com/twolfe18</url>
+      <id>twolfe18</id>
+    </developer>
   </developers>
   
   <licenses>
