@@ -9,8 +9,8 @@
 
 
   <name>${project.groupId}:${project.artifactId}</name>
-  <description>Prim - A Java Primitives Library.</description>
-  <url>https://github.com/mgormley/prim</url>
+  <description>A Java Optimization Library</description>
+  <url>https://github.com/minyans/optimize</url>
 
   <organization>
     <name>Johns Hopkins University</name>
