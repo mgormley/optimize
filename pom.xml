@@ -81,105 +81,104 @@
           </descriptorRefs>
         </configuration>
       </plugin>
-      <!-- Nexus Staging Maven plugin for deploying to Maven Central -->
-      <plugin>
-	<groupId>org.sonatype.plugins</groupId>
-	<artifactId>nexus-staging-maven-plugin</artifactId>
-	<version>1.6.1</version>
-	<extensions>true</extensions>
-	<configuration>
-          <serverId>ossrh</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>true</autoReleaseAfterClose>
-	</configuration>
-      </plugin>
     </plugins>
   </build>
 
   <profiles>
-    <profile> 
+    <profile>
       <id>release</id>
       <build>
-	<plugins>
-	  <!-- These plugins will only run at release time -->
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-source-plugin</artifactId>
-	    <executions>
-	      <execution>
-		<id>attach-sources</id>
-		<phase>verify</phase>
-		<goals>
-		  <goal>jar-no-fork</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	    <version>2.2.1</version>
-	  </plugin>
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-javadoc-plugin</artifactId>
-	    <configuration>
-	      <quiet />
-	    </configuration>
-	    <executions>
-	      <execution>
-		<id>attach-javadoc</id>
-		<phase>verify</phase>
-		<goals>
-		  <goal>jar</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	    <version>2.9.1</version>
-	  </plugin>
-	  <!-- GPG signing plugin for deploying to Maven Central -->
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-gpg-plugin</artifactId>
-	    <version>1.5</version>
-	    <executions>
+        <plugins>
+          <!-- These plugins will only run at release time -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
               <execution>
-		<id>sign-artifacts</id>
-		<phase>verify</phase>
-		<goals>
-		  <goal>sign</goal>
-		</goals>
+                <id>attach-sources</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
               </execution>
-	    </executions>
-	  </plugin>
-	</plugins>
+            </executions>
+            <version>2.2.1</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <quiet />
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadoc</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+            <version>2.9.1</version>
+          </plugin>
+          <!-- GPG signing plugin for deploying to Maven Central -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Nexus Staging Maven plugin for deploying to Maven Central -->
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.1</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
       </build>
+      <!-- For deploying to Maven Central -->
+      <distributionManagement>
+        <snapshotRepository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+    <profile>
+      <id>clsp</id>
+      <!-- For deploying to CLSP. -->
+      <distributionManagement>
+        <repository>
+          <id>checker</id>
+          <name>checker-releases</name>
+          <url>http://localhost:8081/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+          <id>checker</id>
+          <name>checker-snapshots</name>
+          <url>http://localhost:8081/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+      </distributionManagement>
     </profile>
   </profiles>
-
-  <!-- For deploying to Maven Central -->
-  <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-    <repository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
-
-  <!-- For deploying to CLSP. -->
-  <!-- 
-  <distributionManagement>
-    <repository>
-      <id>checker</id>
-      <name>checker-releases</name>
-      <url>http://localhost:8081/artifactory/libs-release-local</url>
-    </repository>
-    <snapshotRepository>
-      <id>checker</id>
-      <name>checker-snapshots</name>
-      <url>http://localhost:8081/artifactory/libs-snapshot-local</url>
-    </snapshotRepository>
-  </distributionManagement>
-  -->
 
   <dependencies>
     <dependency>
