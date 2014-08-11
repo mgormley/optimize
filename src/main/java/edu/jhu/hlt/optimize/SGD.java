@@ -172,10 +172,6 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             // Take a step in the direction of the gradient.
             point.add(gradient);
 
-//            System.out.print(DoubleArrays.toString( gradient.toNativeArray(), "%.3g"));
-//            System.out.print("   ");
-//            System.out.println(DoubleArrays.toString(point.toNativeArray(), "%.3g"));
-                        
             logStatsAboutPoint(point);
             
             int nextIterCount = iterCount + 1;
@@ -220,7 +216,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     private void logAvgLrAndStepSize(final IntDoubleVector point, final IntDoubleVector gradient) {
         // Compute the average learning rate and the average step size.
         final MutableDouble avgLr = new MutableDouble(0.0);
-        final MutableDouble avgStep = new MutableDouble(0d);
+        final MutableDouble grad2norm = new MutableDouble(0d);
         final MutableInt numNonZeros = new MutableInt(0);
         gradient.apply(new FnIntDoubleToDouble() {
             @Override
@@ -229,20 +225,21 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 assert !Double.isNaN(point.get(index));
                 if (value != 0.0) {
                     avgLr.add(lr);
-                    avgStep.add(gradient.get(index));
+                    double grad_i = gradient.get(index);
+                    grad2norm.add(grad_i * grad_i);
                     numNonZeros.increment();
                 }
                 return value;
             }
         });
         avgLr.setValue(avgLr.doubleValue() / numNonZeros.doubleValue());
-        avgStep.setValue(avgStep.doubleValue() / numNonZeros.doubleValue());
+        grad2norm.setValue(Math.sqrt(grad2norm.doubleValue()));
         if (numNonZeros.doubleValue() == 0) {
             avgLr.setValue(0.0);
-            avgStep.setValue(0.0);
+            grad2norm.setValue(0.0);
         }
         log.debug("Average learning rate: " + avgLr);
-        log.debug("Average step size: " + avgStep);
+        log.debug("Step 2-norm: " + grad2norm);
     }
 
     protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize) {
