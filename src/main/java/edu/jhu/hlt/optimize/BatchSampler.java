@@ -1,8 +1,12 @@
 package edu.jhu.hlt.optimize;
 
-import edu.jhu.util.Prng;
+import java.util.Arrays;
+
+import org.apache.log4j.Logger;
+
 import edu.jhu.prim.arrays.IntArrays;
 import edu.jhu.prim.sort.IntSort;
+import edu.jhu.util.Prng;
 
 /**
  * Sampler of batches.
@@ -10,6 +14,8 @@ import edu.jhu.prim.sort.IntSort;
  * @author mgormley
  */
 public class BatchSampler {
+
+    private static final Logger log = Logger.getLogger(BatchSampler.class);
 
     // Parameters.
     private boolean withReplacement;
@@ -33,11 +39,16 @@ public class BatchSampler {
     }
     
     public int[] sampleBatch() {
+        final int[] batch;
         if (withReplacement) {
-            return sampleBatchWithReplacement();
+            batch = sampleBatchWithReplacement();
         } else {
-            return sampleBatchWithoutReplacement();
+            batch = sampleBatchWithoutReplacement();
         }
+        if (log.isTraceEnabled()) {
+            log.trace("Sampled batch: " + Arrays.toString(batch));
+        }
+        return batch;
     }
 
     /** Samples a batch of indices in the range [0, numExamples) with replacement. */
