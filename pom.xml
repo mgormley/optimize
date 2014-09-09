@@ -178,6 +178,22 @@
         </snapshotRepository>
       </distributionManagement>
     </profile>
+    <profile>
+      <id>coe</id>
+      <!-- For deploying to COE. -->
+      <distributionManagement>
+	<repository>
+	  <id>coe-mvn</id>
+	  <name>coe-mvn-releases</name>
+	  <url>http://10.162.95.20:8081/artifactory/libs-release-local</url>
+	</repository>
+	<snapshotRepository>
+	  <id>coe-mvn</id>
+	  <name>coe-mvn-snapshots</name>
+	  <url>http://10.162.95.20:8081/artifactory/libs-snapshot-local</url>
+	</snapshotRepository>
+      </distributionManagement>
+    </profile>
   </profiles>
 
   <dependencies>
