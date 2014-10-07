@@ -130,4 +130,9 @@ public class AdaDelta implements GainSchedule {
         throw new IllegalStateException("This gain schedule has no eta0 parameter.");
     }
 
+    @Override
+    public boolean isSameForAllParameters() {
+        return false;
+    }
+    
 }

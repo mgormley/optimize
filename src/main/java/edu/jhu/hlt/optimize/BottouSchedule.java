@@ -88,5 +88,10 @@ public class BottouSchedule implements GainSchedule {
     public void setEta0(double eta0) {
         prm.initialLr = eta0;        
     }
-    
+
+    @Override
+    public boolean isSameForAllParameters() {
+        return true;
+    }
+
 }

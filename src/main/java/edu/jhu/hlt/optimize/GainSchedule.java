@@ -15,4 +15,6 @@ public interface GainSchedule extends Serializable {
     double getEta0();
     void setEta0(double eta0);
         
+    /** Whether this schedule is the same for all model parameters. */
+    boolean isSameForAllParameters();
 }

@@ -97,5 +97,10 @@ public class AdaGrad implements GainSchedule {
     public void setEta0(double eta0) {
         prm.eta = eta0;
     }
+    
+    @Override
+    public boolean isSameForAllParameters() {
+        return false;
+    }
 
 }
