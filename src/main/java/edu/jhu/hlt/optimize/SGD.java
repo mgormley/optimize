@@ -86,7 +86,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         return optimize(function, point, false, null);
     }
 
-    private boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, 
+    public boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, 
             final boolean maximize, Function validation) {
         init(function);
         final int itersPerEpoch = getItersPerPass(function);
@@ -188,7 +188,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         return value;
     }
 
-    protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, final boolean maximize, final int iterCount) {
+    protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, 
+            final boolean maximize, final int iterCount) {
         // Scale the gradient by the parameter-specific learning rate.
         gradient.apply(new FnIntDoubleToDouble() {
             @Override

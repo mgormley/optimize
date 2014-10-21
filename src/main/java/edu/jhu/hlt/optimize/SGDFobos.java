@@ -55,41 +55,46 @@ public class SGDFobos extends SGD implements Optimizer<DifferentiableBatchFuncti
     /**
      * Initializes all the parameters for optimization.
      */
+    @Override
     protected void init(DifferentiableBatchFunction function) {
         super.init(function);
         this.iterOfLastStep = new double[function.getNumDimensions()];
-        while (accumLr.size() < iterCount) {
-            accumLr.add(prm.sched.getLearningRate(iterCount, 0));
-        }
+        // TODO:
+//        while (accumLr.size() < iterCount) {
+//            accumLr.add(prm.sched.getLearningRate(iterCount, 0));
+//        }
     }
 
-    protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, final boolean maximize) {
-        // We always assume that the schedule is the same for all parameters.
-        double lr_t = prm.sched.getLearningRate(iterCount, 0);
-        gradient.iterate(new FnIntDoubleToVoid() {
-            @Override
-            public void call(int index, double gr) {
-                double lr_0 = prm.sched.getLearningRate(iterOfLastStep[index], 0);
-                double w_0 = point.get(index);
-                // Step 1. Eq (2) from Duchi & Singer (2009)
-                double w_1 = maximize ?  w_0 + lr * gr : w_0 - lr * gr;
-                // Step 2. Eq (3) from Duchi & Singer (2009)
-                double w_2;
-                if (l1reg) {
-                    // l1 regularization. 
-                    // Eq (19) from Duchi & Singer (2009)
-                    w_2 = (w_1 < 0 ? -1 : 1) * Math.max(0, Math.abs(w_1) - lr*prm.l1Lambda);
-                } else {
-                    // l2^2 regularization.
-                    // Eq. (20) from Duchi & Singer (2009).
-                    w_2 = w_1 / (1 + lr*prm.l2Lambda);
-                }
-                assert !Double.isNaN(w_2);
-                assert !Double.isInfinite(w_2);
-                point.set(index, w_2);
-                iterOfLastStep[index] = iterCount;
-            }
-        });
+    @Override
+    protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, 
+            final boolean maximize, final int iterCount) {
+        // TODO:
+//        // We always assume that the schedule is the same for all parameters.
+//        double lr_t = prm.sched.getLearningRate(iterCount, 0);
+//        gradient.iterate(new FnIntDoubleToVoid() {
+//            @Override
+//            public void call(int index, double gr) {
+//                double lr_0 = prm.sched.getLearningRate(iterOfLastStep[index], 0);
+//                double w_0 = point.get(index);
+//                // Step 1. Eq (2) from Duchi & Singer (2009)
+//                double w_1 = maximize ?  w_0 + lr * gr : w_0 - lr * gr;
+//                // Step 2. Eq (3) from Duchi & Singer (2009)
+//                double w_2;
+//                if (l1reg) {
+//                    // l1 regularization. 
+//                    // Eq (19) from Duchi & Singer (2009)
+//                    w_2 = (w_1 < 0 ? -1 : 1) * Math.max(0, Math.abs(w_1) - lr*prm.l1Lambda);
+//                } else {
+//                    // l2^2 regularization.
+//                    // Eq. (20) from Duchi & Singer (2009).
+//                    w_2 = w_1 / (1 + lr*prm.l2Lambda);
+//                }
+//                assert !Double.isNaN(w_2);
+//                assert !Double.isInfinite(w_2);
+//                point.set(index, w_2);
+//                iterOfLastStep[index] = iterCount;
+//            }
+//        });
     }
 
 }

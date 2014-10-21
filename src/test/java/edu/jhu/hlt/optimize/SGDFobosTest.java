@@ -2,8 +2,6 @@ package edu.jhu.hlt.optimize;
 
 import org.junit.Test;
 
-import edu.jhu.hlt.optimize.BottouSchedule.BottouSchedulePrm;
-import edu.jhu.hlt.optimize.SGD.SGDPrm;
 import edu.jhu.hlt.optimize.SGDFobos.SGDFobosPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.optimize.functions.SumSquares;
