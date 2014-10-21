@@ -8,12 +8,12 @@ import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.BottouSchedule.BottouSchedulePrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.function.NonstationaryFunction;
 import edu.jhu.hlt.optimize.function.SampleFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.util.OnOffLogger;
 import edu.jhu.hlt.util.Prm;
-import edu.jhu.prim.arrays.DoubleArrays;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
 import edu.jhu.prim.vector.IntDoubleVector;
 import edu.jhu.util.Timer;
@@ -36,7 +36,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         /** How many epochs between auto-select runs. */
         public int autoSelectFreq = 5;
         /** The number of passes over the dataset to perform. */
-        public double numPasses = 10;
+        public int numPasses = 10;
         /** The batch size to use at each step. */
         public int batchSize = 15;
         /** Whether batches should be sampled with replacement. */
@@ -76,117 +76,113 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
      */
     @Override
     public boolean maximize(DifferentiableBatchFunction function, IntDoubleVector point) {
-        return optimize(function, point, true);
+        return optimize(function, point, true, null);
     }
 
     /**
      * Minimize the function starting at the given initial point.
      */
     public boolean minimize(DifferentiableBatchFunction function, IntDoubleVector point) {
-        return optimize(function, point, false);
+        return optimize(function, point, false, null);
     }
 
-    private boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, final boolean maximize) {
-        init(function);            
-        final int iterations = getMaxIterations(function);        
-        optimizeWithoutInit(function, point, maximize, iterations, 0);        
+    private boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, 
+            final boolean maximize, Function validation) {
+        init(function);
+        final int itersPerEpoch = getItersPerPass(function);
+        log.info("Number of batch gradient iterations: " + prm.numPasses * itersPerEpoch);
+        optimizeWithoutInit(function, point, maximize, itersPerEpoch, 0, validation);
         // We don't test for convergence.
         return false;
     }
 
-    protected int getMaxIterations(DifferentiableBatchFunction function) {
-        // Constants
-        final int iterations = (int) Math.ceil((double) prm.numPasses * function.getNumExamples() / prm.batchSize);
-        log.info("Setting number of batch gradient steps: " + iterations);
-        return iterations;
+    /** Gets the number of (batch) iterations per epoch (i.e. pass through the training data). */
+    protected int getItersPerPass(DifferentiableBatchFunction function) {
+        return (int) Math.ceil((double) function.getNumExamples() / prm.batchSize);
     }
 
     private double optimizeWithoutInit(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, final int iterations, int iterCount) {
+            final boolean maximize, final int itersPerPass, int pass, Function validation) {
+        int maxIters = prm.numPasses * itersPerPass;
+        int iter = pass * itersPerPass;
+        double value = Double.NaN;
+        BatchSampler batchSampler = new BatchSampler(prm.withReplacement, function.getNumExamples(), prm.batchSize);
+        Timer passTimer = new Timer();
+        Timer tuneTimer = new Timer();
+
+        // Setup.
         if (prm.stopBy != null) {
             log.debug("Max time alloted (hr): " + (prm.stopBy.getTime() - new Date().getTime()) / 1000. / 3600.);  
         }
-        
-        BatchSampler batchSampler = new BatchSampler(prm.withReplacement, function.getNumExamples(), prm.batchSize);
-
-        int passCount = 0;
-        double passCountFrac = 0;
         if (function instanceof NonstationaryFunction) {
-            ((NonstationaryFunction) function).updatateIterAndMax(iterCount, iterations);
-        }
-        
-        Timer tuneTimer = new Timer();
-        if (prm.autoSelectLr) {
-            tuneTimer.start();
-            autoSelectLr(function, point, maximize, iterCount);
-            tuneTimer.stop();
-            log.info("Average time (min) per tuning pass: " + tuneTimer.avgSec() / 60.0);
-        }
-        
-        double value = Double.NaN;
-        if (prm.computeValueOnNonFinalIter) {
-            value = function.getValue(point);
-            log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, iterCount, passCountFrac));
+            ((NonstationaryFunction) function).updatateIterAndMax(iter, maxIters);
         }
         assert (function.getNumDimensions() >= point.getNumImplicitEntries());
 
-        Timer passTimer = new Timer();
+        // Optimization.
         passTimer.start();
-        for (; iterCount < iterations; iterCount++) {
-            int[] batch = batchSampler.sampleBatch();
-            
-            if (function instanceof NonstationaryFunction) {
-                ((NonstationaryFunction) function).updatateIterAndMax(iterCount, iterations);
+        passLoop:
+        for (; pass < prm.numPasses; pass++) {
+            if (prm.autoSelectLr && (pass % prm.autoSelectFreq == 0)) {
+                passTimer.stop();
+                tuneTimer.start();
+                // Auto select every autoSelecFreq epochs.
+                autoSelectLr(function, point, maximize, pass);
+                log.info("Average time (min) per tuning pass: " + tuneTimer.avgSec() / 60.0);
+                tuneTimer.stop();
+                passTimer.start();
             }
-            
-            // Get the current value and gradient of the function.
-            ValueGradient vg = function.getValueGradient(point, batch);
-            value = vg.getValue();
-            final IntDoubleVector gradient = vg.getGradient();
-            log.trace(String.format("Function value on batch = %g at iteration = %d", value, iterCount));
-            prm.sched.takeNoteOfGradient(gradient);
-            
-            // Step in the direction of the gradient (maximization) or opposite it (minimization).
-            takeGradientStep(point, gradient, maximize, iterCount);
-
-            logStatsAboutPoint(point);
-            
-            // Update the iteration counts.
-            int nextIterCount = iterCount + 1;
-            passCountFrac = (double) nextIterCount * prm.batchSize / function.getNumExamples();
-            boolean completedPass = (int) Math.floor(passCountFrac) > passCount;
-            
-            if ((completedPass && prm.computeValueOnNonFinalIter) || nextIterCount == iterations) {
-                // Another full pass through the data has been completed or we're on the last iteration.
-                logAvgLrAndStepSize(point, gradient, iterCount);
+            if (prm.computeValueOnNonFinalIter) {
                 // Report the value of the function on all the examples.
                 value = function.getValue(point);
-                log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %.2f", value, nextIterCount, passCountFrac));                
-                log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / passCountFrac));
-            }
-            if (completedPass) {
-                // Another full pass through the data has been completed.
-                passCount++;
-
-                if (prm.autoSelectLr && (passCount % prm.autoSelectFreq == 0)) {
-                    passTimer.stop();
-                    tuneTimer.start();
-                    // Auto select every autoSelecFreq epochs.
-                    autoSelectLr(function, point, maximize, iterCount);
-                    tuneTimer.stop();
-                    log.info("Average time (min) per tuning pass: " + tuneTimer.avgSec() / 60.0);
-                    passTimer.start();
+                log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %d", value, iter, pass));                
+                log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / pass));
+                if (validation != null) {
+                    double devScore = validation.getValue(point);
+                    log.info(String.format("Validation score = %g at iteration = %d on pass = %d", devScore, iter, pass));
                 }
             }
             
-            if (prm.stopBy != null) {
-                Date now = new Date();
-                if (now.after(prm.stopBy)) {
-                    log.info(String.format("Current time is after stop-by time. now=%s, stopBy=%s", now.toString(), prm.stopBy.toString()));
-                    log.info("Stopping training early.");
-                    break;
+            // Make a full pass through the training data.
+            for (int i=0; i<itersPerPass; i++) {
+                int[] batch = batchSampler.sampleBatch();
+                
+                if (function instanceof NonstationaryFunction) {
+                    ((NonstationaryFunction) function).updatateIterAndMax(iter, maxIters);
                 }
+                
+                // Get the current value and gradient of the function.
+                ValueGradient vg = function.getValueGradient(point, batch);
+                value = vg.getValue();
+                final IntDoubleVector gradient = vg.getGradient();
+                log.trace(String.format("Function value on batch = %g at iteration = %d", value, iter));
+                prm.sched.takeNoteOfGradient(gradient);
+                
+                // Step in the direction of the gradient (maximization) or opposite it (minimization).
+                takeGradientStep(point, gradient, maximize, iter);                
+                logAvgLrAndStepSize(point, gradient, iter);
+                logStatsAboutPoint(point);
+                
+                if (prm.stopBy != null) {
+                    Date now = new Date();
+                    if (now.after(prm.stopBy)) {
+                        log.info(String.format("Current time is after stop-by time. now=%s, stopBy=%s", now.toString(), prm.stopBy.toString()));
+                        log.info("Stopping training early.");                        
+                        break passLoop;
+                    }
+                }
+                iter++;
             }
+            // Another full pass through the data has been completed.
+        }
+        
+        // Report the value of the function on all the examples.
+        value = function.getValue(point);
+        log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %d", value, iter, pass));
+        log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / pass));
+        if (validation != null) {
+            double devScore = validation.getValue(point);
+            log.info(String.format("Validation score = %g at iteration = %d on pass = %d", devScore, iter, pass));
         }
         
         return value;
@@ -214,43 +210,45 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
 
     private void logAvgLrAndStepSize(final IntDoubleVector point, final IntDoubleVector gradient, final int iterCount) {
-        // Compute the average learning rate and the average step size.
-        final MutableDouble avgLr = new MutableDouble(0.0);
-        final MutableDouble grad2norm = new MutableDouble(0d);
-        final MutableInt numNonZeros = new MutableInt(0);
-        gradient.apply(new FnIntDoubleToDouble() {
-            @Override
-            public double call(int index, double value) {
-                double lr = prm.sched.getLearningRate(iterCount, index);
-                assert !Double.isNaN(point.get(index));
-                if (value != 0.0) {
-                    avgLr.add(lr);
-                    double grad_i = gradient.get(index);
-                    grad2norm.add(grad_i * grad_i);
-                    numNonZeros.increment();
+        if (log.isTraceEnabled()) {
+            // Compute the average learning rate and the average step size.
+            final MutableDouble avgLr = new MutableDouble(0.0);
+            final MutableDouble grad2norm = new MutableDouble(0d);
+            final MutableInt numNonZeros = new MutableInt(0);
+            gradient.apply(new FnIntDoubleToDouble() {
+                @Override
+                public double call(int index, double value) {
+                    double lr = prm.sched.getLearningRate(iterCount, index);
+                    assert !Double.isNaN(point.get(index));
+                    if (value != 0.0) {
+                        avgLr.add(lr);
+                        double grad_i = gradient.get(index);
+                        grad2norm.add(grad_i * grad_i);
+                        numNonZeros.increment();
+                    }
+                    return value;
                 }
-                return value;
+            });
+            avgLr.setValue(avgLr.doubleValue() / numNonZeros.doubleValue());
+            grad2norm.setValue(Math.sqrt(grad2norm.doubleValue()));
+            if (numNonZeros.doubleValue() == 0) {
+                avgLr.setValue(0.0);
+                grad2norm.setValue(0.0);
             }
-        });
-        avgLr.setValue(avgLr.doubleValue() / numNonZeros.doubleValue());
-        grad2norm.setValue(Math.sqrt(grad2norm.doubleValue()));
-        if (numNonZeros.doubleValue() == 0) {
-            avgLr.setValue(0.0);
-            grad2norm.setValue(0.0);
+            log.trace("Average learning rate: " + avgLr);
+            log.trace("Step 2-norm: " + grad2norm);
         }
-        log.debug("Average learning rate: " + avgLr);
-        log.debug("Step 2-norm: " + grad2norm);
     }
 
     protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, final int iterCount) {
-        double eta0 = autoSelectLrStatic(function, point, maximize, prm, iterCount);
+            final boolean maximize, final int pass) {
+        double eta0 = autoSelectLrStatic(function, point, maximize, prm, pass);
         prm.sched.setEta0(eta0);
     }
     
     private static double autoSelectLrStatic(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, SGDPrm origPrm, int iterCount) {
-        log.info("Auto-selecting the best learning rate constant");
+            final boolean maximize, SGDPrm origPrm, int pass) {
+        log.info("Auto-selecting the best learning rate constant at pass " + pass);
         // Parameters for how we perform auto selection of the initial learning rate.
         // The max number of iterations.
         int numEvals = 10;
@@ -271,7 +269,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         boolean increasing = true;
         double eta = origEta0;
         for (int i=0; i<numEvals; i++) {
-            double obj = evaluateInitialLr(sampFunction, point, maximize, origPrm, eta, iterCount);
+            double obj = evaluateInitialLr(sampFunction, point, maximize, origPrm, eta, pass);
             log.info(String.format("Evaluated initial learning rate: eta="+eta+" obj="+obj));
             if (isBetter(obj, bestObj, maximize)) {
                 bestObj = obj;
@@ -299,7 +297,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
 
     private static double evaluateInitialLr(DifferentiableBatchFunction sampFunction, IntDoubleVector origPoint, 
-            boolean maximize, SGDPrm origPrm, double eta, int iterCount) {
+            boolean maximize, SGDPrm origPrm, double eta, int pass) {
         SGDPrm prm = Prm.clonePrm(origPrm);
         IntDoubleVector point = origPoint.copy();
         prm.sched = prm.sched.copy();
@@ -308,12 +306,12 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         prm.autoSelectLr = false; // Don't recurse.
         prm.computeValueOnNonFinalIter = false; // Report function value only at end.
         
-        SGD sgd = prm.getInstance(); //new SGD(prm);
+        SGD sgd = new SGD(prm); //TODO: For Fobos: prm.getInstance();
         log.setEnabled(false);
         sgd.init(sampFunction);
         // Make sure we start off the learning rate schedule at the proper place.
-        final int iterations = sgd.getMaxIterations(sampFunction) + iterCount;
-        double obj = sgd.optimizeWithoutInit(sampFunction, point, maximize, iterations, iterCount);
+        final int itersPerPass = sgd.getItersPerPass(sampFunction);
+        double obj = sgd.optimizeWithoutInit(sampFunction, point, maximize, itersPerPass, pass, null);
         log.setEnabled(true);
         return obj;
     }
