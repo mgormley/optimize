@@ -136,7 +136,6 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 // Report the value of the function on all the examples.
                 value = function.getValue(point);
                 log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %d", value, iter, pass));                
-                log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / pass));
                 if (validation != null) {
                     double devScore = validation.getValue(point);
                     log.info(String.format("Validation score = %g at iteration = %d on pass = %d", devScore, iter, pass));
@@ -174,12 +173,12 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 iter++;
             }
             // Another full pass through the data has been completed.
+            log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / pass));
         }
         
         // Report the value of the function on all the examples.
         value = function.getValue(point);
         log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %d", value, iter, pass));
-        log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / pass));
         if (validation != null) {
             double devScore = validation.getValue(point);
             log.info(String.format("Validation score = %g at iteration = %d on pass = %d", devScore, iter, pass));
