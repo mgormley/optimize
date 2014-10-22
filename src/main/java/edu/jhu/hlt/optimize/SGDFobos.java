@@ -1,8 +1,12 @@
 package edu.jhu.hlt.optimize;
 
+import java.util.Arrays;
+
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
+import edu.jhu.hlt.util.Prm;
+import edu.jhu.prim.arrays.IntArrays;
 import edu.jhu.prim.list.DoubleArrayList;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToVoid;
 import edu.jhu.prim.vector.IntDoubleVector;
@@ -33,7 +37,7 @@ public class SGDFobos extends SGD implements Optimizer<DifferentiableBatchFuncti
     // Whether to use l1 or l2^2 regularization.
     private final boolean l1reg;
     // The iteration of the last step taken for each model parameter.
-    private double[] iterOfLastStep;
+    private int[] iterOfLastStep;
     // Cumulative learning rates.
     private DoubleArrayList accumLr;
     
@@ -52,49 +56,59 @@ public class SGDFobos extends SGD implements Optimizer<DifferentiableBatchFuncti
         this.prm = prm;
     }
     
+    @Override
+    protected SGDFobos copy() {
+        SGDFobos sgd = new SGDFobos(Prm.clonePrm(this.prm));
+        sgd.accumLr = new DoubleArrayList(this.accumLr);
+        sgd.iterOfLastStep = IntArrays.copyOf(this.iterOfLastStep);
+        return sgd;
+    }
+    
     /**
      * Initializes all the parameters for optimization.
      */
     @Override
     protected void init(DifferentiableBatchFunction function) {
         super.init(function);
-        this.iterOfLastStep = new double[function.getNumDimensions()];
-        // TODO:
-//        while (accumLr.size() < iterCount) {
-//            accumLr.add(prm.sched.getLearningRate(iterCount, 0));
-//        }
+        this.accumLr = new DoubleArrayList();
+        this.iterOfLastStep = new int[function.getNumDimensions()];
+        Arrays.fill(iterOfLastStep, -1);        
     }
 
     @Override
     protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, 
             final boolean maximize, final int iterCount) {
-        // TODO:
-//        // We always assume that the schedule is the same for all parameters.
-//        double lr_t = prm.sched.getLearningRate(iterCount, 0);
-//        gradient.iterate(new FnIntDoubleToVoid() {
-//            @Override
-//            public void call(int index, double gr) {
-//                double lr_0 = prm.sched.getLearningRate(iterOfLastStep[index], 0);
-//                double w_0 = point.get(index);
-//                // Step 1. Eq (2) from Duchi & Singer (2009)
-//                double w_1 = maximize ?  w_0 + lr * gr : w_0 - lr * gr;
-//                // Step 2. Eq (3) from Duchi & Singer (2009)
-//                double w_2;
-//                if (l1reg) {
-//                    // l1 regularization. 
-//                    // Eq (19) from Duchi & Singer (2009)
-//                    w_2 = (w_1 < 0 ? -1 : 1) * Math.max(0, Math.abs(w_1) - lr*prm.l1Lambda);
-//                } else {
-//                    // l2^2 regularization.
-//                    // Eq. (20) from Duchi & Singer (2009).
-//                    w_2 = w_1 / (1 + lr*prm.l2Lambda);
-//                }
-//                assert !Double.isNaN(w_2);
-//                assert !Double.isInfinite(w_2);
-//                point.set(index, w_2);
-//                iterOfLastStep[index] = iterCount;
-//            }
-//        });
+        // Update the cumulative sum of the learning rates.
+        // We always assume that the schedule is the same for all parameters.
+        accumLr.add(prm.sched.getLearningRate(iterCount, 0) + 
+                (iterCount-1 == -1 ? 0.0 : accumLr.get(iterCount-1)));
+        assert accumLr.size() == iterCount+1;
+        
+        gradient.iterate(new FnIntDoubleToVoid() {
+            @Override
+            public void call(int index, double gr) {
+                double lr = accumLr.get(iterCount) - (iterOfLastStep[index] == -1 ?
+                        0.0 : accumLr.get(iterOfLastStep[index]));
+                iterOfLastStep[index] = iterCount;
+                double w_0 = point.get(index);
+                // Step 1. Eq (2) from Duchi & Singer (2009)
+                double w_1 = maximize ?  w_0 + lr * gr : w_0 - lr * gr;
+                // Step 2. Eq (3) from Duchi & Singer (2009)
+                double w_2;
+                if (l1reg) {
+                    // l1 regularization. 
+                    // Eq (19) from Duchi & Singer (2009)
+                    w_2 = (w_1 < 0 ? -1 : 1) * Math.max(0, Math.abs(w_1) - lr*prm.l1Lambda);
+                } else {
+                    // l2^2 regularization.
+                    // Eq. (20) from Duchi & Singer (2009).
+                    w_2 = w_1 / (1 + lr*prm.l2Lambda);
+                }
+                assert !Double.isNaN(w_2);
+                assert !Double.isInfinite(w_2);
+                point.set(index, w_2);
+            }
+        });
     }
 
 }

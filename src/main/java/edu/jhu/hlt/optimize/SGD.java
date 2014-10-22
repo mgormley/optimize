@@ -15,6 +15,7 @@ import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.util.OnOffLogger;
 import edu.jhu.hlt.util.Prm;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 import edu.jhu.util.Timer;
 
@@ -45,6 +46,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         public Date stopBy = null;
         /** Whether to compute the function value on the non-final iterations. */
         public boolean computeValueOnNonFinalIter = true;
+        /** Whether to return the point with min validation score. */
+        public boolean earlyStopping = true;
         public SGDPrm() { } 
         public SGDPrm(double initialLr, int numPasses, int batchSize) {
             this.sched.setEta0(initialLr);
@@ -62,6 +65,11 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
      */
     public SGD(SGDPrm prm) {
         this.prm = prm;
+    }
+
+    protected SGD copy() {
+        // Don't copy the bestPoint / bestDevScore.
+        return new SGD(Prm.clonePrm(this.prm));
     }
     
     /**
@@ -87,11 +95,11 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
 
     public boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, Function validation) {
+            final boolean maximize, Function devLoss) {
         init(function);
         final int itersPerEpoch = getItersPerPass(function);
         log.info("Number of batch gradient iterations: " + prm.numPasses * itersPerEpoch);
-        optimizeWithoutInit(function, point, maximize, itersPerEpoch, 0, validation);
+        optimizeWithoutInit(function, point, maximize, itersPerEpoch, 0, devLoss);
         // We don't test for convergence.
         return false;
     }
@@ -102,14 +110,15 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
 
     private double optimizeWithoutInit(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, final int itersPerPass, int pass, Function validation) {
+            final boolean maximize, final int itersPerPass, int pass, Function devLoss) {
         int maxIters = prm.numPasses * itersPerPass;
         int iter = pass * itersPerPass;
-        double value = Double.NaN;
         BatchSampler batchSampler = new BatchSampler(prm.withReplacement, function.getNumExamples(), prm.batchSize);
         Timer passTimer = new Timer();
         Timer tuneTimer = new Timer();
-
+        double bestDevLoss = Double.MAX_VALUE;
+        IntDoubleVector bestPoint = prm.earlyStopping && devLoss != null ? new IntDoubleDenseVector(function.getNumDimensions()) : null;
+        
         // Setup.
         if (prm.stopBy != null) {
             log.debug("Max time alloted (hr): " + (prm.stopBy.getTime() - new Date().getTime()) / 1000. / 3600.);  
@@ -133,13 +142,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 passTimer.start();
             }
             if (prm.computeValueOnNonFinalIter) {
-                // Report the value of the function on all the examples.
-                value = function.getValue(point);
-                log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %d", value, iter, pass));                
-                if (validation != null) {
-                    double devScore = validation.getValue(point);
-                    log.info(String.format("Validation score = %g at iteration = %d on pass = %d", devScore, iter, pass));
-                }
+                bestDevLoss = sufferLossAndUpdateBest(function, point, pass, devLoss, iter, bestDevLoss, bestPoint)[1];
             }
             
             // Make a full pass through the training data.
@@ -152,7 +155,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 
                 // Get the current value and gradient of the function.
                 ValueGradient vg = function.getValueGradient(point, batch);
-                value = vg.getValue();
+                double value = vg.getValue();
                 final IntDoubleVector gradient = vg.getGradient();
                 log.trace(String.format("Function value on batch = %g at iteration = %d", value, iter));
                 prm.sched.takeNoteOfGradient(gradient);
@@ -176,15 +179,36 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / pass));
         }
         
-        // Report the value of the function on all the examples.
-        value = function.getValue(point);
-        log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %d", value, iter, pass));
-        if (validation != null) {
-            double devScore = validation.getValue(point);
-            log.info(String.format("Validation score = %g at iteration = %d on pass = %d", devScore, iter, pass));
+        double value = sufferLossAndUpdateBest(function, point, pass, devLoss, iter, bestDevLoss, bestPoint)[0];
+        if (prm.earlyStopping && devLoss != null) {
+            // Return the best point seen so far.
+            log.debug("Early stopping returning point with dev loss: " + bestDevLoss);
+            for (int m=0; m<function.getNumDimensions(); m++) {
+                point.set(m, bestPoint.get(m));
+            }
         }
-        
         return value;
+    }
+
+    protected double[] sufferLossAndUpdateBest(DifferentiableBatchFunction function, final IntDoubleVector point,
+            int pass, Function devLoss, int iter, double bestDevLoss, IntDoubleVector bestPoint) {
+        // Report the value of the function on all the examples.
+        double value = function.getValue(point);
+        log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %d", value, iter, pass));
+        
+        if (devLoss != null) {
+            // Report the loss on validation data.
+            double devScore = devLoss.getValue(point);
+            log.info(String.format("Dev loss = %g at iteration = %d on pass = %d", devScore, iter, pass));
+            if (prm.earlyStopping && devScore < bestDevLoss) {
+                // Store the best point seen so far.
+                for (int m=0; m<function.getNumDimensions(); m++) {
+                    bestPoint.set(m, point.get(m));
+                }
+                bestDevLoss = devScore;
+            }
+        }
+        return new double[]{value, bestDevLoss};
     }
 
     protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, 
@@ -240,14 +264,20 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         }
     }
 
+    private void logStatsAboutPoint(IntDoubleVector point) {
+        if (log.isTraceEnabled()) {
+            log.trace(String.format("min=%g max=%g infnorm=%g l2=%g", point.getMin(), point.getMax(), point.getInfNorm(), point.getL2Norm()));
+        }
+    }
+
     protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, 
             final boolean maximize, final int pass) {
-        double eta0 = autoSelectLrStatic(function, point, maximize, prm, pass);
+        double eta0 = autoSelectLrStatic(function, point, maximize, this, pass);
         prm.sched.setEta0(eta0);
     }
     
     private static double autoSelectLrStatic(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, SGDPrm origPrm, int pass) {
+            final boolean maximize, SGD orig, int pass) {
         log.info("Auto-selecting the best learning rate constant at pass " + pass);
         // Parameters for how we perform auto selection of the initial learning rate.
         // The max number of iterations.
@@ -262,14 +292,14 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         double startObj = sampFunction.getValue(point);
         log.info("Initial sample obj="+startObj);
         // Initialize the "best" values.
-        double origEta0 = origPrm.sched.getEta0();
+        double origEta0 = orig.prm.sched.getEta0();
         double bestEta = origEta0;
         double bestObj = startObj;
         
         boolean increasing = true;
         double eta = origEta0;
         for (int i=0; i<numEvals; i++) {
-            double obj = evaluateInitialLr(sampFunction, point, maximize, origPrm, eta, pass);
+            double obj = evaluateInitialLr(sampFunction, point, maximize, orig, eta, pass);
             log.info(String.format("Evaluated initial learning rate: eta="+eta+" obj="+obj));
             if (isBetter(obj, bestObj, maximize)) {
                 bestObj = obj;
@@ -297,16 +327,18 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
 
     private static double evaluateInitialLr(DifferentiableBatchFunction sampFunction, IntDoubleVector origPoint, 
-            boolean maximize, SGDPrm origPrm, double eta, int pass) {
-        SGDPrm prm = Prm.clonePrm(origPrm);
+            boolean maximize, SGD orig, double eta, int pass) {
+        SGD sgd = orig.copy();
+        if (orig.prm == sgd.prm) { throw new IllegalStateException("Copy must create a new prm."); }
         IntDoubleVector point = origPoint.copy();
+        SGDPrm prm = sgd.prm;
         prm.sched = prm.sched.copy();
         prm.sched.setEta0(eta);
         prm.numPasses = 1; // Only one epoch.
         prm.autoSelectLr = false; // Don't recurse.
         prm.computeValueOnNonFinalIter = false; // Report function value only at end.
+        prm.earlyStopping = false;
         
-        SGD sgd = new SGD(prm); //TODO: For Fobos: prm.getInstance();
         log.setEnabled(false);
         sgd.init(sampFunction);
         // Make sure we start off the learning rate schedule at the proper place.
@@ -318,12 +350,6 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     private static boolean isBetter(double obj, double bestObj, boolean maximize) {
         return maximize ? obj > bestObj : obj < bestObj;
-    }
-
-    private void logStatsAboutPoint(IntDoubleVector point) {
-        if (log.isTraceEnabled()) {
-            log.trace(String.format("min=%g max=%g infnorm=%g l2=%g", point.getMin(), point.getMax(), point.getInfNorm(), point.getL2Norm()));
-        }
     }
     
 }

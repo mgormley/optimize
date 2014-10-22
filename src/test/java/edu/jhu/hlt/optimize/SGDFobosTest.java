@@ -27,11 +27,16 @@ public class SGDFobosTest extends AbstractBatchOptimizerTest {
         return prm;
     }    
 
+    protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(double l1Lambda, double l2Lambda) {
+        SGDFobosPrm prm = getOptimizerPrm();
+        prm.l1Lambda = l1Lambda;
+        prm.l2Lambda = l2Lambda;
+        return new SGDFobos(prm);
+    }
+
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMax() {
-        SGDFobosPrm prm = getOptimizerPrm();
-        prm.l1Lambda = 1.0;
-        Optimizer<DifferentiableBatchFunction> opt = new SGDFobos(prm);
+        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0);
         double[] initial = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
         opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
@@ -42,9 +47,7 @@ public class SGDFobosTest extends AbstractBatchOptimizerTest {
 
     @Test
     public void testL2RegularizedOffsetNegSumSquaresMax() {
-        SGDFobosPrm prm = getOptimizerPrm();
-        prm.l2Lambda = 1.0;
-        Optimizer<DifferentiableBatchFunction> opt = new SGDFobos(prm);
+        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(0.0, 1.0);
         double[] initial = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
         opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
@@ -53,12 +56,9 @@ public class SGDFobosTest extends AbstractBatchOptimizerTest {
         JUnitUtils.assertArrayEquals(new double[]{-0.266, 3.333, -7.333}, max, 1e-3);
     }
     
-
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMin() {
-        SGDFobosPrm prm = getOptimizerPrm();
-        prm.l1Lambda = 1.0;
-        Optimizer<DifferentiableBatchFunction> opt = new SGDFobos(prm);
+        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0);
         double[] initial = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
         opt.minimize(bf(new SumSquares(offsets)), new IntDoubleDenseVector(initial));
@@ -69,9 +69,7 @@ public class SGDFobosTest extends AbstractBatchOptimizerTest {
 
     @Test
     public void testL2RegularizedOffsetNegSumSquaresMin() {
-        SGDFobosPrm prm = getOptimizerPrm();
-        prm.l2Lambda = 1.0;
-        Optimizer<DifferentiableBatchFunction> opt = new SGDFobos(prm);
+        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(0.0, 1.0);
         double[] initial = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
         opt.minimize(bf(new SumSquares(offsets)), new IntDoubleDenseVector(initial));
