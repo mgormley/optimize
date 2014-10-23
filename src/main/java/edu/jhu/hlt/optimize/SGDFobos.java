@@ -68,8 +68,8 @@ public class SGDFobos extends SGD implements Optimizer<DifferentiableBatchFuncti
      * Initializes all the parameters for optimization.
      */
     @Override
-    protected void init(DifferentiableBatchFunction function) {
-        super.init(function);
+    protected void init(DifferentiableBatchFunction function, IntDoubleVector point) {
+        super.init(function, point);
         this.accumLr = new DoubleArrayList();
         this.iterOfLastStep = new int[function.getNumDimensions()];
         Arrays.fill(iterOfLastStep, -1);        

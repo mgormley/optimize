@@ -2,7 +2,7 @@ package edu.jhu.hlt.optimize;
 
 import org.junit.Test;
 
-import edu.jhu.hlt.optimize.AdaGrad.AdaGradPrm;
+import edu.jhu.hlt.optimize.AdaGradSchedule.AdaGradSchedulePrm;
 import edu.jhu.hlt.optimize.SGD.SGDPrm;
 import edu.jhu.hlt.optimize.SGDFobos.SGDFobosPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
@@ -15,11 +15,11 @@ public class AdaGradTest extends AbstractBatchOptimizerTest {
 
     @Override
     protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
-        AdaGradPrm sched = new AdaGradPrm();
+        AdaGradSchedulePrm sched = new AdaGradSchedulePrm();
         sched.eta = 0.1 * 100;
         
         SGDPrm prm = new SGDPrm();
-        prm.sched = new AdaGrad(sched);
+        prm.sched = new AdaGradSchedule(sched);
         prm.numPasses = 100;        
         prm.batchSize = 1;
         prm.autoSelectLr = false;
@@ -30,15 +30,15 @@ public class AdaGradTest extends AbstractBatchOptimizerTest {
     public void testSgdAutoSelectLr() {
         {
             // Test with the initial learning rate too small
-            AdaGradPrm sched = new AdaGradPrm();
+            AdaGradSchedulePrm sched = new AdaGradSchedulePrm();
             sched.eta = 0.5;
-            SGDTest.runSgdAutoSelectLr(new AdaGrad(sched));        
+            SGDTest.runSgdAutoSelectLr(new AdaGradSchedule(sched));        
         }
         {
             // Test with the initial learning rate too large
-            AdaGradPrm sched = new AdaGradPrm();
+            AdaGradSchedulePrm sched = new AdaGradSchedulePrm();
             sched.eta = 10;
-            SGDTest.runSgdAutoSelectLr(new AdaGrad(sched));  
+            SGDTest.runSgdAutoSelectLr(new AdaGradSchedule(sched));  
         }
     }
 

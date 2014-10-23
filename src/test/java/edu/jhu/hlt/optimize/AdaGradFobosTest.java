@@ -2,24 +2,26 @@ package edu.jhu.hlt.optimize;
 
 import org.junit.Test;
 
-import edu.jhu.hlt.optimize.SGDFobos.SGDFobosPrm;
+import edu.jhu.hlt.optimize.AdaGradFobos.AdaGradFobosPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 
-public class SGDFobosTest extends AbstractBatchOptimizerTest {
+public class AdaGradFobosTest extends AbstractBatchOptimizerTest {
 
     @Override
     protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
-        SGDFobosPrm prm = getOptimizerPrm();
-        return new SGDFobos(prm);
+        AdaGradFobosPrm prm = getOptimizerPrm();
+        return new AdaGradFobos(prm);
     }
 
-    protected SGDFobosPrm getOptimizerPrm() {
-        SGDFobosPrm prm = new SGDFobosPrm();
-        prm.sched.setEta0(0.1 * 10);
+    protected AdaGradFobosPrm getOptimizerPrm() {
+        AdaGradFobosPrm prm = new AdaGradFobosPrm();
+        prm.eta = 0.1 * 100;
+        prm.sched = null;
+        //prm.sched.setEta0(0.1 * 10);
         prm.numPasses = 100;
         prm.batchSize = 1;
         prm.autoSelectLr = false;
@@ -28,10 +30,11 @@ public class SGDFobosTest extends AbstractBatchOptimizerTest {
     }    
 
     protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(double l1Lambda, double l2Lambda) {
-        SGDFobosPrm prm = getOptimizerPrm();
+        AdaGradFobosPrm prm = getOptimizerPrm();
         prm.l1Lambda = l1Lambda;
-        prm.l2Lambda = l2Lambda;
-        return new SGDFobos(prm);
+        if (l2Lambda != 0) { return super.getRegularizedOptimizer(l1Lambda, l2Lambda); }
+        return new AdaGradFobos(prm);
     }
 
+    
 }

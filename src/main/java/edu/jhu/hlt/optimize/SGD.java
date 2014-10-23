@@ -75,7 +75,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     /**
      * Initializes all the parameters for optimization.
      */
-    protected void init(DifferentiableBatchFunction function) {
+    protected void init(DifferentiableBatchFunction function, IntDoubleVector point) {
         prm.sched.init(function);
     }
 
@@ -96,7 +96,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     public boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, 
             final boolean maximize, Function devLoss) {
-        init(function);
+        init(function, point);
         final int itersPerEpoch = getItersPerPass(function);
         log.info("Number of batch gradient iterations: " + prm.numPasses * itersPerEpoch);
         optimizeWithoutInit(function, point, maximize, itersPerEpoch, 0, devLoss);
@@ -176,7 +176,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 iter++;
             }
             // Another full pass through the data has been completed.
-            log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / pass));
+            log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / (pass + 1)));
         }
         
         double value = sufferLossAndUpdateBest(function, point, pass, devLoss, iter, bestDevLoss, bestPoint)[0];
@@ -340,7 +340,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         prm.earlyStopping = false;
         
         log.setEnabled(false);
-        sgd.init(sampFunction);
+        sgd.init(sampFunction, point);
         // Make sure we start off the learning rate schedule at the proper place.
         final int itersPerPass = sgd.getItersPerPass(sampFunction);
         double obj = sgd.optimizeWithoutInit(sampFunction, point, maximize, itersPerPass, pass, null);

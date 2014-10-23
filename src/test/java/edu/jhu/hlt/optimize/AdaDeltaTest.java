@@ -1,7 +1,7 @@
 package edu.jhu.hlt.optimize;
 
 import edu.jhu.hlt.optimize.AdaDelta.AdaDeltaPrm;
-import edu.jhu.hlt.optimize.AdaGrad.AdaGradPrm;
+import edu.jhu.hlt.optimize.AdaGradSchedule.AdaGradSchedulePrm;
 import edu.jhu.hlt.optimize.SGD.SGDPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 

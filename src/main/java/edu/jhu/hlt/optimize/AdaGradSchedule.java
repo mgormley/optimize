@@ -1,5 +1,7 @@
 package edu.jhu.hlt.optimize;
 
+import java.util.Arrays;
+
 import org.apache.log4j.Logger;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
@@ -14,10 +16,10 @@ import edu.jhu.prim.vector.IntDoubleVector;
  * 
  * @author mgormley
  */
-public class AdaGrad implements GainSchedule {
+public class AdaGradSchedule implements GainSchedule {
 
     /** Options for this optimizer. */
-    public static class AdaGradPrm extends Prm {
+    public static class AdaGradSchedulePrm extends Prm {
         /** The scaling parameter for the learning rate. */
         public double eta = 0.1;
         /**
@@ -28,15 +30,15 @@ public class AdaGrad implements GainSchedule {
         public double constantAddend = 1e-9;
     }
     
-    private static final Logger log = Logger.getLogger(AdaGrad.class);
+    private static final Logger log = Logger.getLogger(AdaGradSchedule.class);
 
-    private AdaGradPrm prm;
+    private AdaGradSchedulePrm prm;
     private double[] gradSumSquares;
     
     /**
      * Constructs an SGD optimizer.
      */
-    public AdaGrad(AdaGradPrm prm) {
+    public AdaGradSchedule(AdaGradSchedulePrm prm) {
         this.prm = prm;
     }
 
@@ -46,6 +48,7 @@ public class AdaGrad implements GainSchedule {
     @Override
     public void init(DifferentiableBatchFunction function) {
         gradSumSquares = new double[function.getNumDimensions()];
+        Arrays.fill(gradSumSquares, prm.constantAddend);
     }
 
     /** A tie-in for subclasses such as AdaGrad. */
@@ -68,7 +71,7 @@ public class AdaGrad implements GainSchedule {
         if (gradSumSquares[i] < 0) {
             throw new RuntimeException("Gradient sum of squares entry is < 0: " + gradSumSquares[i]);
         }
-        double learningRate = prm.eta / Math.sqrt(prm.constantAddend + gradSumSquares[i]);
+        double learningRate = prm.eta / Math.sqrt(gradSumSquares[i]);
         assert !Double.isNaN(learningRate);
         if (learningRate == Double.POSITIVE_INFINITY) {
             if (gradSumSquares[i] != 0.0) {
@@ -82,8 +85,8 @@ public class AdaGrad implements GainSchedule {
 
     @Override
     public GainSchedule copy() {
-        AdaGradPrm otherPrm = Prm.clonePrm(this.prm);
-        AdaGrad other = new AdaGrad(otherPrm);
+        AdaGradSchedulePrm otherPrm = Prm.clonePrm(this.prm);
+        AdaGradSchedule other = new AdaGradSchedule(otherPrm);
         other.gradSumSquares = DoubleArrays.copyOf(this.gradSumSquares);
         return other;
     }
