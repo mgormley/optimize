@@ -75,7 +75,6 @@ public abstract class AbstractBatchOptimizerTest {
         return new BatchFunctionOpts.NegateFunction(bf);
     }
     
-
     protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(final double l1Lambda, final double l2Lambda) {
         final Optimizer<DifferentiableBatchFunction> opt = getOptimizer();
         
@@ -121,17 +120,6 @@ public abstract class AbstractBatchOptimizerTest {
         Vectors.scale(offsets, -1.0);
         JUnitUtils.assertArrayEquals(new double[]{-0.0, 4.5, -10.5}, max, 1e-10);
     }
-
-    @Test
-    public void testL2RegularizedOffsetNegSumSquaresMax() {
-        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(0.0, 1.0);
-        double[] initial = new double[] { 9, 2, -7};
-        double[] offsets = new double[] { 0.4, -5, 11};
-        opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
-        double[] max = initial;
-        Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(new double[]{-0.266, 3.333, -7.333}, max, 1e-3);
-    }
     
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMin() {
@@ -142,6 +130,17 @@ public abstract class AbstractBatchOptimizerTest {
         double[] max = initial;
         Vectors.scale(offsets, -1.0);
         JUnitUtils.assertArrayEquals(new double[]{-0.0, 4.5, -10.5}, max, 1e-10);
+    }
+
+    @Test
+    public void testL2RegularizedOffsetNegSumSquaresMax() {
+        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(0.0, 1.0);
+        double[] initial = new double[] { 9, 2, -7};
+        double[] offsets = new double[] { 0.4, -5, 11};
+        opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
+        double[] max = initial;
+        Vectors.scale(offsets, -1.0);
+        JUnitUtils.assertArrayEquals(new double[]{-0.266, 3.333, -7.333}, max, 1e-3);
     }
 
     @Test

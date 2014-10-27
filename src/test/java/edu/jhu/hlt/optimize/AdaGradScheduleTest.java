@@ -11,7 +11,7 @@ import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 
-public class AdaGradTest extends AbstractBatchOptimizerTest {
+public class AdaGradScheduleTest extends AbstractBatchOptimizerTest {
 
     @Override
     protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
