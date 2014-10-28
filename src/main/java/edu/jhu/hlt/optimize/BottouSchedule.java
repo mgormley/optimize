@@ -18,6 +18,8 @@ import edu.jhu.util.Timer;
 /**
  * The gain schedule suggested in Leon Bottou's (2012) SGD Tricks paper.
  * 
+ * \gamma_t = \frac{\gamma_0}{(1 + \gamma_0 \lambda t)^p}
+ * 
  * @author mgormley
  */
 public class BottouSchedule implements GainSchedule {
@@ -25,13 +27,11 @@ public class BottouSchedule implements GainSchedule {
     /** Options for this class. */
     public static class BottouSchedulePrm extends Prm {
         /**
-         * The initial learning rate. (i.e. \gamma_0 in where \gamma_t =
-         * \frac{\gamma_0}{1 + \gamma_0 \lambda t})
+         * The initial learning rate. (i.e. \gamma_0)
          */
         public double initialLr = 0.1;
         /**
-         * Learning rate scaler. (i.e. \lambda in where \gamma_t =
-         * \frac{\gamma_0}{1 + \gamma_0 \lambda t})
+         * Learning rate scaler. (i.e. \lambda)
          * 
          * According to Leon Bottou's (2012) SGD tricks paper, when using an L2
          * regularizer of the form \frac{\lambda}{2} ||w||^2, where w is the
@@ -40,6 +40,11 @@ public class BottouSchedule implements GainSchedule {
          * Guassian) prior, then we should set \lambda = 1 / \sigma^2.
          */
         public double lambda = 1.0;
+        /**
+         * The power to raise the denominator of the learning rate. (i.e. p)
+         * For SGD p = 1.0, for ASGD p = 0.75.
+         */
+        public double power = 1.0;
     }
     
     private BottouSchedulePrm prm;
@@ -57,9 +62,14 @@ public class BottouSchedule implements GainSchedule {
     public double getLearningRate(int iterCount, int i) {
         // We use the learning rate suggested in Leon Bottou's (2012) SGD Tricks paper.
         // 
-        // \gamma_t = \frac{\gamma_0}{1 + \gamma_0 \lambda t})
+        // \gamma_t = \frac{\gamma_0}{(1 + \gamma_0 \lambda t)^p}
         //
-        return prm.initialLr / (1 + prm.initialLr * prm.lambda * iterCount);
+        // For SGD p = 1.0, for ASGD p = 0.75
+        if (prm.power == 1.0) {
+            return prm.initialLr / (1 + prm.initialLr * prm.lambda * iterCount);
+        } else {
+            return prm.initialLr / Math.pow(1 + prm.initialLr * prm.lambda * iterCount, prm.power);
+        }
     }
     
     @Override
