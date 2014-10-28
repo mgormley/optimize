@@ -49,6 +49,10 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         public boolean computeValueOnNonFinalIter = true;
         /** Whether to return the point with min validation score. */
         public boolean earlyStopping = true;
+        /** Whether to do parameter averaging. */
+        public boolean averaging = false;
+        /** The pass at which to begin averaging of the parameters. */
+        public double passToStartAvg = 1.0;
         public SGDPrm() { } 
         public SGDPrm(double initialLr, int numPasses, int batchSize) {
             this.sched.setEta0(initialLr);
@@ -112,13 +116,15 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     private double optimizeWithoutInit(DifferentiableBatchFunction function, final IntDoubleVector point, 
             final boolean maximize, final int itersPerPass, int pass, Function devLoss) {
-        int maxIters = prm.numPasses * itersPerPass;
-        int iter = pass * itersPerPass;
+        final int maxIters = prm.numPasses * itersPerPass;
+        final int startIter = pass * itersPerPass;
+        int iter = startIter;
         BatchSampler batchSampler = new BatchSampler(prm.withReplacement, function.getNumExamples(), prm.batchSize);
         Timer passTimer = new Timer();
         Timer tuneTimer = new Timer();
         double bestDevLoss = Double.MAX_VALUE;
         IntDoubleVector bestPoint = prm.earlyStopping && devLoss != null ? new IntDoubleDenseVector(function.getNumDimensions()) : null;
+        IntDoubleVector avgPoint = prm.averaging ? new IntDoubleDenseVector(point) : null;
         
         // Setup.
         if (prm.stopBy != null) {
@@ -143,7 +149,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 passTimer.start();
             }
             if (prm.computeValueOnNonFinalIter) {
-                bestDevLoss = sufferLossAndUpdateBest(function, point, pass, devLoss, iter, bestDevLoss, bestPoint)[1];
+                bestDevLoss = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter,
+                        iter, bestDevLoss, bestPoint)[1];
             }
             
             // Make a full pass through the training data.
@@ -166,6 +173,14 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 logAvgLrAndStepSize(point, gradient, iter);
                 logStatsAboutPoint(point);
                 
+                if (prm.averaging) {
+                    // Non-sparse update of averaged parameters.
+                    double t0 = prm.passToStartAvg * itersPerPass;
+                    double mu_t = 1.0 / Math.max(1, (iter + 1 - startIter) - t0); 
+                    for (int m=0; m<function.getNumDimensions(); m++) {
+                        avgPoint.set(m, (1 - mu_t) * avgPoint.get(m) + mu_t * point.get(m));
+                    }
+                }
                 if (prm.stopBy != null) {
                     Date now = new Date();
                     if (now.after(prm.stopBy)) {
@@ -180,19 +195,30 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / (pass + 1)));
         }
         
-        double value = sufferLossAndUpdateBest(function, point, pass, devLoss, iter, bestDevLoss, bestPoint)[0];
+        double value = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter, 
+                iter, bestDevLoss, bestPoint)[0];
         if (prm.earlyStopping && devLoss != null) {
             // Return the best point seen so far.
             log.debug("Early stopping returning point with dev loss: " + bestDevLoss);
             for (int m=0; m<function.getNumDimensions(); m++) {
                 point.set(m, bestPoint.get(m));
             }
+        } else if (prm.averaging) {
+            log.debug("Returning averaged parameters.");
+            for (int m=0; m<function.getNumDimensions(); m++) {
+                point.set(m, avgPoint.get(m));
+            }
         }
         return value;
     }
 
-    protected double[] sufferLossAndUpdateBest(DifferentiableBatchFunction function, final IntDoubleVector point,
-            int pass, Function devLoss, int iter, double bestDevLoss, IntDoubleVector bestPoint) {
+    protected double[] sufferLossAndUpdateBest(DifferentiableBatchFunction function, IntDoubleVector point,
+            IntDoubleVector avgPoint, int pass, Function devLoss, int startIter, int iter, double bestDevLoss, 
+            IntDoubleVector bestPoint) {
+        if (prm.averaging) {
+            point = avgPoint;
+        }
+        
         // Report the value of the function on all the examples.
         double value = function.getValue(point);
         log.info(String.format("Function value on all examples = %g at iteration = %d on pass = %d", value, iter, pass));
@@ -339,6 +365,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         prm.autoSelectLr = false; // Don't recurse.
         prm.computeValueOnNonFinalIter = false; // Report function value only at end.
         prm.earlyStopping = false;
+        prm.averaging = false;
         
         log.setEnabled(false);
         sgd.init(sampFunction, point);
