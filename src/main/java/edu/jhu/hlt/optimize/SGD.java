@@ -49,7 +49,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         /** Whether to return the point with min validation score. */
         public boolean earlyStopping = true;
         /** Whether to do parameter averaging. */
-        public boolean averaging = true;
+        public boolean averaging = false;
         /** The pass at which to begin averaging of the parameters. */
         public double passToStartAvg = 1.0;
         public SGDPrm() { } 
