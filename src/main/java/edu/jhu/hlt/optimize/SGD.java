@@ -30,6 +30,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     /** Options for this optimizer. */
     public static class SGDPrm extends Prm {
+        private static final long serialVersionUID = 1L;
         /** The gain schedule which defines the learning rate at each iteration. */
         public GainSchedule sched = new BottouSchedule(new BottouSchedulePrm());
         /** Whether to automatically select the learning rate. (Leon Bottou's "secret ingredient".) */
