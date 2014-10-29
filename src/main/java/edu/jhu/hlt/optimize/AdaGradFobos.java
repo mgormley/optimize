@@ -108,6 +108,7 @@ public class AdaGradFobos extends SGD implements Optimizer<DifferentiableBatchFu
                 
                 // Lazy update.
                 double xti = (xt0i < 0 ? -1 : 1) * Math.max(0, Math.abs(xt0i) - prm.l1Lambda * lrt0 * (t - t0));
+                assert xti == xt0i;
                 // Main update.                
                 double xtimlrg = xti - lrt * gr;
                 double xt1i = (xtimlrg < 0 ? -1 : 1) * Math.max(0,  Math.abs(xtimlrg) - prm.l1Lambda * lrt);

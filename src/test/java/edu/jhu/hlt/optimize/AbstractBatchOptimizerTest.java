@@ -113,7 +113,7 @@ public abstract class AbstractBatchOptimizerTest {
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMax() {
         Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0);
-        double[] initial = new double[] { 9, 2, -7};
+        double[] initial = new double[] { 0,0,0}; // (different starting point than the Min test below)
         double[] offsets = new double[] { 0.4, -5, 11};
         opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
         double[] max = initial;
