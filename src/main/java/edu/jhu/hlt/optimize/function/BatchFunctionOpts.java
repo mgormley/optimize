@@ -1,6 +1,6 @@
 package edu.jhu.hlt.optimize.function;
 
-import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
@@ -100,9 +100,21 @@ public class BatchFunctionOpts {
     
         @Override
         public IntDoubleVector getGradient(IntDoubleVector point, int[] batch) {
-            IntDoubleVector ret = functions[0].getGradient(point, batch);
-            for(int i=1; i<functions.length; i++){
-                ret.add(functions[i].getGradient(point, batch));
+            // When adding up the gradients find one that is an IntDoubleDenseVector 
+            // if possible and add into that.
+            IntDoubleVector[] grads = new IntDoubleVector[functions.length];
+            int retIdx = 0;
+            for (int i=0; i<functions.length; i++) {
+                grads[i] = functions[i].getGradient(point, batch);
+                if (grads[i] instanceof IntDoubleDenseVector) {
+                    retIdx = i;
+                }
+            }
+            IntDoubleVector ret = grads[retIdx];
+            for(int i=0; i<functions.length; i++){
+                if (i != retIdx) {
+                    ret.add(grads[i]);
+                }
             }
             return ret;
         }
@@ -120,14 +132,20 @@ public class BatchFunctionOpts {
         @Override
         public ValueGradient getValueGradient(IntDoubleVector point, int[] batch) {
             double sum = 0.0;
-            IntDoubleVector ret = null;
-            for(int i=0; i<functions.length; i++){
+            IntDoubleVector[] grads = new IntDoubleVector[functions.length];
+            int retIdx = 0;
+            for (int i=0; i<functions.length; i++) {
                 ValueGradient vg = functions[i].getValueGradient(point, batch);
                 sum += vg.getValue();
-                if (i==0) {
-                    ret = vg.getGradient();
-                } else {
-                    ret.add(vg.getGradient());
+                grads[i] = vg.getGradient();
+                if (grads[i] instanceof IntDoubleDenseVector) {
+                    retIdx = i;
+                }
+            }
+            IntDoubleVector ret = grads[retIdx];
+            for(int i=0; i<functions.length; i++){
+                if (i != retIdx) {
+                    ret.add(grads[i]);
                 }
             }
             return new ValueGradient(sum, ret);
