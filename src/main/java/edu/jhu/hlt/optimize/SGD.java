@@ -53,12 +53,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         public boolean averaging = false;
         /** The pass at which to begin averaging of the parameters. */
         public double passToStartAvg = 1.0;
-        public SGDPrm() { } 
-        public SGDPrm(double initialLr, int numPasses, int batchSize) {
-            this.sched.setEta0(initialLr);
-            this.numPasses = numPasses;
-            this.batchSize = batchSize;
-        }
+        public SGDPrm() { }
     }
     
     private static final OnOffLogger log = new OnOffLogger(Logger.getLogger(SGD.class));
@@ -300,7 +295,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, 
             final boolean maximize, final int pass) {
         double eta0 = autoSelectLrStatic(function, point, maximize, this, pass);
-        prm.sched.setEta0(eta0);
+        this.setEta0(eta0);
     }
     
     private static double autoSelectLrStatic(DifferentiableBatchFunction function, final IntDoubleVector point, 
@@ -319,7 +314,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         double startObj = sampFunction.getValue(point);
         log.info("Initial sample obj="+startObj);
         // Initialize the "best" values.
-        double origEta0 = orig.prm.sched.getEta0();
+        double origEta0 = orig.getEta0();
         double bestEta = origEta0;
         double bestObj = startObj;
         
@@ -360,7 +355,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         IntDoubleVector point = origPoint.copy();
         SGDPrm prm = sgd.prm;
         prm.sched = prm.sched.copy();
-        prm.sched.setEta0(eta);
+        sgd.setEta0(eta);
         prm.numPasses = 1; // Only one epoch.
         prm.autoSelectLr = false; // Don't recurse.
         prm.computeValueOnNonFinalIter = false; // Report function value only at end.
@@ -374,6 +369,14 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         double obj = sgd.optimizeWithoutInit(sampFunction, point, maximize, itersPerPass, pass, null);
         log.setEnabled(true);
         return obj;
+    }
+
+    protected double getEta0() {
+        return prm.sched.getEta0();
+    }
+
+    protected void setEta0(double eta) {
+        prm.sched.setEta0(eta);
     }
 
     private static boolean isBetter(double obj, double bestObj, boolean maximize) {

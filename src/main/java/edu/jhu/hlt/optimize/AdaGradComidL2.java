@@ -9,7 +9,6 @@ import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.util.Prm;
 import edu.jhu.prim.arrays.DoubleArrays;
 import edu.jhu.prim.arrays.IntArrays;
-import edu.jhu.prim.list.DoubleArrayList;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToVoid;
 import edu.jhu.prim.vector.IntDoubleVector;
 
@@ -18,7 +17,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
  * 
  * @author mgormley
  */
-public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatchFunction>, GainSchedule {
+public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatchFunction> {
 
     /** Options for this optimizer. */
     public static class AdaGradComidL2Prm extends SGDPrm {
@@ -49,11 +48,11 @@ public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatch
      */
     public AdaGradComidL2(AdaGradComidL2Prm prm) {
         super(prm);
-        if (prm.sched != null) {
+        if (!(prm.sched == null || prm.sched instanceof EmptyGainSchedule)) {
             throw new IllegalArgumentException("Schedule for AdaGrad must be null.");
         }
         this.prm = prm;
-        this.prm.sched = this;
+        this.prm.sched = new EmptyGainSchedule();
     }
     
     @Override
@@ -110,35 +109,14 @@ public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatch
         });
     }
 
-
     @Override
-    public void init(DifferentiableBatchFunction function) {
-        // Do nothing to intialize the schedule.
-    }
-    
-    @Override
-    public void takeNoteOfGradient(IntDoubleVector gradient) {
-        // Do nothing. We update the gradient sum of squares in takeGradientStep().
-    }
-
-    @Override
-    public double getLearningRate(int iterCount, int i) {
-        throw new RuntimeException("This method should never be called");
-    }
-
-    @Override
-    public double getEta0() {
+    protected double getEta0() {
         return prm.eta;
     }
 
     @Override
-    public void setEta0(double eta0) {
+    protected void setEta0(double eta0) {
         prm.eta = eta0;
-    }
-    
-    @Override
-    public boolean isSameForAllParameters() {
-        return false;
     }
 
 }
