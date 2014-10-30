@@ -2,7 +2,7 @@ package edu.jhu.hlt.optimize;
 
 import org.junit.Test;
 
-import edu.jhu.hlt.optimize.AdaGradComidL1.AdaGradFobosPrm;
+import edu.jhu.hlt.optimize.AdaGradComidL1.AdaGradComidL1Prm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.util.JUnitUtils;
@@ -13,12 +13,12 @@ public class AdaGradComidL1Test extends AbstractBatchOptimizerTest {
 
     @Override
     protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
-        AdaGradFobosPrm prm = getOptimizerPrm();
+        AdaGradComidL1Prm prm = getOptimizerPrm();
         return new AdaGradComidL1(prm);
     }
 
-    protected AdaGradFobosPrm getOptimizerPrm() {
-        AdaGradFobosPrm prm = new AdaGradFobosPrm();
+    protected AdaGradComidL1Prm getOptimizerPrm() {
+        AdaGradComidL1Prm prm = new AdaGradComidL1Prm();
         prm.eta = 0.1 * 100;
         prm.sched = null;
         //prm.sched.setEta0(0.1 * 10);
@@ -30,7 +30,7 @@ public class AdaGradComidL1Test extends AbstractBatchOptimizerTest {
     }    
 
     protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(double l1Lambda, double l2Lambda) {
-        AdaGradFobosPrm prm = getOptimizerPrm();
+        AdaGradComidL1Prm prm = getOptimizerPrm();
         prm.l1Lambda = l1Lambda;
         if (l2Lambda != 0) { return super.getRegularizedOptimizer(l1Lambda, l2Lambda); }
         return new AdaGradComidL1(prm);
