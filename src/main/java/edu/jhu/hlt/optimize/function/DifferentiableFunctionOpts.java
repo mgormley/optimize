@@ -1,5 +1,8 @@
 package edu.jhu.hlt.optimize.function;
 
+import edu.jhu.hlt.optimize.Optimizer;
+import edu.jhu.hlt.optimize.functions.L1;
+import edu.jhu.hlt.optimize.functions.L2;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 public class DifferentiableFunctionOpts {
@@ -156,6 +159,52 @@ public class DifferentiableFunctionOpts {
             return new ValueGradient(sum, ret);
     	}
     
+    }
+
+    /** Converts a standard optimizer to one which the given amount of l1 or l2 regularization. */
+    public static Optimizer<DifferentiableFunction> getRegularizedOptimizer(final Optimizer<DifferentiableFunction> opt,
+            final double l1Lambda, final double l2Lambda) {
+        if (l1Lambda == 0 && l2Lambda == 0) {
+            return opt;
+        }
+        return new Optimizer<DifferentiableFunction>() {
+            
+            @Override
+            public boolean minimize(DifferentiableFunction function, IntDoubleVector point) {
+                return optimize(function, point, false);
+            }
+            
+            @Override
+            public boolean maximize(DifferentiableFunction function, IntDoubleVector point) {
+                return optimize(function, point, true);
+            }
+            
+            public boolean optimize(DifferentiableFunction objective, IntDoubleVector point, boolean maximize) {
+                L1 l1 = new L1(l1Lambda);
+                L2 l2 = new L2(1.0 / l2Lambda);
+                l1.setNumDimensions(objective.getNumDimensions());
+                l2.setNumDimensions(objective.getNumDimensions());
+                DifferentiableFunction br;
+                if (l1Lambda != 0 && l2Lambda != 0) {
+                    br = new AddFunctions(l1, l2);
+                } else if (l1Lambda != 0) {
+                    br = l1;
+                } else if (l2Lambda != 0) {
+                    br = l2;
+                } else {
+                    throw new RuntimeException("Unreachable code.");
+                }
+    
+                DifferentiableFunction nbr = !maximize ? new NegateFunction(br) : br;
+                DifferentiableFunction fn = new AddFunctions(objective, nbr);
+                
+                if (!maximize) {
+                    return opt.minimize(fn, point);   
+                } else {
+                    return opt.maximize(fn, point);
+                }
+            }
+        };
     }
     
 }

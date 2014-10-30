@@ -10,14 +10,11 @@ import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts;
 import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.function.FunctionOpts;
-import edu.jhu.hlt.optimize.functions.L1;
-import edu.jhu.hlt.optimize.functions.L2;
 import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.optimize.functions.XSquared;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
-import edu.jhu.prim.vector.IntDoubleVector;
 
 public abstract class AbstractOptimizerTest {
 
@@ -67,39 +64,10 @@ public abstract class AbstractOptimizerTest {
     }
     
     protected Optimizer<DifferentiableFunction> getRegularizedOptimizer(final double l1Lambda, final double l2Lambda) {
-        final Optimizer<DifferentiableFunction> opt = getOptimizer();
-        
-        return new Optimizer<DifferentiableFunction>() {
-            
-            @Override
-            public boolean minimize(DifferentiableFunction function, IntDoubleVector point) {
-                return optimize(function, point, false);
-            }
-            
-            @Override
-            public boolean maximize(DifferentiableFunction function, IntDoubleVector point) {
-                return optimize(function, point, true);
-            }
-            
-            public boolean optimize(DifferentiableFunction objective, IntDoubleVector point, boolean maximize) {
-                L1 l1 = new L1(l1Lambda);
-                L2 l2 = new L2(1.0 / l2Lambda);
-                l1.setNumDimensions(objective.getNumDimensions());
-                l2.setNumDimensions(objective.getNumDimensions());
-                DifferentiableFunction br = new DifferentiableFunctionOpts.AddFunctions(l1, l2);
-
-                DifferentiableFunction nbr = !maximize ? new DifferentiableFunctionOpts.NegateFunction(br) : br;
-                DifferentiableFunction fn = new DifferentiableFunctionOpts.AddFunctions(objective, nbr);
-                
-                if (!maximize) {
-                    return opt.minimize(fn, point);   
-                } else {
-                    return opt.maximize(fn, point);
-                }
-            }
-        };
+        final Optimizer<DifferentiableFunction> opt = getOptimizer();        
+        return DifferentiableFunctionOpts.getRegularizedOptimizer(opt, l1Lambda, l2Lambda);
     }
-    
+
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMax() {
         Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(1.0, 0.0);

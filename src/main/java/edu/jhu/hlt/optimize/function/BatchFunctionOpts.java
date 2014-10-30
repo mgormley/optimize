@@ -1,5 +1,8 @@
 package edu.jhu.hlt.optimize.function;
 
+import edu.jhu.hlt.optimize.Optimizer;
+import edu.jhu.hlt.optimize.functions.L1;
+import edu.jhu.hlt.optimize.functions.L2;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 
@@ -160,6 +163,52 @@ public class BatchFunctionOpts {
             }
         }
     
+    }
+
+    public static Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(
+            final Optimizer<DifferentiableBatchFunction> opt, final double l1Lambda, final double l2Lambda) {
+        if (l1Lambda == 0 && l2Lambda == 0) {
+            return opt;
+        }
+        return new Optimizer<DifferentiableBatchFunction>() {
+            
+            @Override
+            public boolean minimize(DifferentiableBatchFunction function, IntDoubleVector point) {
+                return optimize(function, point, false);
+            }
+            
+            @Override
+            public boolean maximize(DifferentiableBatchFunction function, IntDoubleVector point) {
+                return optimize(function, point, true);
+            }
+            
+            public boolean optimize(DifferentiableBatchFunction objective, IntDoubleVector point, boolean maximize) {
+                L1 l1 = new L1(l1Lambda);
+                L2 l2 = new L2(1.0 / l2Lambda);
+                l1.setNumDimensions(objective.getNumDimensions());
+                l2.setNumDimensions(objective.getNumDimensions());
+                DifferentiableFunction reg;
+                if (l1Lambda != 0 && l2Lambda != 0) {
+                    reg = new DifferentiableFunctionOpts.AddFunctions(l1, l2);
+                } else if (l1Lambda != 0) {
+                    reg = l1;
+                } else if (l2Lambda != 0) {
+                    reg = l2;
+                } else {
+                    throw new RuntimeException("Unreachable code.");
+                }
+                
+                DifferentiableBatchFunction br = new FunctionAsBatchFunction(reg, objective.getNumExamples());
+                DifferentiableBatchFunction nbr = !maximize ? new NegateFunction(br) : br;
+                DifferentiableBatchFunction fn = new AddFunctions(objective, nbr);
+                
+                if (!maximize) {
+                    return opt.minimize(fn, point);   
+                } else {
+                    return opt.maximize(fn, point);
+                }
+            }
+        };
     }
 
 }
