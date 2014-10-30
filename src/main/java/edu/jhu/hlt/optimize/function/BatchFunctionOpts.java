@@ -183,32 +183,38 @@ public class BatchFunctionOpts {
             }
             
             public boolean optimize(DifferentiableBatchFunction objective, IntDoubleVector point, boolean maximize) {
-                L1 l1 = new L1(l1Lambda);
-                L2 l2 = new L2(1.0 / l2Lambda);
-                l1.setNumDimensions(objective.getNumDimensions());
-                l2.setNumDimensions(objective.getNumDimensions());
-                DifferentiableFunction reg;
-                if (l1Lambda != 0 && l2Lambda != 0) {
-                    reg = new DifferentiableFunctionOpts.AddFunctions(l1, l2);
-                } else if (l1Lambda != 0) {
-                    reg = l1;
-                } else if (l2Lambda != 0) {
-                    reg = l2;
-                } else {
-                    throw new RuntimeException("Unreachable code.");
-                }
-                
-                DifferentiableBatchFunction br = new FunctionAsBatchFunction(reg, objective.getNumExamples());
-                DifferentiableBatchFunction nbr = !maximize ? new NegateFunction(br) : br;
-                DifferentiableBatchFunction fn = new AddFunctions(objective, nbr);
-                
+                DifferentiableBatchFunction fn = getRegularizedFn(objective, maximize, l1Lambda, l2Lambda);                
                 if (!maximize) {
                     return opt.minimize(fn, point);   
                 } else {
                     return opt.maximize(fn, point);
                 }
             }
+
         };
+    }
+
+    public static DifferentiableBatchFunction getRegularizedFn(DifferentiableBatchFunction objective,
+            boolean maximize, final double l1Lambda, final double l2Lambda) {
+        L1 l1 = new L1(l1Lambda);
+        L2 l2 = new L2(1.0 / l2Lambda);
+        l1.setNumDimensions(objective.getNumDimensions());
+        l2.setNumDimensions(objective.getNumDimensions());
+        DifferentiableFunction reg;
+        if (l1Lambda != 0 && l2Lambda != 0) {
+            reg = new DifferentiableFunctionOpts.AddFunctions(l1, l2);
+        } else if (l1Lambda != 0) {
+            reg = l1;
+        } else if (l2Lambda != 0) {
+            reg = l2;
+        } else {
+            return objective;
+        }
+        
+        DifferentiableBatchFunction br = new FunctionAsBatchFunction(reg, objective.getNumExamples());
+        DifferentiableBatchFunction nbr = !maximize ? new NegateFunction(br) : br;
+        DifferentiableBatchFunction fn = new AddFunctions(objective, nbr);
+        return fn;
     }
 
 }

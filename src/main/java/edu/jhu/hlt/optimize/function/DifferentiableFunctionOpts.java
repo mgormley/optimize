@@ -180,23 +180,7 @@ public class DifferentiableFunctionOpts {
             }
             
             public boolean optimize(DifferentiableFunction objective, IntDoubleVector point, boolean maximize) {
-                L1 l1 = new L1(l1Lambda);
-                L2 l2 = new L2(1.0 / l2Lambda);
-                l1.setNumDimensions(objective.getNumDimensions());
-                l2.setNumDimensions(objective.getNumDimensions());
-                DifferentiableFunction br;
-                if (l1Lambda != 0 && l2Lambda != 0) {
-                    br = new AddFunctions(l1, l2);
-                } else if (l1Lambda != 0) {
-                    br = l1;
-                } else if (l2Lambda != 0) {
-                    br = l2;
-                } else {
-                    throw new RuntimeException("Unreachable code.");
-                }
-    
-                DifferentiableFunction nbr = !maximize ? new NegateFunction(br) : br;
-                DifferentiableFunction fn = new AddFunctions(objective, nbr);
+                DifferentiableFunction fn = getRegularizedFn(objective, maximize, l1Lambda, l2Lambda);
                 
                 if (!maximize) {
                     return opt.minimize(fn, point);   
@@ -205,6 +189,28 @@ public class DifferentiableFunctionOpts {
                 }
             }
         };
+    }
+
+    public static DifferentiableFunction getRegularizedFn(DifferentiableFunction objective, boolean maximize,
+            final double l1Lambda, final double l2Lambda) {
+        L1 l1 = new L1(l1Lambda);
+        L2 l2 = new L2(1.0 / l2Lambda);
+        l1.setNumDimensions(objective.getNumDimensions());
+        l2.setNumDimensions(objective.getNumDimensions());
+        DifferentiableFunction br;
+        if (l1Lambda != 0 && l2Lambda != 0) {
+            br = new AddFunctions(l1, l2);
+        } else if (l1Lambda != 0) {
+            br = l1;
+        } else if (l2Lambda != 0) {
+            br = l2;
+        } else {
+            return objective;
+        }
+
+        DifferentiableFunction nbr = !maximize ? new NegateFunction(br) : br;
+        DifferentiableFunction fn = new AddFunctions(objective, nbr);
+        return fn;
     }
     
 }
