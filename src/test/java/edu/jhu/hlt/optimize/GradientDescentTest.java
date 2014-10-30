@@ -9,4 +9,6 @@ public class GradientDescentTest extends AbstractOptimizerTest {
         return new GradientDescent(0.1, 100);
     }
     
+    protected double getL1EqualityThreshold() { return 0.1; }
+
 }

@@ -21,4 +21,6 @@ public class AdaDeltaTest  extends AbstractBatchOptimizerTest {
         return new SGD(prm);
     }
     
+    protected double getL1EqualityThreshold() { return 0.4; }
+    
 }

@@ -118,7 +118,9 @@ public abstract class AbstractBatchOptimizerTest {
         opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
         double[] max = initial;
         Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(new double[]{-0.0, 4.5, -10.5}, max, 1e-10);
+        assertEquals(-0.0, max[0], getL1EqualityThreshold());
+        assertEquals(4.5, max[1], 1e-10);
+        assertEquals(-10.5, max[2], 1e-10);
     }
     
     @Test
@@ -129,8 +131,12 @@ public abstract class AbstractBatchOptimizerTest {
         opt.minimize(bf(new SumSquares(offsets)), new IntDoubleDenseVector(initial));
         double[] max = initial;
         Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(new double[]{-0.0, 4.5, -10.5}, max, 1e-10);
+        assertEquals(-0.0, max[0], getL1EqualityThreshold());
+        assertEquals(4.5, max[1], 1e-10);
+        assertEquals(-10.5, max[2], 1e-10);
     }
+
+    protected double getL1EqualityThreshold() { return 1e-13; }
 
     @Test
     public void testL2RegularizedOffsetNegSumSquaresMax() {

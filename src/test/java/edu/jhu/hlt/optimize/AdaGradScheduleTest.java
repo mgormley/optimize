@@ -42,4 +42,6 @@ public class AdaGradScheduleTest extends AbstractBatchOptimizerTest {
         }
     }
 
+    protected double getL1EqualityThreshold() { return 0.4; }
+
 }
