@@ -23,7 +23,7 @@ public class AdaGradSchedule implements GainSchedule {
         /** The scaling parameter for the learning rate. */
         public double eta = 0.1;
         /**
-         * The amount added (epsilon) to the sum of squares inside the square
+         * The amount added (delta) to the sum of squares outside the square
          * root. This is to combat the issue of tiny gradients throwing the hole
          * optimization off early on.
          */
@@ -48,7 +48,6 @@ public class AdaGradSchedule implements GainSchedule {
     @Override
     public void init(DifferentiableBatchFunction function) {
         gradSumSquares = new double[function.getNumDimensions()];
-        Arrays.fill(gradSumSquares, prm.constantAddend);
     }
 
     /** A tie-in for subclasses such as AdaGrad. */
@@ -71,12 +70,12 @@ public class AdaGradSchedule implements GainSchedule {
         if (gradSumSquares[i] < 0) {
             throw new RuntimeException("Gradient sum of squares entry is < 0: " + gradSumSquares[i]);
         }
-        double learningRate = prm.eta / Math.sqrt(gradSumSquares[i]);
+        double learningRate = prm.eta / (prm.constantAddend + Math.sqrt(gradSumSquares[i]));
         assert !Double.isNaN(learningRate);
         if (learningRate == Double.POSITIVE_INFINITY) {
             if (gradSumSquares[i] != 0.0) {
                 log.warn("Gradient was non-zero but learningRate hit positive infinity: " + gradSumSquares[i]);
-            }
+            } 
             // Just return zero. The gradient is probably 0.0.
             return 0.0;
         }

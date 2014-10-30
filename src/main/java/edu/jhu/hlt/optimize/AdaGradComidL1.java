@@ -25,7 +25,7 @@ public class AdaGradComidL1 extends SGD implements Optimizer<DifferentiableBatch
         /** The scaling parameter for the learning rate. */
         public double eta = 0.1;
         /**
-         * The amount added (epsilon) to the sum of squares inside the square
+         * The amount added (delta) to the sum of squares outside the square
          * root. This is to combat the issue of tiny gradients throwing the hole
          * optimization off early on.
          */
@@ -75,7 +75,6 @@ public class AdaGradComidL1 extends SGD implements Optimizer<DifferentiableBatch
         this.iterOfLastStep = new int[function.getNumDimensions()];
         Arrays.fill(iterOfLastStep, -1);        
         this.gradSumSquares = new double[function.getNumDimensions()];
-        Arrays.fill(gradSumSquares, prm.constantAddend);
         this.prevParams = new double[function.getNumDimensions()];
         for (int i=0; i<prevParams.length; i++) {
             prevParams[i] = point.get(i);
@@ -125,7 +124,7 @@ public class AdaGradComidL1 extends SGD implements Optimizer<DifferentiableBatch
         if (gradSumSquares[i] < 0) {
             throw new RuntimeException("Gradient sum of squares entry is < 0: " + gradSumSquares[i]);
         }
-        double learningRate = prm.eta / Math.sqrt(gradSumSquares[i]);
+        double learningRate = prm.eta / (prm.constantAddend + Math.sqrt(gradSumSquares[i]));
         assert !Double.isNaN(learningRate);
         if (learningRate == Double.POSITIVE_INFINITY) {
             if (gradSumSquares[i] != 0.0) {
