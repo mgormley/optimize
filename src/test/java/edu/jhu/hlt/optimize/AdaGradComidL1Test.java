@@ -2,19 +2,19 @@ package edu.jhu.hlt.optimize;
 
 import org.junit.Test;
 
-import edu.jhu.hlt.optimize.AdaGradFobos.AdaGradFobosPrm;
+import edu.jhu.hlt.optimize.AdaGradComidL1.AdaGradFobosPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 
-public class AdaGradFobosTest extends AbstractBatchOptimizerTest {
+public class AdaGradComidL1Test extends AbstractBatchOptimizerTest {
 
     @Override
     protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
         AdaGradFobosPrm prm = getOptimizerPrm();
-        return new AdaGradFobos(prm);
+        return new AdaGradComidL1(prm);
     }
 
     protected AdaGradFobosPrm getOptimizerPrm() {
@@ -33,7 +33,7 @@ public class AdaGradFobosTest extends AbstractBatchOptimizerTest {
         AdaGradFobosPrm prm = getOptimizerPrm();
         prm.l1Lambda = l1Lambda;
         if (l2Lambda != 0) { return super.getRegularizedOptimizer(l1Lambda, l2Lambda); }
-        return new AdaGradFobos(prm);
+        return new AdaGradComidL1(prm);
     }
 
     

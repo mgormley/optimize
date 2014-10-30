@@ -13,15 +13,11 @@ import edu.jhu.prim.util.Lambda.FnIntDoubleToVoid;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
- * Stochastic gradient descent with forward-backward splitting (Duchi & Singer, 2009). The
- * regularizers are built into this optimizer. The key advantage of this approach is that we can
- * employ lazy updates based on the regularizers gradient, so that the gradient updates remain sparse.
- * 
- * In the case of L1 regularization, this is also called truncated gradient (Langford et al., 2008).
+ * AdaGrad with a Composite Mirror Descent update and L1 regularizer with lazy updates (Duchi et al., 2011).
  * 
  * @author mgormley
  */
-public class AdaGradFobos extends SGD implements Optimizer<DifferentiableBatchFunction>, GainSchedule {
+public class AdaGradComidL1 extends SGD implements Optimizer<DifferentiableBatchFunction>, GainSchedule {
 
     /** Options for this optimizer. */
     public static class AdaGradFobosPrm extends SGDPrm {
@@ -38,7 +34,8 @@ public class AdaGradFobos extends SGD implements Optimizer<DifferentiableBatchFu
         public double l1Lambda = 0.0;
     }
 
-    private static final Logger log = Logger.getLogger(AdaGradFobos.class);
+    private static final long serialVersionUID = 1L;
+    private static final Logger log = Logger.getLogger(AdaGradComidL1.class);
 
     private final AdaGradFobosPrm prm;
     // The iteration of the last step taken for each model parameter.
@@ -51,7 +48,7 @@ public class AdaGradFobos extends SGD implements Optimizer<DifferentiableBatchFu
     /**
      * Constructs an SGD optimizer.
      */
-    public AdaGradFobos(AdaGradFobosPrm prm) {
+    public AdaGradComidL1(AdaGradFobosPrm prm) {
         super(prm);
         if (prm.sched != null) {
             throw new IllegalArgumentException("Schedule for AdaGrad must be null.");
@@ -61,8 +58,8 @@ public class AdaGradFobos extends SGD implements Optimizer<DifferentiableBatchFu
     }
     
     @Override
-    public AdaGradFobos copy() {
-        AdaGradFobos sgd = new AdaGradFobos(Prm.clonePrm(this.prm));
+    public AdaGradComidL1 copy() {
+        AdaGradComidL1 sgd = new AdaGradComidL1(Prm.clonePrm(this.prm));
         sgd.iterOfLastStep = IntArrays.copyOf(this.iterOfLastStep);
         sgd.gradSumSquares = DoubleArrays.copyOf(this.gradSumSquares);
         sgd.prevParams = DoubleArrays.copyOf(this.prevParams);
