@@ -103,6 +103,7 @@ public class AdaGradComidL1 extends SGD implements Optimizer<DifferentiableBatch
                 iterOfLastStep[i] = iterCount;
                 assert !Double.isNaN(x_t1i);
                 assert !Double.isInfinite(x_t1i);
+                point.set(i, x_t1i);
                 // Commented for speed.
                 //log.debug(String.format("t=%d t0=%d i=%d g_ti=%.3g x_t0i=%.3g x_ti=%.3g x_t1i=%.3g", t, t0, i, g_ti, x_t0i, x_ti, x_t1i));
             }
