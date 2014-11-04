@@ -120,6 +120,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         double bestDevLoss = Double.MAX_VALUE;
         IntDoubleVector bestPoint = prm.earlyStopping && devLoss != null ? new IntDoubleDenseVector(function.getNumDimensions()) : null;
         IntDoubleVector avgPoint = prm.averaging ? new IntDoubleDenseVector(point) : null;
+        assert !prm.averaging || prm.passToStartAvg >= pass;
         
         // Setup.
         if (prm.stopBy != null) {
@@ -171,10 +172,13 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 if (prm.averaging) {
                     // Non-sparse update of averaged parameters.
                     double t0 = prm.passToStartAvg * itersPerPass;
-                    double mu_t = 1.0 / Math.max(1, (iter + 1 - startIter) - t0); 
+                    int t = iter + 1;
+                    double mu_t = 1.0 / Math.max(1, t - t0); 
                     for (int m=0; m<function.getNumDimensions(); m++) {
                         avgPoint.set(m, (1 - mu_t) * avgPoint.get(m) + mu_t * point.get(m));
                     }
+                    log.debug("Point: " + point);
+                    log.debug("Averaged point: " + avgPoint);
                 }
                 if (prm.stopBy != null) {
                     Date now = new Date();

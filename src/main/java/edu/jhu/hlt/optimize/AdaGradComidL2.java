@@ -13,7 +13,7 @@ import edu.jhu.prim.util.Lambda.FnIntDoubleToVoid;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
- * AdaGrad with a Composite Mirror Descent update and L1 regularizer with lazy updates (Duchi et al., 2011).
+ * AdaGrad with a Composite Objective Mirror Descent update and L1 regularizer with lazy updates (Duchi et al., 2011).
  * 
  * @author mgormley
  */
