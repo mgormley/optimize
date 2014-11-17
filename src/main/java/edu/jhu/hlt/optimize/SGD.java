@@ -194,8 +194,10 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / (pass + 1)));
         }
         
-        double value = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter, 
-                iter, bestDevLoss, bestPoint)[0];
+        double[] pair = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter, 
+                iter, bestDevLoss, bestPoint);
+        double value = pair[0];
+        bestDevLoss = pair[1];
         if (prm.earlyStopping && devLoss != null) {
             // Return the best point seen so far.
             log.debug("Early stopping returning point with dev loss: " + bestDevLoss);
