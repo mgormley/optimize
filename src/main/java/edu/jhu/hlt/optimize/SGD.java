@@ -372,7 +372,15 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         sgd.init(sampFunction, point);
         // Make sure we start off the learning rate schedule at the proper place.
         final int itersPerPass = sgd.getItersPerPass(sampFunction);
-        double obj = sgd.optimizeWithoutInit(sampFunction, point, maximize, itersPerPass, pass, null);
+        double obj;
+        try {
+            obj = sgd.optimizeWithoutInit(sampFunction, point, maximize, itersPerPass, pass, null);
+        } catch (Throwable t) {
+            log.setEnabled(true);
+            log.error("Caught throwable: " + t.getMessage());
+            t.printStackTrace();
+            obj = worstObjValue(maximize);
+        }
         log.setEnabled(true);
         return obj;
     }
@@ -387,6 +395,10 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     private static boolean isBetter(double obj, double bestObj, boolean maximize) {
         return maximize ? obj > bestObj : obj < bestObj;
+    }
+    
+    private static double worstObjValue(boolean maximize) {
+        return maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
     }
     
 }
