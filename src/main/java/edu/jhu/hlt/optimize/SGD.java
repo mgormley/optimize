@@ -4,7 +4,8 @@ import java.util.Date;
 
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.BottouSchedule.BottouSchedulePrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
@@ -56,7 +57,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         public SGDPrm() { }
     }
     
-    private static final OnOffLogger log = new OnOffLogger(Logger.getLogger(SGD.class));
+    private static final OnOffLogger log = new OnOffLogger(LoggerFactory.getLogger(SGD.class));
 
     private SGDPrm prm;
     

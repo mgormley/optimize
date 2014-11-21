@@ -1,6 +1,7 @@
 package edu.jhu.hlt.util;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class OnOffLogger {
@@ -19,28 +20,24 @@ public class OnOffLogger {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
-
-    public void fatal(Object message) {
-        if (enabled) { log.fatal(message); }
-    }    
     
-    public void error(Object message) {
+    public void error(String message) {
         if (enabled) { log.error(message); }
     }
     
-    public void warn(Object message) {
+    public void warn(String message) {
         if (enabled) { log.warn(message); }
     }
     
-    public void info(Object message) {
+    public void info(String message) {
         if (enabled) { log.info(message); }
     }
     
-    public void debug(Object message) {
+    public void debug(String message) {
         if (enabled) { log.debug(message); }
     }
 
-    public void trace(Object message) {
+    public void trace(String message) {
         if (enabled) { log.trace(message); }
     }
     

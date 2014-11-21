@@ -10,9 +10,12 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import com.xeiam.xchart.Chart;
@@ -34,7 +37,7 @@ import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class GPRegressionTest {
 
-	static Logger log = Logger.getLogger(GPRegressionTest.class);
+	static Logger log = LoggerFactory.getLogger(GPRegressionTest.class);
 
 	public double [][] uniformPoints(int N, int D) {
 		double [][] ret = new double[N][];
@@ -95,9 +98,6 @@ public class GPRegressionTest {
 	
 	@Test
 	public void TwoDGradientTest() {
-		BasicConfigurator.configure();
-    	Logger.getRootLogger().setLevel(Level.DEBUG);
-		
     	// Parameters
     	Kernel kernel = new SquaredExpKernel(1d, 1d);
     	double noise = 0d;
@@ -123,8 +123,8 @@ public class GPRegressionTest {
 		reg.computeMeanGradient(x_star, g);
 		double approx_g = reg.predict(x_star_plus_eps).mean - reg.predict(x_star).mean;
 		approx_g /= eps;
-		log.info(g[0]);
-		log.info(approx_g);
+		log.info(""+g[0]);
+		log.info(""+approx_g);
 		
 		assertEquals(g[0], approx_g, 1e-3);
 		
@@ -142,9 +142,6 @@ public class GPRegressionTest {
 	
 	@Test
 	public void OneDGradientTest() {
-		BasicConfigurator.configure();
-    	Logger.getRootLogger().setLevel(Level.DEBUG);
-		
     	// Parameters
     	Kernel kernel = new SquaredExpKernel(1d, 1d);
     	Function f = new XSquared();
@@ -171,8 +168,8 @@ public class GPRegressionTest {
 		reg.computeMeanGradient(x_star, g);
 		double approx_g = reg.predict(x_star_plus_eps).mean - reg.predict(x_star).mean;
 		approx_g /= eps;
-		log.info(g[0]);
-		log.info(approx_g);
+		log.info(""+g[0]);
+		log.info(""+approx_g);
 		
 		assertEquals(g[0], approx_g, 1e-3);
 		
@@ -189,10 +186,6 @@ public class GPRegressionTest {
 	
 	@Test
 	public void regressionTest() {
-		
-    	BasicConfigurator.configure();
-    	Logger.getRootLogger().setLevel(Level.DEBUG);
-		
     	// Parameters
     	Kernel kernel = new SquaredExpKernel(1d, 1d);
     	Function f = new XSquared();

@@ -8,14 +8,15 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.GPGO;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 public class SquaredExpKernel implements Kernel {
 
-	static Logger log = Logger.getLogger(SquaredExpKernel.class);
+	static Logger log = LoggerFactory.getLogger(SquaredExpKernel.class);
 	
 	double var;
 	double len_scale;

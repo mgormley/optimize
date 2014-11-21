@@ -2,7 +2,8 @@ package edu.jhu.hlt.optimize;
 
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.prim.arrays.IntArrays;
 import edu.jhu.prim.sort.IntSort;
@@ -15,7 +16,7 @@ import edu.jhu.util.Prng;
  */
 public class BatchSampler {
 
-    private static final Logger log = Logger.getLogger(BatchSampler.class);
+    private static final Logger log = LoggerFactory.getLogger(BatchSampler.class);
 
     // Parameters.
     private boolean withReplacement;

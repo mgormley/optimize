@@ -11,14 +11,15 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.functions.Line;
 
 public class LinearRegressor implements Regressor {
 
 	double var = 0.1;
-	static Logger log = Logger.getLogger(LinearRegressor.class);
+	static Logger log = LoggerFactory.getLogger(LinearRegressor.class);
 	RealMatrix beta;
 	
 	public LinearRegressor() {}

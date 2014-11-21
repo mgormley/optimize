@@ -2,7 +2,8 @@ package edu.jhu.hlt.optimize;
 
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.util.Prm;
@@ -34,7 +35,7 @@ public class AdaGradComidL1 extends SGD implements Optimizer<DifferentiableBatch
     }
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(AdaGradComidL1.class);
+    private static final Logger log = LoggerFactory.getLogger(AdaGradComidL1.class);
 
     private final AdaGradComidL1Prm prm;
     // The iteration of the last step taken for each model parameter.

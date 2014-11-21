@@ -9,8 +9,10 @@ import org.apache.commons.math3.linear.CholeskyDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xeiam.xchart.Chart;
 import com.xeiam.xchart.ChartBuilder;
@@ -38,7 +40,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
 @Deprecated
 public class GPRegression {
 	
-	static Logger log = Logger.getLogger(GPRegression.class);
+	static Logger log = LoggerFactory.getLogger(GPRegression.class);
 	
 	// TODO: this should implement a generic "Regressor" interface
 	public static class GPRegressor implements DifferentiableFunction {
@@ -283,11 +285,7 @@ public class GPRegression {
 		return new RegressionResult(predicted_mean, predicted_var);
 	}
 	
-	public static void main(String [] args) {
-		
-		// Turn on debugging
-		Logger.getRootLogger().setLevel(Level.DEBUG);
-		
+	public static void main(String [] args) {		
 		// Parameters
     	Kernel kernel = new SquaredExpKernel(1d, 1d);
     	double noise = 0d;

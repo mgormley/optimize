@@ -2,7 +2,8 @@
 
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.util.Prm;
@@ -30,7 +31,7 @@ public class AdaGradSchedule implements GainSchedule {
         public double constantAddend = 1e-9;
     }
     
-    private static final Logger log = Logger.getLogger(AdaGradSchedule.class);
+    private static final Logger log = LoggerFactory.getLogger(AdaGradSchedule.class);
 
     private AdaGradSchedulePrm prm;
     private double[] gradSumSquares;

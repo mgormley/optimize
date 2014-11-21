@@ -2,7 +2,8 @@ package edu.jhu.hlt.optimize;
 
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.optimize.function.FunctionOpts;
@@ -28,7 +29,7 @@ public class GradientDescentWithLineSearch implements Optimizer<DifferentiableFu
         }
     }
     
-    private static final Logger log = Logger.getLogger(GradientDescentWithLineSearch.class);
+    private static final Logger log = LoggerFactory.getLogger(GradientDescentWithLineSearch.class);
 
     /** The number of iterations performed thus far. */
     private int iterCount;

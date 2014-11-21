@@ -7,10 +7,11 @@ package edu.jhu.hlt.util.stats;
  */
 
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Regression {
-	static Logger log = Logger.getLogger(Regression.class);
+	static Logger log = LoggerFactory.getLogger(Regression.class);
 	
 	RealMatrix predictions;
 	RealMatrix confidences;

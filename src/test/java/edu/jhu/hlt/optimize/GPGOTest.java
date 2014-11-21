@@ -15,9 +15,12 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import com.xeiam.xchart.Chart;
@@ -47,16 +50,12 @@ import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class GPGOTest {
 
-	static Logger log = Logger.getLogger(GPGOTest.class);
+	static Logger log = LoggerFactory.getLogger(GPGOTest.class);
 	
 	@Test
 	public void myopicLossTest() {
 		
-		Prng.seed(42);
-		
-    	BasicConfigurator.configure();
-    	Logger.getRootLogger().setLevel(Level.DEBUG);
-		
+		Prng.seed(42);		
     	// Parameters
     	Kernel kernel = new SquaredExpKernel(0.5, 1.0);
     	
@@ -241,10 +240,6 @@ public class GPGOTest {
 	// This unit test takes too long. Run via main().
 	// @Test
 	public void Rastrigins() {
-
-		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.DEBUG);
-
 		Prng.seed(42);
 
 		int D;
@@ -286,10 +281,6 @@ public class GPGOTest {
     // This unit test takes too long. Run via main().
     // @Test
 	public void UnevenDecreasingMaxima() {
-		
-		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.DEBUG);
-		
 		UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
 		Function f = new NegateFunction(g);
 		
@@ -411,10 +402,6 @@ public class GPGOTest {
 	public void UnevenDecreasingMaximaOptimizedByGD() {
 		
 		Prng.seed(54);
-		
-		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.DEBUG);
-		
 		//UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
 		//Function f = new FunctionOpts.NegateFunction(g);
 		

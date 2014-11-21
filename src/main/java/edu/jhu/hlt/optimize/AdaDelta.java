@@ -1,6 +1,7 @@
 package edu.jhu.hlt.optimize;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.AdaGradSchedule.AdaGradSchedulePrm;
 import edu.jhu.hlt.optimize.SGD.SGDPrm;
@@ -31,7 +32,7 @@ public class AdaDelta implements GainSchedule {
         public double constantAddend = Math.pow(Math.E, -6);
     }
     
-    private static final Logger log = Logger.getLogger(AdaDelta.class);
+    private static final Logger log = LoggerFactory.getLogger(AdaDelta.class);
 
     private AdaDeltaPrm prm;
     // Accumulator for gradient.

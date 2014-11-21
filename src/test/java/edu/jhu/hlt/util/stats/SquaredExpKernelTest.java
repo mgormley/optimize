@@ -8,9 +8,12 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.util.stats.SquaredExpKernel;
 
@@ -19,14 +22,10 @@ import edu.jhu.hlt.util.stats.SquaredExpKernel;
  */
 public class SquaredExpKernelTest {
 
-	static Logger log = Logger.getLogger(SquaredExpKernelTest.class);
+	static Logger log = LoggerFactory.getLogger(SquaredExpKernelTest.class);
 	
 	@Test
 	public void ADmethods() {
-		
-		BasicConfigurator.configure();
-    	Logger.getRootLogger().setLevel(Level.DEBUG);
-		
 		double [] a1 = new double [] {1.1, 2.4};
 		double [] a2 = new double [] {0.5, 10.0};
 		double [] a3 = new double [] {0.1, -5.0};
@@ -60,9 +59,9 @@ public class SquaredExpKernelTest {
 	    res2 = kernel.k(a2_v, a3_ad).getValue();
 	    res3 = kernel.k(a2_v, a3_v);
 	    
-	    log.info(res1);
-	    log.info(res2);
-	    log.info(res3);
+	    log.info(""+res1);
+	    log.info(""+res2);
+	    log.info(""+res3);
 	    
 	    assertEquals(res1, res2, 1e-3);
 	    assertEquals(res2, res3, 1e-3);
@@ -70,10 +69,6 @@ public class SquaredExpKernelTest {
 	
 	@Test
 	public void squaredExpKernelTest() {
-		
-    	BasicConfigurator.configure();
-    	Logger.getRootLogger().setLevel(Level.DEBUG);
-		
 		double [] a1 = new double [] {1,1};
 		double [] a2 = new double [] {0,0};
 		double [] a3 = new double [] {2,1};
@@ -106,9 +101,6 @@ public class SquaredExpKernelTest {
 	
 	@Test
 	public void gradientTest() {
-		BasicConfigurator.configure();
-    	Logger.getRootLogger().setLevel(Level.DEBUG);
-		
 		RealVector x1 = new ArrayRealVector(new double[] {1, 1});
 		RealVector x2 = new ArrayRealVector(new double[] {2, 3});
 		double variance = 1d;

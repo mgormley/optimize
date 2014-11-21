@@ -8,7 +8,8 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.junit.Test;
 
@@ -18,7 +19,7 @@ import edu.jhu.hlt.optimize.functions.XSquared;
 
 
 public class RandomFunctionSearchTest {
-    static Logger log = Logger.getLogger(RandomFunctionSearch.class);
+    static Logger log = LoggerFactory.getLogger(RandomFunctionSearch.class);
 
     @Test
 	public void testXSquaredSearch(){

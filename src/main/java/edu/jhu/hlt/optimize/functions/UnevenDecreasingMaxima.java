@@ -5,9 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xeiam.xchart.Chart;
 import com.xeiam.xchart.ChartBuilder;
@@ -27,7 +30,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
 
 public class UnevenDecreasingMaxima implements DifferentiableFunction {
 
-	static Logger log = Logger.getLogger(UnevenDecreasingMaxima.class);
+	static Logger log = LoggerFactory.getLogger(UnevenDecreasingMaxima.class);
 	
 	int n;
 	int order = 1; // 1st derivatives only
@@ -83,11 +86,7 @@ public class UnevenDecreasingMaxima implements DifferentiableFunction {
 		return new IntDoubleDenseVector(new double[] {(upper-lower)/(2*eps)});
 	}
 	
-	public static void main(String [] args) {
-		
-		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.DEBUG);
-		
+	public static void main(String [] args) {		
 		UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
 		Function f = new NegateFunction(g);
 		

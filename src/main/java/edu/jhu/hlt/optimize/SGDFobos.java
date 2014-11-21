@@ -2,7 +2,8 @@ package edu.jhu.hlt.optimize;
 
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.util.Prm;
@@ -31,7 +32,7 @@ public class SGDFobos extends SGD implements Optimizer<DifferentiableBatchFuncti
         public double l2Lambda = 0.0;
     }
 
-    private static final Logger log = Logger.getLogger(SGDFobos.class);
+    private static final Logger log = LoggerFactory.getLogger(SGDFobos.class);
 
     private final SGDFobosPrm prm;
     // Whether to use l1 or l2^2 regularization.

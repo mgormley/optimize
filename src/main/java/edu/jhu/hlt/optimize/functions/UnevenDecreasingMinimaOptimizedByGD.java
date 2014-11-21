@@ -3,9 +3,12 @@ package edu.jhu.hlt.optimize.functions;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xeiam.xchart.Chart;
 import com.xeiam.xchart.ChartBuilder;
@@ -24,7 +27,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
 
 public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 	
-	static Logger log = Logger.getLogger(UnevenDecreasingMinimaOptimizedByGD.class);
+	static Logger log = LoggerFactory.getLogger(UnevenDecreasingMinimaOptimizedByGD.class);
 
 	Bounds b = Bounds.getUnitBounds(1);
 	DifferentiableFunctionOpts.DifferentiableFunctionWithConstraints f = new DifferentiableFunctionOpts.DifferentiableFunctionWithConstraints(new DifferentiableFunctionOpts.NegateFunction(new UnevenDecreasingMaxima()), b);
@@ -44,10 +47,6 @@ public class UnevenDecreasingMinimaOptimizedByGD implements Function {
 	}
 	
 	public static void main(String [] args) {
-		
-		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.DEBUG);
-		
 		UnevenDecreasingMaxima g = new UnevenDecreasingMaxima();
 		Function f = new DifferentiableFunctionOpts.NegateFunction(g);
 		

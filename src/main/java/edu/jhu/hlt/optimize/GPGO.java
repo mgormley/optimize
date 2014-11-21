@@ -10,9 +10,12 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xeiam.xchart.Chart;
 import com.xeiam.xchart.ChartBuilder;
@@ -54,7 +57,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
  */
 public class GPGO implements Optimizer<Function> {
 
-	static Logger log = Logger.getLogger(GPGO.class);
+	static Logger log = LoggerFactory.getLogger(GPGO.class);
 	
 	// Function to be optimized
 	Function f;

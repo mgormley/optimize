@@ -3,7 +3,8 @@ package edu.jhu.hlt.optimize;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.function.Bounds;
 import edu.jhu.hlt.optimize.function.Function;
@@ -21,7 +22,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
  */
 public class RandomFunctionSearch {
 
-    static Logger log = Logger.getLogger(RandomFunctionSearch.class);
+    static Logger log = LoggerFactory.getLogger(RandomFunctionSearch.class);
 	
     // Settings
     static final int order = 1; // up to what order derivatives to compute for the expected loss

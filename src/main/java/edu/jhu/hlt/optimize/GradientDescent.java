@@ -1,6 +1,7 @@
 package edu.jhu.hlt.optimize;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
@@ -30,7 +31,7 @@ public class GradientDescent implements Optimizer<DifferentiableFunction> {
         }
     }
     
-    private static final Logger log = Logger.getLogger(GradientDescent.class);
+    private static final Logger log = LoggerFactory.getLogger(GradientDescent.class);
 
     /** The number of iterations performed thus far. */
     private int iterCount;

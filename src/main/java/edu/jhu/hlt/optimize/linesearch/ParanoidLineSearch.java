@@ -3,7 +3,8 @@ package edu.jhu.hlt.optimize.linesearch;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.GradientDescentWithLineSearch;
 import edu.jhu.hlt.optimize.function.Bounds;
@@ -35,7 +36,7 @@ public class ParanoidLineSearch {
 	double prev_alpha;
 	double prev_dot;
 	
-    private static final Logger log = Logger.getLogger(GradientDescentWithLineSearch.class);
+    private static final Logger log = LoggerFactory.getLogger(GradientDescentWithLineSearch.class);
 	
 	public static class ParanoidLineSearchPrm {
 		public double alpha_1 = 1.0;

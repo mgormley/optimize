@@ -1,6 +1,7 @@
 package edu.jhu.hlt.optimize;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.function.ConstrainedFunction;
 import edu.jhu.hlt.optimize.propose.Proposable;
@@ -27,7 +28,7 @@ import org.apache.commons.math3.linear.MatrixUtils;
  */
 public class ParameterFreeSAOptimizer implements Optimizer<ConstrainedFunction> {
 
-	static Logger log = Logger.getLogger(ParameterFreeSAOptimizer.class);
+	static Logger log = LoggerFactory.getLogger(ParameterFreeSAOptimizer.class);
 	
 	final double eps = 1e-4;
 	int max_trials = 100; // maximum # of trials to find a point inside the bounds
