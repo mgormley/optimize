@@ -1,5 +1,7 @@
 package edu.jhu.hlt.optimize;
 
+import java.io.Serializable;
+
 import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.prim.vector.IntDoubleVector;
 
@@ -10,7 +12,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
  * @author noandrews
  * 
  */
-public interface Optimizer<T extends Function> {
+public interface Optimizer<T extends Function> extends Serializable {
 
     /**
      * Minimizes a function starting from some initial point.
