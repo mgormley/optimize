@@ -378,8 +378,9 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             obj = sgd.optimizeWithoutInit(sampFunction, point, maximize, itersPerPass, pass, null);
         } catch (Throwable t) {
             log.setEnabled(true);
-            log.error("Caught throwable: " + t.getMessage());
-            t.printStackTrace();
+            String msg = (t.getMessage() == null) ? "": " : " + t.getMessage();
+            log.error("Failed to evaluate hyperparameter. Caught throwable: " + t.getClass() + msg);
+            log.trace("Stacktrace from previous ERROR:\n", t);
             obj = worstObjValue(maximize);
         }
         log.setEnabled(true);

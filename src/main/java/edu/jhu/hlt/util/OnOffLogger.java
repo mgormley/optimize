@@ -44,5 +44,9 @@ public class OnOffLogger {
     public boolean isTraceEnabled() {
         return log.isTraceEnabled();
     }
+
+    public void trace(String message, Throwable t) {
+        log.trace(message, t);
+    }
     
 }
