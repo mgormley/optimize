@@ -33,6 +33,10 @@ public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatch
         public double constantAddend = 1e-9;
         /** The weight on the l2 regularizer. */
         public double l2Lambda = 0.0;
+        public AdaGradComidL2Prm() {
+            // Schedule must be null.
+            this.sched = null;
+        }
     }
 
     private static final long serialVersionUID = 1L;
@@ -50,7 +54,7 @@ public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatch
     public AdaGradComidL2(AdaGradComidL2Prm prm) {
         super(prm);
         if (!(prm.sched == null || prm.sched instanceof EmptyGainSchedule)) {
-            throw new IllegalArgumentException("Schedule for AdaGrad must be null.");
+            log.warn("Schedule for AdaGrad should be set to null. Ignoring it.");
         }
         this.prm = prm;
         this.prm.sched = new EmptyGainSchedule();
