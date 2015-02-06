@@ -4,7 +4,7 @@
 
   <groupId>edu.jhu.hlt.optimize</groupId>
   <artifactId>optimize</artifactId>
-  <version>3.0.4-SNAPSHOT</version>
+  <version>3.0.5-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
@@ -12,7 +12,7 @@
   <url>https://github.com/minyans/optimize</url>
 
   <properties>
-    <pacaya.version>3.0.4-SNAPSHOT</pacaya.version>
+    <pacaya.version>3.0.4</pacaya.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -74,6 +74,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.5.3</version>                
         <configuration>
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -83,6 +84,7 @@
       <plugin>      
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18.1</version>
         <configuration>
           <testFailureIgnore>true</testFailureIgnore>
         </configuration>
