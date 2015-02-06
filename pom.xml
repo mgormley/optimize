@@ -11,6 +11,11 @@
   <description>A Java Optimization Library</description>
   <url>https://github.com/minyans/optimize</url>
 
+  <properties>
+    <pacaya.version>3.0.4-SNAPSHOT</pacaya.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
   <organization>
     <name>Johns Hopkins University</name>
   </organization>
@@ -50,16 +55,11 @@
     </license>
   </licenses>
 
-
   <scm>
     <connection>scm:git:git@github.com:minyans/optimize.git</connection>
     <url>scm:git:git@github.com:minyans/optimize.git</url>
     <developerConnection>scm:git:git@github.com:minyans/optimize.git</developerConnection>
   </scm>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
 
   <build>
     <plugins>
@@ -212,7 +212,7 @@
     <dependency>
       <groupId>edu.jhu.prim</groupId>
       <artifactId>prim</artifactId>
-      <version>3.0.4-SNAPSHOT</version>
+      <version>${pacaya.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
