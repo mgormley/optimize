@@ -4,7 +4,7 @@
 
   <groupId>edu.jhu.hlt.optimize</groupId>
   <artifactId>optimize</artifactId>
-  <version>3.0.5-SNAPSHOT</version>
+  <version>3.0.5</version>
   <packaging>jar</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
