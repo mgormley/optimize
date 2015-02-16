@@ -32,6 +32,8 @@ public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatch
         public double constantAddend = 1e-9;
         /** The weight on the l2 regularizer. */
         public double l2Lambda = 0.0;
+        /** Initial sum of squares value. */
+        public double initialSumSquares = 0;
     }
 
     private static final long serialVersionUID = 1L;
@@ -72,6 +74,7 @@ public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatch
         this.iterOfLastStep = new int[function.getNumDimensions()];
         Arrays.fill(iterOfLastStep, -1);        
         this.gradSumSquares = new double[function.getNumDimensions()];
+        Arrays.fill(gradSumSquares, prm.initialSumSquares);
     }
 
     @Override
