@@ -29,6 +29,8 @@ public class AdaGradSchedule implements GainSchedule {
          * optimization off early on.
          */
         public double constantAddend = 1e-9;
+        /** Initial sum of squares value. */
+        public double initialSumSquares = 0;
     }
     
     private static final Logger log = LoggerFactory.getLogger(AdaGradSchedule.class);
@@ -49,6 +51,7 @@ public class AdaGradSchedule implements GainSchedule {
     @Override
     public void init(DifferentiableBatchFunction function) {
         gradSumSquares = new double[function.getNumDimensions()];
+        Arrays.fill(gradSumSquares, prm.initialSumSquares);
     }
 
     /** A tie-in for subclasses such as AdaGrad. */
