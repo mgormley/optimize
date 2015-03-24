@@ -4,7 +4,7 @@
 
   <groupId>edu.jhu.hlt.optimize</groupId>
   <artifactId>optimize</artifactId>
-  <version>${version}</version>
+  <version>3.0.10-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
@@ -12,8 +12,6 @@
   <url>https://github.com/minyans/optimize</url>
 
   <properties>
-    <!-- The version for this artifact. -->
-    <version>3.0.10-SNAPSHOT</version>
     <!-- The version for the Pacaya dependencies. -->
     <pacaya.version>3.0.10-SNAPSHOT</pacaya.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
