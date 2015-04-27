@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.jhu.prim.arrays.IntArrays;
 import edu.jhu.prim.sort.IntSort;
-import edu.jhu.util.Prng;
+import edu.jhu.prim.util.Prng;
 
 /**
  * Sampler of batches.
