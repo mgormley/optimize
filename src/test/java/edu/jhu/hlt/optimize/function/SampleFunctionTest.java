@@ -7,7 +7,7 @@ import java.util.Arrays;
 import org.junit.Test;
 
 import edu.jhu.hlt.util.JUnitUtils;
-import edu.jhu.prim.util.Prng;
+import edu.jhu.prim.util.random.Prng;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 

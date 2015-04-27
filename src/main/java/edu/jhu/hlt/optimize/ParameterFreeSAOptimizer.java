@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import edu.jhu.hlt.optimize.function.ConstrainedFunction;
 import edu.jhu.hlt.optimize.propose.Proposable;
 import edu.jhu.hlt.util.math.Vectors;
-import edu.jhu.prim.util.Prng;
+import edu.jhu.prim.util.random.Prng;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;

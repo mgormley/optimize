@@ -32,7 +32,7 @@ import edu.jhu.hlt.util.stats.GPRegression;
 import edu.jhu.hlt.util.stats.Kernel;
 import edu.jhu.hlt.util.stats.SquaredExpKernel;
 import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
-import edu.jhu.prim.util.Prng;
+import edu.jhu.prim.util.random.Prng;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class GPRegressionTest {

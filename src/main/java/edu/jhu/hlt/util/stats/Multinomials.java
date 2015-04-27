@@ -1,6 +1,6 @@
 package edu.jhu.hlt.util.stats;
 
-import edu.jhu.prim.util.Prng;
+import edu.jhu.prim.util.random.Prng;
 import edu.jhu.hlt.util.Utilities;
 import edu.jhu.hlt.util.math.Vectors;
 
