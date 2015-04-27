@@ -15,10 +15,10 @@ import edu.jhu.hlt.optimize.function.SampleFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.util.OnOffLogger;
 import edu.jhu.hlt.util.Prm;
+import edu.jhu.prim.util.Timer;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
-import edu.jhu.util.Timer;
 
 /**
  * Stochastic gradient descent with minibatches.
