@@ -12,6 +12,7 @@ import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.util.random.Prng;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 
@@ -101,6 +102,7 @@ public class SGDTest extends AbstractBatchOptimizerTest {
     
     @Test
     public void testAveraging() {
+        Prng.seed(123456789101112l);
         SGDPrm prm = new SGDPrm();
         prm.sched.setEta0(0.1 * 10);
         prm.numPasses = 1;
