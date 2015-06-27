@@ -30,12 +30,12 @@ import edu.jhu.hlt.optimize.function.ConstrainedFunction;
 import edu.jhu.hlt.optimize.function.Function;
 import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.optimize.propose.Proposable;
-import edu.jhu.util.Prng;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.hlt.util.stats.GPRegression;
 import edu.jhu.hlt.util.stats.Kernel;
 import edu.jhu.hlt.util.stats.GPRegression.GPRegressor;
 import edu.jhu.hlt.util.stats.RegressionResult;
+import edu.jhu.prim.util.random.Prng;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 

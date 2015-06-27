@@ -8,9 +8,9 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well44497b;
 
 import edu.jhu.hlt.optimize.function.Function;
+import edu.jhu.prim.util.random.Prng;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
-import edu.jhu.util.Prng;
 
 /**
  * 

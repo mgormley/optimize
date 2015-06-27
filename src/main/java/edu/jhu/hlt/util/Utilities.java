@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import edu.jhu.util.Prng;
+import edu.jhu.prim.util.random.Prng;
 
 public class Utilities {
 
