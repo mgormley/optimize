@@ -13,11 +13,7 @@
 
   <properties>
     <!-- The version for the Pacaya dependencies. -->
-<<<<<<< HEAD
-    <pacaya.version>3.1.0-SNAPSHOT</pacaya.version>
-=======
     <pacaya.version>3.1.1-SNAPSHOT</pacaya.version>
->>>>>>> 316e18e91af266929cd0b3db1235993b1791afbf
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
