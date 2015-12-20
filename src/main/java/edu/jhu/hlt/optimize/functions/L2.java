@@ -69,4 +69,8 @@ public class L2 implements Regularizer {
         this.numParams = numParams ;
     }
 
+    public double getVariance() {
+        return variance;
+    }
+
 }
