@@ -111,7 +111,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         BatchSampler batchSampler = new BatchSampler(prm.withReplacement, function.getNumExamples(), prm.batchSize);
         Timer passTimer = new Timer();
         Timer tuneTimer = new Timer();
-        double bestDevError = Double.MAX_VALUE;
+        double bestDevLoss = Double.MAX_VALUE;
+        int[] bestDevPass = { -1 };  // as an array to enable pass by reference
         IntDoubleVector bestPoint = prm.earlyStopping && devLoss != null ? new IntDoubleDenseVector(function.getNumDimensions()) : null;
         IntDoubleVector avgPoint = prm.averaging ? new IntDoubleDenseVector(point) : null;
         assert !prm.averaging || prm.passToStartAvg >= pass;
@@ -139,8 +140,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 passTimer.start();
             }
             if (prm.computeValueOnNonFinalIter) {
-                bestDevError = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter,
-                        iter, bestDevError, bestPoint)[1];
+                bestDevLoss = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter,
+                        iter, bestDevLoss, bestPoint, bestDevPass)[1];
             }
             
             // Make a full pass through the training data.
@@ -186,13 +187,13 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / (pass + 1)));
         }
         
-        double[] pair = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter, 
-                iter, bestDevError, bestPoint);
+        double[] pair = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter,
+                iter, bestDevLoss, bestPoint, bestDevPass);
         double value = pair[0];
-        bestDevError = pair[1];
+        bestDevLoss = pair[1];
         if (prm.earlyStopping && devLoss != null) {
             // Return the best point seen so far.
-            log.debug("Early stopping returning point with dev loss: " + bestDevError);
+            log.debug(String.format("Early stopping returning point with dev loss %f from pass %d: ", bestDevLoss, bestDevPass[0]));
             for (int m=0; m<function.getNumDimensions(); m++) {
                 point.set(m, bestPoint.get(m));
             }
@@ -207,7 +208,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     protected double[] sufferLossAndUpdateBest(DifferentiableBatchFunction function, IntDoubleVector point,
             IntDoubleVector avgPoint, int pass, Function devLoss, int startIter, int iter, double bestDevLoss, 
-            IntDoubleVector bestPoint) {
+            IntDoubleVector bestPoint, int[] bestDevPass) {
         if (prm.averaging) {
             point = avgPoint;
         }
@@ -226,6 +227,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                     bestPoint.set(m, point.get(m));
                 }
                 bestDevLoss = devScore;
+                bestDevPass[0] = pass;
             }
         }
         return new double[]{value, bestDevLoss};
