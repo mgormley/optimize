@@ -224,11 +224,11 @@ public class LBFGS_port {
      *  Call lbfgs_parameter_init() function to initialize parameters to the
      *  default values.
      */
-    public static class lbfgs_parameter_t {
+    public static class LBFGSPrm {
                 
-        public lbfgs_parameter_t() { }
+        public LBFGSPrm() { }
         
-        public lbfgs_parameter_t(lbfgs_parameter_t other) {
+        public LBFGSPrm(LBFGSPrm other) {
             super();
             this.m = other.m;
             this.epsilon = other.epsilon;
@@ -410,9 +410,7 @@ public class LBFGS_port {
     }
 
 
-    public static abstract class callback_data_t {
-        int n; // TODO: Remove this.
-        Object instance;
+    public interface LBFGSCallback {
         
         /**
          * Callback interface to provide objective function and gradient evaluations.
@@ -421,21 +419,17 @@ public class LBFGS_port {
          *  function and its gradients when needed. A client program must implement
          *  this function to evaluate the values of the objective function and its
          *  gradients, given current values of variables.
-         *  
-         *  @param  instance    The user data sent for lbfgs() function by the client.
-         *  @param  x           The current values of variables.
-         *  @param  g           The gradient vector. The callback function must compute
+         * @param  x           The current values of variables.
+         * @param  g           The gradient vector. The callback function must compute
          *                      the gradient values for the current variables.
-         *  @param  n           The number of variables.
-         *  @param  step        The current step of the line search routine.
+         * @param  step        The current step of the line search routine.
+         *  
          *  @retval double The value of the objective function for the current
          *                          variables.
          */
-        abstract double proc_evaluate(
-            Object instance,
+        double proc_evaluate(
             final double[] x,
             double[] g,
-            final int n,
             final double step
             );
     
@@ -445,29 +439,25 @@ public class LBFGS_port {
          *  The lbfgs() function call this function for each iteration. Implementing
          *  this function, a client program can store or display the current progress
          *  of the optimization process.
+         * @param  x           The current values of variables.
+         * @param  g           The current gradient values of variables.
+         * @param  fx          The current value of the objective function.
+         * @param  xnorm       The Euclidean norm of the variables.
+         * @param  gnorm       The Euclidean norm of the gradients.
+         * @param  step        The line-search step used for this iteration.
+         * @param  k           The iteration count.
+         * @param  ls          The number of evaluations called for this iteration.
          *
-         *  @param  instance    The user data sent for lbfgs() function by the client.
-         *  @param  x           The current values of variables.
-         *  @param  g           The current gradient values of variables.
-         *  @param  fx          The current value of the objective function.
-         *  @param  xnorm       The Euclidean norm of the variables.
-         *  @param  gnorm       The Euclidean norm of the gradients.
-         *  @param  step        The line-search step used for this iteration.
-         *  @param  n           The number of variables.
-         *  @param  k           The iteration count.
-         *  @param  ls          The number of evaluations called for this iteration.
          *  @retval int         Zero to continue the optimization process. Returning a
          *                      non-zero value will cancel the optimization process.
          */
-        abstract StatusCode proc_progress(
-            Object instance,
+        StatusCode proc_progress(
             final double[] x,
             final double[] g,
             final double fx,
             final double xnorm,
             final double gnorm,
             final double step,
-            int n,
             int k,
             int ls
             );
@@ -851,18 +841,18 @@ public class LBFGS_port {
     public static StatusCode lbfgs(
         double[] x,
         MutableDouble ptr_fx,
-        callback_data_t cd,
-        lbfgs_parameter_t _param
+        LBFGSCallback cd,
+        LBFGSPrm _param
         )     
     {
-        int n = cd.n;
+        final int n = x.length;
         StatusCode ret, ls_ret;
         MutableInt ls = new MutableInt(0);
         int i, j, k, end, bound;        
         double step;
     
         /* Constant parameters and their default values. */
-        lbfgs_parameter_t param = (_param != null) ? _param : new lbfgs_parameter_t();
+        LBFGSPrm param = (_param != null) ? _param : new LBFGSPrm();
         final int m = param.m;
 
         double[] xp;
@@ -980,7 +970,7 @@ public class LBFGS_port {
         }
 
         /* Evaluate the function value and its gradient. */
-        fx = cd.proc_evaluate(cd.instance, x, g, cd.n, 0);
+        fx = cd.proc_evaluate(x, g, 0);
         if (0. != param.orthantwise_c) {
             /* Compute the L1 norm of the variable and add it to the object value. */
             xnorm = owlqn_x1norm(x, param.orthantwise_start, param.orthantwise_end);
@@ -1065,7 +1055,7 @@ public class LBFGS_port {
             }
 
             /* Report the progress. */
-            ret = cd.proc_progress(cd.instance, x, g, fx, xnorm, gnorm, step, cd.n, k, ls.v);
+            ret = cd.proc_progress(x, g, fx, xnorm, gnorm, step, k, ls.v);
             if (ret.ret != 0) {
                 ptr_fx.v = fx;
                 return ret;
@@ -1206,8 +1196,8 @@ public class LBFGS_port {
         final double[] xp,
         final double[] gp,
         double[] wp,
-        callback_data_t cd,
-        final lbfgs_parameter_t param,
+        LBFGSCallback cd,
+        final LBFGSPrm param,
         MutableInt ls,
         LineSearchAlgInternal linesearch_choice
         )
@@ -1231,8 +1221,8 @@ public class LBFGS_port {
         final double[] xp,
         final double[] gp,
         double[] wp,
-        callback_data_t cd,
-        final lbfgs_parameter_t param,
+        LBFGSCallback cd,
+        final LBFGSPrm param,
         MutableInt ls
         )
     {
@@ -1263,7 +1253,7 @@ public class LBFGS_port {
             vecadd(x, s, stp.v, n);
 
             /* Evaluate the function and gradient values. */
-            f.v = cd.proc_evaluate(cd.instance, x, g, cd.n, stp.v);
+            f.v = cd.proc_evaluate(x, g, stp.v);
 
             ++count;
 
@@ -1328,8 +1318,8 @@ public class LBFGS_port {
         final double[] xp,
         final double[] gp,
         double[] wp,
-        callback_data_t cd,
-        final lbfgs_parameter_t param,
+        LBFGSCallback cd,
+        final LBFGSPrm param,
         MutableInt ls
         )
     {
@@ -1356,7 +1346,7 @@ public class LBFGS_port {
             owlqn_project(x, wp, param.orthantwise_start, param.orthantwise_end);
 
             /* Evaluate the function and gradient values. */
-            f.v = cd.proc_evaluate(cd.instance, x, g, cd.n, stp.v);
+            f.v = cd.proc_evaluate(x, g, stp.v);
 
             /* Compute the L1 norm of the variables and add it to the object value. */
             norm = owlqn_x1norm(x, param.orthantwise_start, param.orthantwise_end);
@@ -1571,8 +1561,8 @@ public class LBFGS_port {
         final double[] xp,
         final double[] gp,
         double[] wp,
-        callback_data_t cd,
-        final lbfgs_parameter_t param,
+        LBFGSCallback cd,
+        final LBFGSPrm param,
         MutableInt ls
         )
     {
@@ -1655,7 +1645,7 @@ public class LBFGS_port {
             vecadd(x, s, stp.v, n);
 
             /* Evaluate the function and gradient values. */
-            f.v = cd.proc_evaluate(cd.instance, x, g, cd.n, stp.v);
+            f.v = cd.proc_evaluate(x, g, stp.v);
             dg = vecdot(g, s, n);
 
             ftest1 = finit + stp.v * dgtest;

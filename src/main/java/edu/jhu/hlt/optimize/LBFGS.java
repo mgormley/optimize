@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.LBFGS_port.StatusCode;
-import edu.jhu.hlt.optimize.LBFGS_port.callback_data_t;
-import edu.jhu.hlt.optimize.LBFGS_port.lbfgs_parameter_t;
+import edu.jhu.hlt.optimize.LBFGS_port.LBFGSCallback;
+import edu.jhu.hlt.optimize.LBFGS_port.LBFGSPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts;
 import edu.jhu.hlt.optimize.function.ValueGradient;
@@ -19,11 +19,11 @@ public class LBFGS implements Optimizer<DifferentiableFunction> {
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(LBFGS.class);
 
-    private lbfgs_parameter_t param;
+    private LBFGSPrm param;
     
-    public LBFGS() { this(new lbfgs_parameter_t()); }
+    public LBFGS() { this(new LBFGSPrm()); }
 
-    public LBFGS(lbfgs_parameter_t param) { this.param = param; }
+    public LBFGS(LBFGSPrm param) { this.param = param; }
 
     @Override
     public boolean maximize(DifferentiableFunction fn, IntDoubleVector x) {
@@ -40,24 +40,23 @@ public class LBFGS implements Optimizer<DifferentiableFunction> {
         
         log.info(String.format("%8s %8s %8s %8s %8s %8s", "k", "fx", "xnorm", "gnorm", "step", "ls"));
         log.info(String.format("%8s-%8s-%8s-%8s-%8s-%8s", "------", "------", "------", "------", "------", "------"));
-        callback_data_t cd = new callback_data_t() {
+        LBFGSCallback cd = new LBFGSCallback() {
             
             @Override
-            double proc_evaluate(Object instance, double[] x, double[] g, int n, double step) {
+            public double proc_evaluate(double[] x, double[] g, double step) {
                 ValueGradient vg = fn.getValueGradient(new IntDoubleDenseVector(x));
                 setArrayFromVector(g, vg.getGradient());
                 return vg.getValue();
             }
             
             @Override
-            StatusCode proc_progress(Object instance, double[] x, double[] g, double fx, double xnorm, double gnorm, double step,
-                    int n, int k, int ls) {
+            public StatusCode proc_progress(double[] x, double[] g, double fx, double xnorm, double gnorm, double step,
+                    int k, int ls) {
                 log.info(String.format("%8d %8.2g %8.2g %8.2g %8.2g %8d", k, fx, xnorm, gnorm, step, ls));
                 return StatusCode.LBFGS_CONTINUE;
             }
             
         };
-        cd.n = xArr.length;
 
         // Minimize.
         StatusCode ret = LBFGS_port.lbfgs(xArr, fx, cd, param);
