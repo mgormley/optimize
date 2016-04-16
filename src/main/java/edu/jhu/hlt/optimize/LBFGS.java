@@ -3,6 +3,7 @@ package edu.jhu.hlt.optimize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.jhu.hlt.optimize.LBFGS_port.StatusCode;
 import edu.jhu.hlt.optimize.LBFGS_port.callback_data_t;
 import edu.jhu.hlt.optimize.LBFGS_port.lbfgs_parameter_t;
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
@@ -49,18 +50,18 @@ public class LBFGS implements Optimizer<DifferentiableFunction> {
             }
             
             @Override
-            int proc_progress(Object instance, double[] x, double[] g, double fx, double xnorm, double gnorm, double step,
+            StatusCode proc_progress(Object instance, double[] x, double[] g, double fx, double xnorm, double gnorm, double step,
                     int n, int k, int ls) {
                 log.info(String.format("%8d %8.2g %8.2g %8.2g %8.2g %8d", k, fx, xnorm, gnorm, step, ls));
-                return 0;
+                return StatusCode.LBFGS_CONTINUE;
             }
             
         };
         cd.n = xArr.length;
 
         // Minimize.
-        int ret = LBFGS_port.lbfgs(xArr, fx, cd, param);
-        if (ret != 0) {
+        StatusCode ret = LBFGS_port.lbfgs(xArr, fx, cd, param);
+        if (ret.ret != 0) {
             log.warn("Error from LBFGS: " + ret);
         }
         

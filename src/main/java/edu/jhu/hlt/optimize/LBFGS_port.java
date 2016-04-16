@@ -1,37 +1,82 @@
+/*
+ *      Java library of Limited memory BFGS (L-BFGS).
+ *
+ * Copyright (c) 1990, Jorge Nocedal
+ * Copyright (c) 2007-2010 Naoaki Okazaki
+ * Copyright (c) 2016 Matt Gormley
+ * All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package edu.jhu.hlt.optimize;
 
+import static edu.jhu.hlt.optimize.LBFGS_port.LineSearchAlg.LBFGS_LINESEARCH_BACKTRACKING_ARMIJO;
+import static edu.jhu.hlt.optimize.LBFGS_port.LineSearchAlg.LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE;
+import static edu.jhu.hlt.optimize.LBFGS_port.LineSearchAlg.*;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INCORRECT_TMINMAX;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INCREASEGRADIENT;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALIDPARAMETERS;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_DELTA;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_EPSILON;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_FTOL;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_GTOL;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_LINESEARCH;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.*;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_MAXSTEP;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_MINSTEP;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_N;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_ORTHANTWISE;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_ORTHANTWISE_END;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_ORTHANTWISE_START;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_TESTPERIOD;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_WOLFE;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_XTOL;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_MAXIMUMITERATION;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_MAXIMUMLINESEARCH;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_MAXIMUMSTEP;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_MINIMUMSTEP;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_OUTOFINTERVAL;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_ROUNDING_ERROR;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_WIDTHTOOSMALL;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGS_ALREADY_MINIMIZED;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGS_CONTINUE;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGS_STOP;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGS_SUCCESS;
+
 import edu.jhu.prim.Primitives.MutableDouble;
+import edu.jhu.prim.Primitives.MutableInt;
 
+/**
+ * This is a port of libLBFGS from C to Java.
+ * The original C source code is available at:
+ * https://github.com/chokkan/liblbfgs
+ * 
+ * libLBFGS is a C port of the implementation of Limited-memory
+ * Broyden-Fletcher-Goldfarb-Shanno (L-BFGS) method written by Jorge Nocedal. 
+ * The original FORTRAN source code is available at: 
+ * http://www.ece.northwestern.edu/~nocedal/lbfgs.html
+ * 
+ * @author mgormley
+ */
 public class LBFGS_port {
-
-    /*
-     *      C library of Limited memory BFGS (L-BFGS).
-     *
-     * Copyright (c) 1990, Jorge Nocedal
-     * Copyright (c) 2007-2010 Naoaki Okazaki
-     * All rights reserved.
-     *
-     * Permission is hereby granted, free of charge, to any person obtaining a copy
-     * of this software and associated documentation files (the "Software"), to deal
-     * in the Software without restriction, including without limitation the rights
-     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     * copies of the Software, and to permit persons to whom the Software is
-     * furnished to do so, subject to the following conditions:
-     *
-     * The above copyright notice and this permission notice shall be included in
-     * all copies or substantial portions of the Software.
-     *
-     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-     * THE SOFTWARE.
-     */
-
-    /* $Id$ */
-
+    
     /** 
      * \addtogroup liblbfgs_api libLBFGS API
      * @{
@@ -44,121 +89,136 @@ public class LBFGS_port {
      * 
      *  Roughly speaking, a negative value indicates an error.
      */
-    /** L-BFGS reaches convergence. */
-    private static final int LBFGS_SUCCESS = 0;
-    private static final int LBFGS_CONVERGENCE = 0;
-    private static final int LBFGS_STOP = 1;
-    /** The initial variables already minimize the objective function. */
-    private static final int LBFGS_ALREADY_MINIMIZED = 2;
-
-    /** Unknown error. */
-    private static final int LBFGSERR_UNKNOWNERROR = -1024;
-    /** Logic error. */
-    private static final int LBFGSERR_LOGICERROR = -1023;
-    /** Insufficient memory. */
-    private static final int LBFGSERR_OUTOFMEMORY = -1022;
-    /** The minimization process has been canceled. */
-    private static final int LBFGSERR_CANCELED = -1021;
-    /** Invalid number of variables specified. */
-    private static final int LBFGSERR_INVALID_N = -1020;
-    /** Invalid number of variables (for SSE) specified. */
-    private static final int LBFGSERR_INVALID_N_SSE = -1019;
-    /** The array x must be aligned to 16 (for SSE). */
-    private static final int LBFGSERR_INVALID_X_SSE = -1018;
-    /** Invalid parameter lbfgs_parameter_t::epsilon specified. */
-    private static final int LBFGSERR_INVALID_EPSILON = -1017;
-    /** Invalid parameter lbfgs_parameter_t::past specified. */
-    private static final int LBFGSERR_INVALID_TESTPERIOD = -1016;
-    /** Invalid parameter lbfgs_parameter_t::delta specified. */
-    private static final int LBFGSERR_INVALID_DELTA = -1015;
-    /** Invalid parameter lbfgs_parameter_t::linesearch specified. */
-    private static final int LBFGSERR_INVALID_LINESEARCH = -1014;
-    /** Invalid parameter lbfgs_parameter_t::max_step specified. */
-    private static final int LBFGSERR_INVALID_MINSTEP = -1013;
-    /** Invalid parameter lbfgs_parameter_t::max_step specified. */
-    private static final int LBFGSERR_INVALID_MAXSTEP = -1012;
-    /** Invalid parameter lbfgs_parameter_t::ftol specified. */
-    private static final int LBFGSERR_INVALID_FTOL = -1011;
-    /** Invalid parameter lbfgs_parameter_t::wolfe specified. */
-    private static final int LBFGSERR_INVALID_WOLFE = -1010;
-    /** Invalid parameter lbfgs_parameter_t::gtol specified. */
-    private static final int LBFGSERR_INVALID_GTOL = -1009;
-    /** Invalid parameter lbfgs_parameter_t::xtol specified. */
-    private static final int LBFGSERR_INVALID_XTOL = -1008;
-    /** Invalid parameter lbfgs_parameter_t::max_linesearch specified. */
-    private static final int LBFGSERR_INVALID_MAXLINESEARCH = -1007;
-    /** Invalid parameter lbfgs_parameter_t::orthantwise_c specified. */
-    private static final int LBFGSERR_INVALID_ORTHANTWISE = -1006;
-    /** Invalid parameter lbfgs_parameter_t::orthantwise_start specified. */
-    private static final int LBFGSERR_INVALID_ORTHANTWISE_START = -1005;
-    /** Invalid parameter lbfgs_parameter_t::orthantwise_end specified. */
-    private static final int LBFGSERR_INVALID_ORTHANTWISE_END = -1004;
-    /** The line-search step went out of the interval of uncertainty. */
-    private static final int LBFGSERR_OUTOFINTERVAL = -1003;
-    /** A logic error occurred; alternatively, the interval of uncertainty
-        became too small. */
-    private static final int LBFGSERR_INCORRECT_TMINMAX = -1002;
-    /** A rounding error occurred; alternatively, no line-search step
-        satisfies the sufficient decrease and curvature conditions. */
-    private static final int LBFGSERR_ROUNDING_ERROR = -1001;
-    /** The line-search step became smaller than lbfgs_parameter_t::min_step. */
-    private static final int LBFGSERR_MINIMUMSTEP = -1000;
-    /** The line-search step became larger than lbfgs_parameter_t::max_step. */
-    private static final int LBFGSERR_MAXIMUMSTEP = -999;
-    /** The line-search routine reaches the maximum number of evaluations. */
-    private static final int LBFGSERR_MAXIMUMLINESEARCH = -998;
-    /** The algorithm routine reaches the maximum number of iterations. */
-    private static final int LBFGSERR_MAXIMUMITERATION = -997;
-    /** Relative width of the interval of uncertainty is at most
-        lbfgs_parameter_t::xtol. */
-    private static final int LBFGSERR_WIDTHTOOSMALL = -996;
-    /** A logic error (negative line-search step) occurred. */
-    private static final int LBFGSERR_INVALIDPARAMETERS = -995;
-    /** The current search direction increases the objective function value. */
-    private static final int LBFGSERR_INCREASEGRADIENT = -994;
+    public enum StatusCode {
+        /** L-BFGS reaches convergence. */
+        LBFGS_SUCCESS(0),
+        LBFGS_CONVERGENCE(0),
+        LBFGS_STOP(1),
+        /** The initial variables already minimize the objective function. */
+        LBFGS_ALREADY_MINIMIZED(2),
+        /** For internal use only: optimization should continue. */
+        LBFGS_CONTINUE(0),
+        /** For internal use only: line search success. */
+        LBFGS_LS_SUCCESS(0),
+    
+        /** Unknown error. */
+        LBFGSERR_UNKNOWNERROR(-1024),
+        /** Logic error. */
+        LBFGSERR_LOGICERROR(-1023),
+        /** Insufficient memory. */
+        LBFGSERR_OUTOFMEMORY(-1022),
+        /** The minimization process has been canceled. */
+        LBFGSERR_CANCELED(-1021),
+        /** Invalid number of variables specified. */
+        LBFGSERR_INVALID_N(-1020),
+        /** Invalid number of variables (for SSE) specified. */
+        LBFGSERR_INVALID_N_SSE(-1019),
+        /** The array x must be aligned to 16 (for SSE). */
+        LBFGSERR_INVALID_X_SSE(-1018),
+        /** Invalid parameter lbfgs_parameter_t::epsilon specified. */
+        LBFGSERR_INVALID_EPSILON(-1017),
+        /** Invalid parameter lbfgs_parameter_t::past specified. */
+        LBFGSERR_INVALID_TESTPERIOD(-1016),
+        /** Invalid parameter lbfgs_parameter_t::delta specified. */
+        LBFGSERR_INVALID_DELTA(-1015),
+        /** Invalid parameter lbfgs_parameter_t::linesearch specified. */
+        LBFGSERR_INVALID_LINESEARCH(-1014),
+        /** Invalid parameter lbfgs_parameter_t::max_step specified. */
+        LBFGSERR_INVALID_MINSTEP(-1013),
+        /** Invalid parameter lbfgs_parameter_t::max_step specified. */
+        LBFGSERR_INVALID_MAXSTEP(-1012),
+        /** Invalid parameter lbfgs_parameter_t::ftol specified. */
+        LBFGSERR_INVALID_FTOL(-1011),
+        /** Invalid parameter lbfgs_parameter_t::wolfe specified. */
+        LBFGSERR_INVALID_WOLFE(-1010),
+        /** Invalid parameter lbfgs_parameter_t::gtol specified. */
+        LBFGSERR_INVALID_GTOL(-1009),
+        /** Invalid parameter lbfgs_parameter_t::xtol specified. */
+        LBFGSERR_INVALID_XTOL(-1008),
+        /** Invalid parameter lbfgs_parameter_t::max_linesearch specified. */
+        LBFGSERR_INVALID_MAXLINESEARCH(-1007),
+        /** Invalid parameter lbfgs_parameter_t::orthantwise_c specified. */
+        LBFGSERR_INVALID_ORTHANTWISE(-1006),
+        /** Invalid parameter lbfgs_parameter_t::orthantwise_start specified. */
+        LBFGSERR_INVALID_ORTHANTWISE_START(-1005),
+        /** Invalid parameter lbfgs_parameter_t::orthantwise_end specified. */
+        LBFGSERR_INVALID_ORTHANTWISE_END(-1004),
+        /** The line-search step went out of the interval of uncertainty. */
+        LBFGSERR_OUTOFINTERVAL(-1003),
+        /** A logic error occurred; alternatively, the interval of uncertainty
+            became too small. */
+        LBFGSERR_INCORRECT_TMINMAX(-1002),
+        /** A rounding error occurred; alternatively, no line-search step
+            satisfies the sufficient decrease and curvature conditions. */
+        LBFGSERR_ROUNDING_ERROR(-1001),
+        /** The line-search step became smaller than lbfgs_parameter_t::min_step. */
+        LBFGSERR_MINIMUMSTEP(-1000),
+        /** The line-search step became larger than lbfgs_parameter_t::max_step. */
+        LBFGSERR_MAXIMUMSTEP(-999),
+        /** The line-search routine reaches the maximum number of evaluations. */
+        LBFGSERR_MAXIMUMLINESEARCH(-998),
+        /** The algorithm routine reaches the maximum number of iterations. */
+        LBFGSERR_MAXIMUMITERATION(-997),
+        /** Relative width of the interval of uncertainty is at most
+            lbfgs_parameter_t::xtol. */
+        LBFGSERR_WIDTHTOOSMALL(-996),
+        /** A logic error (negative line-search step) occurred. */
+        LBFGSERR_INVALIDPARAMETERS(-995),
+        /** The current search direction increases the objective function value. */
+        LBFGSERR_INCREASEGRADIENT(-994);
+        
+        public final int ret;
+        private StatusCode(int ret) { this.ret = ret; }
+    }
 
     /**
      * Line search algorithms.
      */
-    /** The default algorithm (MoreThuente method). */
-    public static final int LBFGS_LINESEARCH_DEFAULT = 0;
-    /** MoreThuente method proposd by More and Thuente. */
-    public static final int LBFGS_LINESEARCH_MORETHUENTE = 0;
-    /**
-     * Backtracking method with the Armijo condition.
-     *  The backtracking method finds the step length such that it satisfies
-     *  the sufficient decrease (Armijo) condition,
-     *    - f(x + a * d) <= f(x) + lbfgs_parameter_t::ftol * a * g(x)^T d,
-     *
-     *  where x is the current point, d is the current search direction, and
-     *  a is the step length.
-     */
-    public static final int LBFGS_LINESEARCH_BACKTRACKING_ARMIJO = 1;
-    /** The backtracking method with the defualt (regular Wolfe) condition. */
-    public static final int LBFGS_LINESEARCH_BACKTRACKING = 2;
-    /**
-     * Backtracking method with regular Wolfe condition.
-     *  The backtracking method finds the step length such that it satisfies
-     *  both the Armijo condition (LBFGS_LINESEARCH_BACKTRACKING_ARMIJO)
-     *  and the curvature condition,
-     *    - g(x + a * d)^T d >= lbfgs_parameter_t::wolfe * g(x)^T d,
-     *
-     *  where x is the current point, d is the current search direction, and
-     *  a is the step length.
-     */
-    public static final int LBFGS_LINESEARCH_BACKTRACKING_WOLFE = 2;
-    /**
-     * Backtracking method with strong Wolfe condition.
-     *  The backtracking method finds the step length such that it satisfies
-     *  both the Armijo condition (LBFGS_LINESEARCH_BACKTRACKING_ARMIJO)
-     *  and the following condition,
-     *    - |g(x + a * d)^T d| <= lbfgs_parameter_t::wolfe * |g(x)^T d|,
-     *
-     *  where x is the current point, d is the current search direction, and
-     *  a is the step length.
-     */
-    public static final int LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE = 3;
+    public enum LineSearchAlg {
+        
+        /** MoreThuente method proposd by More and Thuente. */
+        LBFGS_LINESEARCH_MORETHUENTE(0),
+        
+        /**
+         * Backtracking method with the Armijo condition.
+         *  The backtracking method finds the step length such that it satisfies
+         *  the sufficient decrease (Armijo) condition,
+         *    - f(x + a * d) <= f(x) + lbfgs_parameter_t::ftol * a * g(x)^T d,
+         *
+         *  where x is the current point, d is the current search direction, and
+         *  a is the step length.
+         */
+        LBFGS_LINESEARCH_BACKTRACKING_ARMIJO(1),
+        
+        /**
+         * Backtracking method with regular Wolfe condition.
+         *  The backtracking method finds the step length such that it satisfies
+         *  both the Armijo condition (LBFGS_LINESEARCH_BACKTRACKING_ARMIJO)
+         *  and the curvature condition,
+         *    - g(x + a * d)^T d >= lbfgs_parameter_t::wolfe * g(x)^T d,
+         *
+         *  where x is the current point, d is the current search direction, and
+         *  a is the step length.
+         */
+        LBFGS_LINESEARCH_BACKTRACKING_WOLFE(2),
+        
+        /**
+         * Backtracking method with strong Wolfe condition.
+         *  The backtracking method finds the step length such that it satisfies
+         *  both the Armijo condition (LBFGS_LINESEARCH_BACKTRACKING_ARMIJO)
+         *  and the following condition,
+         *    - |g(x + a * d)^T d| <= lbfgs_parameter_t::wolfe * |g(x)^T d|,
+         *
+         *  where x is the current point, d is the current search direction, and
+         *  a is the step length.
+         */
+        LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE(3);
 
+        public final int v;
+        private LineSearchAlg(int v) { this.v = v; }
+        
+    }
+    
     /**
      * L-BFGS optimization parameters.
      *  Call lbfgs_parameter_init() function to initialize parameters to the
@@ -244,7 +304,7 @@ public class LBFGS_port {
          *  This parameter specifies a line search algorithm to be used by the
          *  L-BFGS routine.
          */
-        int             linesearch = LBFGS_LINESEARCH_DEFAULT;
+        LineSearchAlg linesearch = LBFGS_LINESEARCH_MORETHUENTE;
 
         /**
          * The maximum number of trials for the line search.
@@ -399,7 +459,7 @@ public class LBFGS_port {
          *  @retval int         Zero to continue the optimization process. Returning a
          *                      non-zero value will cancel the optimization process.
          */
-        abstract int proc_progress(
+        abstract StatusCode proc_progress(
             Object instance,
             final double[] x,
             final double[] g,
@@ -745,7 +805,7 @@ public class LBFGS_port {
         double ys;     /* vecdot(y, s) */
     }
     
-    public enum line_search_proc {
+    private enum LineSearchAlgInternal {
         morethuente,
         backtracking_owlqn,
         backtracking,
@@ -788,7 +848,7 @@ public class LBFGS_port {
      *                      minimization process terminates without an error. A
      *                      non-zero value indicates an error.
      */
-    public static int lbfgs(
+    public static StatusCode lbfgs(
         double[] x,
         MutableDouble ptr_fx,
         callback_data_t cd,
@@ -796,8 +856,9 @@ public class LBFGS_port {
         )     
     {
         int n = cd.n;
-        int ret;
-        int i, j, k, ls, end, bound;
+        StatusCode ret, ls_ret;
+        MutableInt ls = new MutableInt(0);
+        int i, j, k, end, bound;        
         double step;
     
         /* Constant parameters and their default values. */
@@ -813,7 +874,7 @@ public class LBFGS_port {
         double xnorm, gnorm, beta;
         double fx = 0.;
         double rate = 0.;
-        line_search_proc linesearch_choice = line_search_proc.morethuente;
+        LineSearchAlgInternal linesearch_choice = LineSearchAlgInternal.morethuente;
 
         /* Check the input parameters for errors. */
         if (n <= 0) {
@@ -866,8 +927,8 @@ public class LBFGS_port {
         }
         if (param.orthantwise_c != 0.) {
             switch (param.linesearch) {
-            case LBFGS_LINESEARCH_BACKTRACKING:
-                linesearch_choice = line_search_proc.backtracking_owlqn;
+            case LBFGS_LINESEARCH_BACKTRACKING_WOLFE:
+                linesearch_choice = LineSearchAlgInternal.backtracking_owlqn;
                 break;
             default:
                 /* Only the backtracking method is available. */
@@ -876,12 +937,12 @@ public class LBFGS_port {
         } else {
             switch (param.linesearch) {
             case LBFGS_LINESEARCH_MORETHUENTE:
-                linesearch_choice = line_search_proc.morethuente;
+                linesearch_choice = LineSearchAlgInternal.morethuente;
                 break;
             case LBFGS_LINESEARCH_BACKTRACKING_ARMIJO:
             case LBFGS_LINESEARCH_BACKTRACKING_WOLFE:
             case LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE:
-                linesearch_choice = line_search_proc.backtracking;
+                linesearch_choice = LineSearchAlgInternal.backtracking;
                 break;
             default:
                 return LBFGSERR_INVALID_LINESEARCH;
@@ -976,9 +1037,9 @@ public class LBFGS_port {
             MutableDouble fxRef = new MutableDouble(fx);
             MutableDouble stepRef = new MutableDouble(step);
             if (param.orthantwise_c == 0.) {
-                ls = linesearch(n, x, fxRef, g, d, stepRef, xp, gp, w, cd, param, linesearch_choice);
+                ls_ret = linesearch(n, x, fxRef, g, d, stepRef, xp, gp, w, cd, param, ls, linesearch_choice);
             } else {
-                ls = linesearch(n, x, fxRef, g, d, stepRef, xp, pg, w, cd, param, linesearch_choice);
+                ls_ret = linesearch(n, x, fxRef, g, d, stepRef, xp, pg, w, cd, param, ls, linesearch_choice);
                 owlqn_pseudo_gradient(
                     pg, x, g, n,
                     param.orthantwise_c, param.orthantwise_start, param.orthantwise_end
@@ -987,12 +1048,12 @@ public class LBFGS_port {
             fx = fxRef.v;
             step = stepRef.v;
             
-            if (ls < 0) {
+            if (ls_ret.ret < 0) {
                 /* Revert to the previous point. */
                 veccpy(x, xp, n);
                 veccpy(g, gp, n);
                 ptr_fx.v = fx;
-                return ls;
+                return ls_ret;
             }
 
             /* Compute x and g norms. */
@@ -1004,7 +1065,8 @@ public class LBFGS_port {
             }
 
             /* Report the progress. */
-            if ((ret = cd.proc_progress(cd.instance, x, g, fx, xnorm, gnorm, step, cd.n, k, ls)) != 0) {
+            ret = cd.proc_progress(cd.instance, x, g, fx, xnorm, gnorm, step, cd.n, k, ls.v);
+            if (ret.ret != 0) {
                 ptr_fx.v = fx;
                 return ret;
             }
@@ -1134,7 +1196,7 @@ public class LBFGS_port {
         return ret;
     }
 
-    private static int linesearch(
+    private static StatusCode linesearch(
         int n,
         double[] x,
         MutableDouble f,
@@ -1146,19 +1208,20 @@ public class LBFGS_port {
         double[] wp,
         callback_data_t cd,
         final lbfgs_parameter_t param,
-        line_search_proc linesearch_choice
+        MutableInt ls,
+        LineSearchAlgInternal linesearch_choice
         )
     {
         switch(linesearch_choice) {
-        case backtracking: return line_search_backtracking(n, x, f, g, s, stp, xp, gp, wp, cd, param);
-        case backtracking_owlqn: return line_search_backtracking_owlqn(n, x, f, g, s, stp, xp, gp, wp, cd, param);
-        case morethuente: return line_search_morethuente(n, x, f, g, s, stp, xp, gp, wp, cd, param);
+        case backtracking: return line_search_backtracking(n, x, f, g, s, stp, xp, gp, wp, cd, param, ls);
+        case backtracking_owlqn: return line_search_backtracking_owlqn(n, x, f, g, s, stp, xp, gp, wp, cd, param, ls);
+        case morethuente: return line_search_morethuente(n, x, f, g, s, stp, xp, gp, wp, cd, param, ls);
         default: throw new RuntimeException("line search not yet implemented: " + linesearch_choice); 
         }
     }
 
 
-    static int line_search_backtracking(
+    static StatusCode line_search_backtracking(
         int n,
         double[] x,
         MutableDouble f,
@@ -1169,7 +1232,8 @@ public class LBFGS_port {
         final double[] gp,
         double[] wp,
         callback_data_t cd,
-        final lbfgs_parameter_t param
+        final lbfgs_parameter_t param,
+        MutableInt ls
         )
     {
         int count = 0;
@@ -1209,7 +1273,8 @@ public class LBFGS_port {
                 /* The sufficient decrease condition (Armijo condition). */
                 if (param.linesearch == LBFGS_LINESEARCH_BACKTRACKING_ARMIJO) {
                     /* Exit with the Armijo condition. */
-                    return count;
+                    ls.v = count;
+                    return LBFGS_LS_SUCCESS;
                 }
 
                 /* Check the Wolfe condition. */
@@ -1219,7 +1284,8 @@ public class LBFGS_port {
                 } else {
                     if(param.linesearch == LBFGS_LINESEARCH_BACKTRACKING_WOLFE) {
                         /* Exit with the regular Wolfe condition. */
-                        return count;
+                        ls.v = count;
+                        return LBFGS_LS_SUCCESS;
                     }
 
                     /* Check the strong Wolfe condition. */
@@ -1227,7 +1293,8 @@ public class LBFGS_port {
                         width = dec;
                     } else {
                         /* Exit with the strong Wolfe condition. */
-                        return count;
+                        ls.v = count;
+                        return LBFGS_LS_SUCCESS;
                     }
                 }
             }
@@ -1251,7 +1318,7 @@ public class LBFGS_port {
 
 
 
-    static int line_search_backtracking_owlqn(
+    static StatusCode line_search_backtracking_owlqn(
         int n,
         double[] x,
         MutableDouble f,
@@ -1262,7 +1329,8 @@ public class LBFGS_port {
         final double[] gp,
         double[] wp,
         callback_data_t cd,
-        final lbfgs_parameter_t param
+        final lbfgs_parameter_t param,
+        MutableInt ls
         )
     {
         int i, count = 0;
@@ -1303,7 +1371,8 @@ public class LBFGS_port {
 
             if (f.v <= finit + param.ftol * dgtest) {
                 /* The sufficient decrease condition. */
-                return count;
+                ls.v = count;
+                return LBFGS_LS_SUCCESS;
             }
 
             if (stp.v < param.min_step) {
@@ -1492,7 +1561,7 @@ public class LBFGS_port {
     
     
 
-    static int line_search_morethuente(
+    static StatusCode line_search_morethuente(
         int n,
         double[] x,
         MutableDouble f,
@@ -1503,11 +1572,13 @@ public class LBFGS_port {
         final double[] gp,
         double[] wp,
         callback_data_t cd,
-        final lbfgs_parameter_t param
+        final lbfgs_parameter_t param,
+        MutableInt ls
         )
     {
         int count = 0;
-        int brackt, stage1, uinfo = 0;
+        int brackt, stage1;
+        StatusCode uinfo = LBFGS_CONTINUE;
         double dg;
         double stx, fx, dgx;
         double sty, fy, dgy;
@@ -1571,7 +1642,7 @@ public class LBFGS_port {
                 If an unusual termination is to occur then let
                 stp be the lowest point obtained so far.
              */
-            if ((brackt != 0 && ((stp.v <= stmin || stmax <= stp.v) || param.max_linesearch <= count + 1 || uinfo != 0)) 
+            if ((brackt != 0 && ((stp.v <= stmin || stmax <= stp.v) || param.max_linesearch <= count + 1 || uinfo.ret != 0)) 
                     || (brackt != 0 && (stmax - stmin <= param.xtol * stmax))) {
                 stp.v = stx;
             }
@@ -1591,7 +1662,7 @@ public class LBFGS_port {
             ++count;
 
             /* Test for errors and convergence. */
-            if (brackt != 0 && ((stp.v <= stmin || stmax <= stp.v) || uinfo != 0)) {
+            if (brackt != 0 && ((stp.v <= stmin || stmax <= stp.v) || uinfo.ret != 0)) {
                 /* Rounding errors prevent further progress. */
                 return LBFGSERR_ROUNDING_ERROR;
             }
@@ -1613,7 +1684,8 @@ public class LBFGS_port {
             }
             if (f.v <= ftest1 && Math.abs(dg) <= param.gtol * (-dginit)) {
                 /* The sufficient decrease condition and the directional derivative condition hold. */
-                return count;
+                ls.v = count;
+                return LBFGS_LS_SUCCESS;
             }
 
             /*
@@ -1883,7 +1955,7 @@ public class LBFGS_port {
     //  const double tmin,
     //  const double tmax,
     //  int *brackt
-    private static int update_trial_interval(UpdVals uv)
+    private static StatusCode update_trial_interval(UpdVals uv)
     {
         double x = uv.x;
         double fx = uv.fx;
@@ -2064,7 +2136,7 @@ public class LBFGS_port {
         //uv.tmax = tmax;
         uv.brackt = brackt;
         
-        return 0;
+        return LBFGS_CONTINUE;
     }
 
 
