@@ -788,7 +788,7 @@ public class LBFGS_port {
     private static double max2(double a, double b) { return      ((a) >= (b) ? (a) : (b)); }
     private static double max3(double a, double b, double c) {  return max2(max2((a), (b)), (c)); }
 
-    private static class iteration_data_t {
+    private static class IterationData {
         double alpha;
         double[] s;     /* [n] */
         double[] y;     /* [n] */
@@ -858,8 +858,8 @@ public class LBFGS_port {
         double[] xp;
         double[] g, gp, pg = null;
         double[] d, w, pf = null;
-        iteration_data_t[] lm = null;
-        iteration_data_t it = null;
+        IterationData[] lm = null;
+        IterationData it = null;
         double ys, yy;
         double xnorm, gnorm, beta;
         double fx = 0.;
@@ -952,11 +952,11 @@ public class LBFGS_port {
         }
 
         /* Allocate limited memory storage. */
-        lm = new iteration_data_t[m];
+        lm = new IterationData[m];
 
         /* Initialize the limited memory. */
         for (i = 0;i < m;++i) {
-            lm[i] = new iteration_data_t();
+            lm[i] = new IterationData();
             it = lm[i];
             it.alpha = 0;
             it.ys = 0;
