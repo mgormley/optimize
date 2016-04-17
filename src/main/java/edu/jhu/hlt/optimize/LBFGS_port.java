@@ -266,7 +266,7 @@ public class LBFGS_port {
          *  where ||.|| denotes the Euclidean (L2) norm. The default value is
          *  \c 1e-5.
          */
-        double epsilon = 1e-5;
+        double epsilon = 1e-6;
 
         /**
          * Distance for delta-based convergence test.
@@ -336,7 +336,7 @@ public class LBFGS_port {
          *  The default value is \c 1e-4. This parameter should be greater
          *  than zero and smaller than \c 0.5.
          */
-        double ftol = 1e-4;
+        double ftol = 1e-6;
 
         /**
          * A coefficient for the Wolfe condition.
