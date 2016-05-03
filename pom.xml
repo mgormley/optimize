@@ -4,7 +4,7 @@
 
   <groupId>edu.jhu.hlt.optimize</groupId>
   <artifactId>optimize</artifactId>
-  <version>3.1.1</version>
+  <version>3.1.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
@@ -13,7 +13,7 @@
 
   <properties>
     <!-- The version for the Pacaya dependencies. -->
-    <pacaya.version>3.1.1</pacaya.version>
+    <pacaya.version>3.1.2-SNAPSHOT</pacaya.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -90,6 +90,19 @@
           <testFailureIgnore>true</testFailureIgnore>
         </configuration>
       </plugin>
+      <!-- This plugin creates a separate jar for the test classes. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -118,6 +131,7 @@
             <artifactId>maven-javadoc-plugin</artifactId>
             <configuration>
               <quiet />
+              <additionalparam>-Xdoclint:none</additionalparam>
             </configuration>
             <executions>
               <execution>

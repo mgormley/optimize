@@ -11,14 +11,27 @@ import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts;
 import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts.NegateFunction;
 import edu.jhu.hlt.optimize.function.FunctionOpts;
 import edu.jhu.hlt.optimize.functions.SumSquares;
+import edu.jhu.hlt.optimize.functions.WeightedSphereModel;
 import edu.jhu.hlt.optimize.functions.XSquared;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.util.random.Prng;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public abstract class AbstractOptimizerTest {
 
     protected abstract Optimizer<DifferentiableFunction> getOptimizer();
+
+    protected double getL1EqualityThreshold() { return 1e-13; }
+
+    public static DifferentiableFunction negate(DifferentiableFunction f) {
+        return new DifferentiableFunctionOpts.NegateFunction(f);
+    }
+
+    protected Optimizer<DifferentiableFunction> getRegularizedOptimizer(final double l1Lambda, final double l2Lambda) {
+        final Optimizer<DifferentiableFunction> opt = getOptimizer();        
+        return DifferentiableFunctionOpts.getRegularizedOptimizer(opt, l1Lambda, l2Lambda);
+    }
     
     @Test
     public void testNegXSquared() {
@@ -59,15 +72,6 @@ public abstract class AbstractOptimizerTest {
         JUnitUtils.assertArrayEquals(offsets, max, 1e-10);
     }
 
-    public static DifferentiableFunction negate(DifferentiableFunction f) {
-        return new DifferentiableFunctionOpts.NegateFunction(f);
-    }
-    
-    protected Optimizer<DifferentiableFunction> getRegularizedOptimizer(final double l1Lambda, final double l2Lambda) {
-        final Optimizer<DifferentiableFunction> opt = getOptimizer();        
-        return DifferentiableFunctionOpts.getRegularizedOptimizer(opt, l1Lambda, l2Lambda);
-    }
-
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMax() {
         Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(1.0, 0.0);
@@ -104,9 +108,6 @@ public abstract class AbstractOptimizerTest {
         assertEquals(expected[2], max[2], 1e-10);
     }
     
-    protected double getL1EqualityThreshold() { return 1e-13; }
-
-
     @Test
     public void testL2RegularizedOffsetNegSumSquaresMax() {
         Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(0.0, 1.0);
@@ -128,5 +129,38 @@ public abstract class AbstractOptimizerTest {
         Vectors.scale(offsets, -1.0);
         JUnitUtils.assertArrayEquals(new double[]{-0.266, 3.333, -7.333}, max, 1e-3);
     }
+
+    @Test
+    public void testSumSquaresHigherDimension() {
+        Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(0.0, 0.0);
+        Prng.seed(12345l);
+        int dim = 100;
+        double[] initial = new double[dim];
+        double[] offsets = new double[dim];
+        for (int i=0; i<dim; i++) {
+            initial[i] = Prng.nextDouble() * 10 - 5;
+            offsets[i] = Prng.nextDouble() * 10 - 5;
+        }
+        opt.minimize(new SumSquares(offsets), new IntDoubleDenseVector(initial));
+        double[] max = initial;
+        Vectors.scale(offsets, -1.0);
+        JUnitUtils.assertArrayEquals(offsets, max, 1e-3);
+    }
+
+    @Test
+    public void testWeightedSphereModel() {
+        Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(0.0, 0.0);
+        Prng.seed(12345l);
+        int dim = 100;
+        double[] initial = new double[dim];
+        for (int i=0; i<dim; i++) {
+            initial[i] = Prng.nextDouble() * 10 - 5;
+        }
+        opt.minimize(new WeightedSphereModel(dim), new IntDoubleDenseVector(initial));
+        double[] max = initial;
+        double[] global = new double[dim]; // all zeros
+        JUnitUtils.assertArrayEquals(global, max, 1e-3);
+    }
+    
     
 }
