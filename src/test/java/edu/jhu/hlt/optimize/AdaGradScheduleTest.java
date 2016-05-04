@@ -4,12 +4,7 @@ import org.junit.Test;
 
 import edu.jhu.hlt.optimize.AdaGradSchedule.AdaGradSchedulePrm;
 import edu.jhu.hlt.optimize.SGD.SGDPrm;
-import edu.jhu.hlt.optimize.SGDFobos.SGDFobosPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
-import edu.jhu.hlt.optimize.functions.SumSquares;
-import edu.jhu.hlt.util.JUnitUtils;
-import edu.jhu.hlt.util.math.Vectors;
-import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class AdaGradScheduleTest extends AbstractBatchOptimizerTest {
 

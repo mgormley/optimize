@@ -4,19 +4,11 @@ import org.junit.Test;
 
 import edu.jhu.hlt.optimize.BottouSchedule.BottouSchedulePrm;
 import edu.jhu.hlt.optimize.SGD.SGDPrm;
-import edu.jhu.hlt.optimize.function.BatchFunctionOpts;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
-import edu.jhu.hlt.optimize.function.DifferentiableFunction;
-import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts;
-import edu.jhu.hlt.optimize.function.FunctionAsBatchFunction;
-import edu.jhu.hlt.optimize.function.Regularizer;
-import edu.jhu.hlt.optimize.functions.L1;
-import edu.jhu.hlt.optimize.functions.L2;
 import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.util.JUnitUtils;
 import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
-import edu.jhu.prim.vector.IntDoubleVector;
 
 /** Test of Averaged Stochastic Gradient Descent. */
 public class ASGDTest extends AbstractBatchOptimizerTest {

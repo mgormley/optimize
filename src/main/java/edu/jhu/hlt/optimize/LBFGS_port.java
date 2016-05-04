@@ -29,7 +29,8 @@ package edu.jhu.hlt.optimize;
 
 import static edu.jhu.hlt.optimize.LBFGS_port.LineSearchAlg.LBFGS_LINESEARCH_BACKTRACKING_ARMIJO;
 import static edu.jhu.hlt.optimize.LBFGS_port.LineSearchAlg.LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE;
-import static edu.jhu.hlt.optimize.LBFGS_port.LineSearchAlg.*;
+import static edu.jhu.hlt.optimize.LBFGS_port.LineSearchAlg.LBFGS_LINESEARCH_BACKTRACKING_WOLFE;
+import static edu.jhu.hlt.optimize.LBFGS_port.LineSearchAlg.LBFGS_LINESEARCH_MORETHUENTE;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INCORRECT_TMINMAX;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INCREASEGRADIENT;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALIDPARAMETERS;
@@ -38,7 +39,7 @@ import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_EPSILO
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_FTOL;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_GTOL;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_LINESEARCH;
-import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.*;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_MAXLINESEARCH;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_MAXSTEP;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_MINSTEP;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_INVALID_N;
@@ -57,6 +58,7 @@ import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_ROUNDING_ERROR
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGSERR_WIDTHTOOSMALL;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGS_ALREADY_MINIMIZED;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGS_CONTINUE;
+import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGS_LS_SUCCESS;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGS_STOP;
 import static edu.jhu.hlt.optimize.LBFGS_port.StatusCode.LBFGS_SUCCESS;
 

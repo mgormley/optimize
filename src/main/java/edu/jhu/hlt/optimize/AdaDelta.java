@@ -3,8 +3,6 @@ package edu.jhu.hlt.optimize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.jhu.hlt.optimize.AdaGradSchedule.AdaGradSchedulePrm;
-import edu.jhu.hlt.optimize.SGD.SGDPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.util.Prm;
 import edu.jhu.prim.arrays.DoubleArrays;

@@ -1,8 +1,8 @@
 package edu.jhu.hlt.util.stats;
 
-import edu.jhu.prim.util.random.Prng;
 import edu.jhu.hlt.util.Utilities;
 import edu.jhu.hlt.util.math.Vectors;
+import edu.jhu.prim.util.random.Prng;
 
 /**
  * Utility methods for multinomials represented as double arrays.
