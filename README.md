@@ -2,10 +2,15 @@
 
 # Summary
 
-This is the pre-release of the Hopkins Optimization
-Library. Currently, the public version includes an implementation of
-Stochastic Gradient Descent with lots of the tricks from (Bottou,
-2012; "Stochastic Gradient Tricks").
+Optimize is a Java library for numerical optimization. Currently the public version includes the following algorithms:
+
+* Stochastic Gradient Descent (SGD) with lots of the tricks from (Bottou,
+2012; "Stochastic Gradient Tricks")
+* SGD with forward-backward splitting (Duchi & Singer, 2009)
+* Truncated gradient (Langford et al., 2008)
+* AdaGrad with L1 or L2 regularization 
+(Duchi et al., 2011)
+* L-BFGS ported from Fortran to C to Java
 
 This release includes contributions from Matt Gormley, Nick Andrews,
 Frank Ferraro, and Travis Wolfe.
@@ -14,11 +19,15 @@ Frank Ferraro, and Travis Wolfe.
 
 The latest public version is deployed on Maven Central:
 
-    <dependency>
-      <groupId>edu.jhu.hlt.optimize</groupId>
-      <artifactId>optimize</artifactId>
-      <version>2.0.1</version>
-    </dependency>
+```xml
+<dependency>
+    <groupId>edu.jhu.hlt.optimize</groupId>
+    <artifactId>optimize</artifactId>
+    <version>3.1.3</version>
+</dependency>
+```
+
+# Development
 
 ## Build
 
@@ -30,7 +39,6 @@ The latest public version is deployed on Maven Central:
 
         mvn compile assembly:single
 
-# Development
 
 ## Eclipse setup
 
@@ -38,10 +46,10 @@ The latest public version is deployed on Maven Central:
 
         mvn eclipse:eclipse
 
-* Add M2_REPO environment variable to
+* Add M2\_REPO environment variable to
   Eclipse. http://maven.apache.org/guides/mini/guide-ide-eclipse.html
   Open the Preferences and navigate to 'Java --> Build Path -->
-  Classpath Variables'. Add a new classpath variable M2_REPO with the
+  Classpath Variables'. Add a new classpath variable M2\_REPO with the
   path to your local repository (e.g. ~/.m2/repository).
 
 * To make the project Git aware, right click on the project and select Team -> Git... 
