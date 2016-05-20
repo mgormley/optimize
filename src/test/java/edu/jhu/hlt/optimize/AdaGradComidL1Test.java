@@ -3,7 +3,6 @@ package edu.jhu.hlt.optimize;
 import org.junit.Test;
 
 import edu.jhu.hlt.optimize.AdaGradComidL1.AdaGradComidL1Prm;
-import edu.jhu.hlt.optimize.AdaGradComidL2.AdaGradComidL2Prm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 import edu.jhu.hlt.optimize.functions.SumSquares;
 import edu.jhu.hlt.util.JUnitUtils;

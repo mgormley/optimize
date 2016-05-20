@@ -2,7 +2,6 @@ package edu.jhu.hlt.optimize.functions;
 
 import edu.jhu.hlt.optimize.function.Regularizer;
 import edu.jhu.hlt.optimize.function.ValueGradient;
-import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 

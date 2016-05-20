@@ -1,6 +1,5 @@
 package edu.jhu.hlt.optimize.function;
 
-import edu.jhu.hlt.util.math.Vectors;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**

@@ -1,13 +1,7 @@
 package edu.jhu.hlt.optimize;
 
-import org.junit.Test;
-
 import edu.jhu.hlt.optimize.SGDFobos.SGDFobosPrm;
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
-import edu.jhu.hlt.optimize.functions.SumSquares;
-import edu.jhu.hlt.util.JUnitUtils;
-import edu.jhu.hlt.util.math.Vectors;
-import edu.jhu.prim.vector.IntDoubleDenseVector;
 
 public class SGDFobosTest extends AbstractBatchOptimizerTest {
 

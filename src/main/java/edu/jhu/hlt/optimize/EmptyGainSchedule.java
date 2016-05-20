@@ -1,17 +1,6 @@
 package edu.jhu.hlt.optimize;
 
-import java.util.Arrays;
-
-import org.apache.commons.math3.util.FastMath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
-import edu.jhu.hlt.util.Prm;
-import edu.jhu.prim.arrays.DoubleArrays;
-import edu.jhu.prim.arrays.IntArrays;
-import edu.jhu.prim.list.DoubleArrayList;
-import edu.jhu.prim.util.Lambda.FnIntDoubleToVoid;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**

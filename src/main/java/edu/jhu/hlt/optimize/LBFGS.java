@@ -3,14 +3,13 @@ package edu.jhu.hlt.optimize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.jhu.hlt.optimize.LBFGS_port.StatusCode;
 import edu.jhu.hlt.optimize.LBFGS_port.LBFGSCallback;
 import edu.jhu.hlt.optimize.LBFGS_port.LBFGSPrm;
+import edu.jhu.hlt.optimize.LBFGS_port.StatusCode;
 import edu.jhu.hlt.optimize.function.DifferentiableFunction;
 import edu.jhu.hlt.optimize.function.DifferentiableFunctionOpts;
 import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.prim.Primitives.MutableDouble;
-import edu.jhu.prim.arrays.DoubleArrays;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 

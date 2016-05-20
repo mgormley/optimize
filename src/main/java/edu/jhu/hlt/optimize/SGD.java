@@ -4,7 +4,6 @@ import java.util.Date;
 
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.jhu.hlt.optimize.BottouSchedule.BottouSchedulePrm;
@@ -15,8 +14,8 @@ import edu.jhu.hlt.optimize.function.SampleFunction;
 import edu.jhu.hlt.optimize.function.ValueGradient;
 import edu.jhu.hlt.util.OnOffLogger;
 import edu.jhu.hlt.util.Prm;
-import edu.jhu.prim.util.Timer;
 import edu.jhu.prim.util.Lambda.FnIntDoubleToDouble;
+import edu.jhu.prim.util.Timer;
 import edu.jhu.prim.vector.IntDoubleDenseVector;
 import edu.jhu.prim.vector.IntDoubleVector;
 
