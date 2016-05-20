@@ -1,6 +1,6 @@
+# Optimize [![Build Status](https://travis-ci.org/mgormley/optimize.svg?branch=master)](https://travis-ci.org/mgormley/optimize)
 
-
-# Summary
+## Summary
 
 Optimize is a Java library for numerical optimization. Currently the public version includes the following algorithms:
 
@@ -15,7 +15,7 @@ Optimize is a Java library for numerical optimization. Currently the public vers
 This release includes contributions from Matt Gormley, Nick Andrews,
 Frank Ferraro, and Travis Wolfe.
 
-# Using the Library
+## Using the Library
 
 The latest public version is deployed on Maven Central:
 
@@ -27,9 +27,9 @@ The latest public version is deployed on Maven Central:
 </dependency>
 ```
 
-# Development
+## Development
 
-## Build
+### Build
 
 * Compile the code from the command line:
 
@@ -40,7 +40,7 @@ The latest public version is deployed on Maven Central:
         mvn compile assembly:single
 
 
-## Eclipse setup
+### Eclipse setup
 
 * Create local versions of the .project and .classpath files for Eclipse:
 
