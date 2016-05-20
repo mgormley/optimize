@@ -177,8 +177,6 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                     for (int m=0; m<function.getNumDimensions(); m++) {
                         avgPoint.set(m, (1 - mu_t) * avgPoint.get(m) + mu_t * point.get(m));
                     }
-                    log.debug("Point: " + point);
-                    log.debug("Averaged point: " + avgPoint);
                 }
                 if (prm.stopBy != null) {
                     Date now = new Date();
