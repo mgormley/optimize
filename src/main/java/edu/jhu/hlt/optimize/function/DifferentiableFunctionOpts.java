@@ -194,7 +194,7 @@ public class DifferentiableFunctionOpts {
     public static DifferentiableFunction getRegularizedFn(DifferentiableFunction objective, boolean maximize,
             final double l1Lambda, final double l2Lambda) {
         L1 l1 = new L1(l1Lambda);
-        L2 l2 = new L2(1.0 / l2Lambda);
+        L2 l2 = new L2(l2Lambda);
         l1.setNumDimensions(objective.getNumDimensions());
         l2.setNumDimensions(objective.getNumDimensions());
         DifferentiableFunction br;
