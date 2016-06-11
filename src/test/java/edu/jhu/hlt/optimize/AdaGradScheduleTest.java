@@ -9,7 +9,7 @@ import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 public class AdaGradScheduleTest extends AbstractBatchOptimizerTest {
 
     @Override
-    protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
+    protected Optimizer<DifferentiableBatchFunction> getOptimizer(String id) {
         AdaGradSchedulePrm sched = new AdaGradSchedulePrm();
         sched.eta = 0.1 * 100;
         

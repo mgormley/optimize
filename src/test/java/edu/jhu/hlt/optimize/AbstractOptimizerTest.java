@@ -20,6 +20,7 @@ public abstract class AbstractOptimizerTest {
     protected abstract Optimizer<DifferentiableFunction> getOptimizer();
 
     protected double getL1EqualityThreshold() { return 1e-13; }
+    protected boolean supportsL1Regularization() { return true; }
 
     public static DifferentiableFunction negate(DifferentiableFunction f) {
         return new DifferentiableFunctionOpts.NegateFunction(f);
@@ -71,6 +72,7 @@ public abstract class AbstractOptimizerTest {
 
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMax() {
+        if (!supportsL1Regularization()) { return; }
         Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(1.0, 0.0);
         double[] initial = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
@@ -89,6 +91,7 @@ public abstract class AbstractOptimizerTest {
     
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMin() {
+        if (!supportsL1Regularization()) { return; }
         Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(1.0, 0.0);
         double[] initial = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};

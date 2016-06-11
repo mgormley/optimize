@@ -6,7 +6,7 @@ import edu.jhu.hlt.optimize.function.DifferentiableBatchFunction;
 public class SGDFobosTest extends AbstractBatchOptimizerTest {
 
     @Override
-    protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
+    protected Optimizer<DifferentiableBatchFunction> getOptimizer(String id) {
         SGDFobosPrm prm = getOptimizerPrm();
         return new SGDFobos(prm);
     }
@@ -21,7 +21,7 @@ public class SGDFobosTest extends AbstractBatchOptimizerTest {
         return prm;
     }    
 
-    protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(double l1Lambda, double l2Lambda) {
+    protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(double l1Lambda, double l2Lambda, String id) {
         SGDFobosPrm prm = getOptimizerPrm();
         prm.l1Lambda = l1Lambda;
         prm.l2Lambda = l2Lambda;

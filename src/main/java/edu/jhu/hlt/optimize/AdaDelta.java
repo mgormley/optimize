@@ -22,12 +22,20 @@ import edu.jhu.prim.vector.IntDoubleVector;
  */
 public class AdaDelta implements GainSchedule {
 
+    private static final long serialVersionUID = 1L;
+
     /** Options for this optimizer. */
     public static class AdaDeltaPrm extends Prm {
+        private static final long serialVersionUID = 1L;
         /** The decay rate (rho) for exponential decay averaging. */
         public double decayRate = 0.95;
         /** The amount added (epsilon) to the sum of squares inside the square root. */
-        public double constantAddend = Math.pow(Math.E, -6);
+        public double constantAddend = 1e-6;
+        /**
+         * Whether to initialize the sums-of-squares to zeros. Note: Most other implementations of
+         * AdaDelta have initSumToZeros = true and no option to do otherwise.
+         */
+        public boolean initSumsToZeros = false;
     }
     
     private static final Logger log = LoggerFactory.getLogger(AdaDelta.class);
@@ -39,6 +47,8 @@ public class AdaDelta implements GainSchedule {
     private double[] updAccum;
     // Cache of the learning rate for each parameter.
     private double[] lr;
+    // Whether the accumulators have been initialized.
+    private boolean initialized;
     
     /**
      * Constructs an SGD optimizer.
@@ -55,18 +65,27 @@ public class AdaDelta implements GainSchedule {
         gradAccum = new double[function.getNumDimensions()];
         lr = new double[function.getNumDimensions()];
         updAccum = new double[function.getNumDimensions()];
+        initialized = false;
     }
 
     @Override
     public void takeNoteOfGradient(IntDoubleVector g) {
+        // If this is the first iteration, use the value of the current gradient only. 
+        double gamma = !initialized && prm.initSumsToZeros ? 0.0 : prm.decayRate;
+        initialized = true;
+        
         // TODO: This update is NOT sparse.
-        IntDoubleHashVector gradient = new IntDoubleHashVector(g);
         for (int i=0; i<gradAccum.length; i++) {
-            gradAccum[i] = prm.decayRate * gradAccum[i] + (1.0 - prm.decayRate) * gradient.get(i) * gradient.get(i);
+            double g_i = g.get(i);
+            gradAccum[i] = gamma * gradAccum[i] + (1.0 - gamma) * g_i * g_i;
             lr[i] = computeLearningRate(i);
-            double update = lr[i] * gradient.get(i);
-            updAccum[i] = prm.decayRate * updAccum[i] + (1.0 - prm.decayRate) * update * update;
+            double update = lr[i] * g_i;
+            updAccum[i] = gamma * updAccum[i] + (1.0 - gamma) * update * update;
             
+            if (log.isTraceEnabled()) {
+                log.trace(String.format("i=%3d g=%7.2g g2=%7.2g u2=%7.2g lr=%7.2g dx=%7.2g", i, g_i, gradAccum[i],
+                        lr[i], updAccum[i], update));
+            }
             assert !Double.isNaN(gradAccum[i]);
             assert !Double.isNaN(lr[i]);
             assert !Double.isNaN(updAccum[i]);
@@ -91,7 +110,7 @@ public class AdaDelta implements GainSchedule {
             throw new RuntimeException("Update accumulator is < 0: " + updAccum[i]);
         }
 
-        double learningRate = Math.sqrt(updAccum[i] + prm.constantAddend) / Math.sqrt(gradAccum[i] + prm.constantAddend);        
+        double learningRate = Math.sqrt((updAccum[i] + prm.constantAddend) / (gradAccum[i] + prm.constantAddend));        
         assert !Double.isNaN(learningRate);
         // We shouldn't ever worry about infinities because of the constantAdded being > 0.
         assert !Double.isInfinite(learningRate);

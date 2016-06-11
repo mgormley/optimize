@@ -12,7 +12,7 @@ import edu.jhu.prim.vector.IntDoubleDenseVector;
 public class AdaGradComidL2Test extends AbstractBatchOptimizerTest {
 
     @Override
-    protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
+    protected Optimizer<DifferentiableBatchFunction> getOptimizer(String id) {
         AdaGradComidL2Prm prm = getOptimizerPrm();
         return new AdaGradComidL2(prm);
     }
@@ -29,9 +29,9 @@ public class AdaGradComidL2Test extends AbstractBatchOptimizerTest {
         return prm;
     }
 
-    protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(double l1Lambda, double l2Lambda) {
+    protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(double l1Lambda, double l2Lambda, String id) {
         AdaGradComidL2Prm prm = getOptimizerPrm();
-        if (l1Lambda != 0) { return super.getRegularizedOptimizer(l1Lambda, l2Lambda); }
+        if (l1Lambda != 0) { return super.getRegularizedOptimizer(l1Lambda, l2Lambda, id); }
         prm.l2Lambda = l2Lambda;
         return new AdaGradComidL2(prm);
     }

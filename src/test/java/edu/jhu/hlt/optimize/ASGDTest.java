@@ -13,8 +13,10 @@ import edu.jhu.prim.vector.IntDoubleDenseVector;
 /** Test of Averaged Stochastic Gradient Descent. */
 public class ASGDTest extends AbstractBatchOptimizerTest {
 
+    protected double getL1EqualityThreshold() { return 1e-2; }
+
     @Override
-    protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
+    protected Optimizer<DifferentiableBatchFunction> getOptimizer(String id) {
         BottouSchedulePrm schPrm = new BottouSchedulePrm();
         //schPrm.initialLr = 0.1 * 10;
         schPrm.initialLr = 0.1 * 10;
@@ -26,6 +28,7 @@ public class ASGDTest extends AbstractBatchOptimizerTest {
         prm.batchSize = 1;
         prm.autoSelectLr = false;
         prm.averaging = true;
+        prm.passToStartAvg = 50;
         return new SGD(prm);
     }
     
@@ -63,39 +66,5 @@ public class ASGDTest extends AbstractBatchOptimizerTest {
         Vectors.scale(offsets, -1.0);
         JUnitUtils.assertArrayEquals(offsets, max, 1e-1);
     }
-    
-    // Below, L1 regularization with SGD doesn't land at the same spot as SGDFobos.
-    
-    @Test
-    public void testL1RegularizedOffsetNegSumSquaresMax() {
-        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0);
-        double[] initial = new double[] { 9, 2, -7};
-        double[] offsets = new double[] { 0.4, -5, 11};
-        double[] expected = new double[]{-0.003632323232, 4.5, -10.5};
-        DifferentiableBatchFunction f = negate(bf(new SumSquares(offsets)));
-        JUnitUtils.assertArrayEquals(new double[]{-0.792, 1.0, -1.0},
-                f.getGradient(new IntDoubleDenseVector(expected)).toNativeArray(),
-                1e-3);
-        opt.maximize(f, new IntDoubleDenseVector(initial));
-        double[] max = initial;
-        Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(expected, max, 1e-10);
-    }
-    
-    @Test
-    public void testL1RegularizedOffsetNegSumSquaresMin() {
-        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0);
-        double[] initial = new double[] { 9, 2, -7};
-        double[] offsets = new double[] { 0.4, -5, 11};
-        double[] expected = new double[]{-0.003632323232, 4.5, -10.5};
-        DifferentiableBatchFunction f = bf(new SumSquares(offsets));
-        JUnitUtils.assertArrayEquals(new double[]{0.792, -1.0, 1.0},
-                f.getGradient(new IntDoubleDenseVector(expected)).toNativeArray(),
-                1e-3);
-        opt.minimize(f, new IntDoubleDenseVector(initial));
-        double[] max = initial;
-        Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(expected, max, 1e-10);
-    }
-    
+        
 }

@@ -19,7 +19,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
 public class SGDTest extends AbstractBatchOptimizerTest {
 
     @Override
-    protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
+    protected Optimizer<DifferentiableBatchFunction> getOptimizer(String id) {
         SGDPrm prm = new SGDPrm();
         prm.sched.setEta0(0.1 * 10);
         prm.numPasses = 100;
@@ -142,7 +142,7 @@ public class SGDTest extends AbstractBatchOptimizerTest {
     
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMax() {
-        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0);
+        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0, null);
         double[] initial = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
         double[] expected = new double[]{-0.00130530530530, 4.5, -10.5};
@@ -158,7 +158,7 @@ public class SGDTest extends AbstractBatchOptimizerTest {
     
     @Test
     public void testL1RegularizedOffsetNegSumSquaresMin() {
-        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0);
+        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0, null);
         double[] initial = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
         double[] expected = new double[]{-0.00130530530530, 4.5, -10.5};
