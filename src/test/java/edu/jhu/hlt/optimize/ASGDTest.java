@@ -59,12 +59,11 @@ public class ASGDTest extends AbstractBatchOptimizerTest {
         prm.autoSelectLr = true;
         SGD opt = new SGD(prm);
         
-        double[] initial = new double[] { 9, 2, -7};
+        double[] x = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 3, -5, 11};
-        opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
-        double[] max = initial;
+        opt.minimize(bf(new SumSquares(offsets)), new IntDoubleDenseVector(x));
         Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(offsets, max, 1e-1);
+        JUnitUtils.assertArrayEquals(offsets, x, 1e-1);
     }
         
 }

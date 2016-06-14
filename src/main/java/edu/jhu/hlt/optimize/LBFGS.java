@@ -25,11 +25,6 @@ public class LBFGS implements Optimizer<DifferentiableFunction> {
     public LBFGS(LBFGSPrm param) { this.param = param; }
 
     @Override
-    public boolean maximize(DifferentiableFunction fn, IntDoubleVector x) {
-        return minimize(DifferentiableFunctionOpts.negate(fn), x);
-    }
-
-    @Override
     public boolean minimize(final DifferentiableFunction fn, IntDoubleVector xVec) {
         // The initial point.
         double[] xArr = new double[fn.getNumDimensions()];

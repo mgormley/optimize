@@ -30,7 +30,7 @@ public class AdaDeltaTest  extends AbstractBatchOptimizerTest {
             sched.constantAddend = 1e-10;
             prm.numPasses = 4000;
             sched.initSumsToZeros = true;
-        } else if ("testL2RegularizedOffsetNegSumSquares".equals(id)) {
+        } else if ("testL2RegularizedOffsetSumSquares".equals(id)) {
             sched.decayRate = 0.9;
             sched.constantAddend = 1e-5;
             sched.initSumsToZeros = true;
@@ -43,8 +43,6 @@ public class AdaDeltaTest  extends AbstractBatchOptimizerTest {
     // Even with careful tuning, AdaDelta only seems to get the objective to 48.7226
     // while SGD gets down to 48.7200. We disable this test for now.
     @Ignore @Test
-    public void testL2RegularizedOffsetNegSumSquaresMax() { }
-    @Ignore @Test
-    public void testL2RegularizedOffsetNegSumSquaresMin() { }
+    public void testL2RegularizedOffsetSumSquares() { }
     
 }

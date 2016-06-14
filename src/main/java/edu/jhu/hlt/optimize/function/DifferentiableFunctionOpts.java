@@ -170,24 +170,11 @@ public class DifferentiableFunctionOpts {
         return new Optimizer<DifferentiableFunction>() {
             
             @Override
-            public boolean minimize(DifferentiableFunction function, IntDoubleVector point) {
-                return optimize(function, point, false);
+            public boolean minimize(DifferentiableFunction objective, IntDoubleVector point) {
+                DifferentiableFunction fn = getRegularizedFn(objective, false, l1Lambda, l2Lambda);
+                return opt.minimize(fn, point);
             }
             
-            @Override
-            public boolean maximize(DifferentiableFunction function, IntDoubleVector point) {
-                return optimize(function, point, true);
-            }
-            
-            public boolean optimize(DifferentiableFunction objective, IntDoubleVector point, boolean maximize) {
-                DifferentiableFunction fn = getRegularizedFn(objective, maximize, l1Lambda, l2Lambda);
-                
-                if (!maximize) {
-                    return opt.minimize(fn, point);   
-                } else {
-                    return opt.maximize(fn, point);
-                }
-            }
         };
     }
 

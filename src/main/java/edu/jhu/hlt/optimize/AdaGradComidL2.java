@@ -84,11 +84,10 @@ public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatch
 
     @Override
     protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, 
-            final boolean maximize, final int iterCount) {
+            final int iterCount) {
         gradient.iterate(new FnIntDoubleToVoid() {
             @Override
             public void call(int i, double g_ti) {
-                g_ti = maximize ? -g_ti : g_ti;
                 assert !Double.isNaN(g_ti);
                 // Get the old learning rate.
                 double h_t0ii = prm.constantAddend + Math.sqrt(gradSumSquares[i]);
