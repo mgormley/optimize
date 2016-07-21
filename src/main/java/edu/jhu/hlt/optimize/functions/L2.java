@@ -68,9 +68,4 @@ public class L2 implements Regularizer {
     public void setNumDimensions(int numParams) {
         this.numParams = numParams ;
     }
-
-    public double getVariance() {
-        return variance;
-    }
-
 }
