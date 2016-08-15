@@ -112,7 +112,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         Timer passTimer = new Timer();
         Timer tuneTimer = new Timer();
         double bestDevLoss = Double.MAX_VALUE;
-        int[] bestDevPass = { -1 };  // as an array to enable pass by reference
+        edu.jhu.prim.Primitives.MutableInt bestDevPass = new edu.jhu.prim.Primitives.MutableInt(-1);
         IntDoubleVector bestPoint = prm.earlyStopping && devLoss != null ? new IntDoubleDenseVector(function.getNumDimensions()) : null;
         IntDoubleVector avgPoint = prm.averaging ? new IntDoubleDenseVector(point) : null;
         assert !prm.averaging || prm.passToStartAvg >= pass;
@@ -193,7 +193,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         bestDevLoss = pair[1];
         if (prm.earlyStopping && devLoss != null) {
             // Return the best point seen so far.
-            log.debug(String.format("Early stopping returning point with dev loss %f from pass %d: ", bestDevLoss, bestDevPass[0]));
+            log.debug(String.format("Early stopping returning point with dev loss %f from pass %d: ", bestDevLoss, bestDevPass.v));
             for (int m=0; m<function.getNumDimensions(); m++) {
                 point.set(m, bestPoint.get(m));
             }
@@ -208,7 +208,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     protected double[] sufferLossAndUpdateBest(DifferentiableBatchFunction function, IntDoubleVector point,
             IntDoubleVector avgPoint, int pass, Function devLoss, int startIter, int iter, double bestDevLoss, 
-            IntDoubleVector bestPoint, int[] bestDevPass) {
+            IntDoubleVector bestPoint, edu.jhu.prim.Primitives.MutableInt bestDevPass) {
         if (prm.averaging) {
             point = avgPoint;
         }
@@ -227,7 +227,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                     bestPoint.set(m, point.get(m));
                 }
                 bestDevLoss = devScore;
-                bestDevPass[0] = pass;
+                bestDevPass.v = pass;
             }
         }
         return new double[]{value, bestDevLoss};
