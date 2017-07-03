@@ -14,11 +14,11 @@ import edu.jhu.prim.vector.IntDoubleVector;
  */
 public class L2 implements Regularizer {
 
-    private double variance;
+    private double lambda;
     private int numParams;
     
-    public L2(double variance) {
-        this.variance = variance;
+    public L2(double lambda) {
+        this.lambda = lambda;
     }
     
     /**
@@ -27,30 +27,30 @@ public class L2 implements Regularizer {
      * @param variance The covariance matrix of the Gaussian will be variance*I.
      * @param numParams The number of parameters.
      */
-    public L2(double variance, int numParams) {
-        this.variance = variance;
+    public L2(double lambda, int numParams) {
+        this.lambda = lambda;
         this.numParams = numParams;
     }
     
     /**
-     * Gets the negated sum of squares times 1/(2\sigma^2).
+     * Gets the negated sum of squares times 1/2 \lambda.
      */
     @Override
     public double getValue(IntDoubleVector params) {
         double sum = params.dot(params);
-        sum /= (2 * variance);
+        sum *= 1./2. * lambda;
         return - sum;
     }
 
     /**
-     * Gets the negative parameter value times 1/(\sigma^2).
+     * Gets the negative parameter value times lambda.
      */
     // TODO: Why do Sutton & McCallum include the sum of the parameters here and not just the value for each term of the gradient.
     @Override
     public IntDoubleVector getGradient(IntDoubleVector params) {
         IntDoubleDenseVector gradient = new IntDoubleDenseVector(numParams);
         for (int j=0; j<numParams; j++) {
-            gradient.set(j, - params.get(j) / variance);
+            gradient.set(j, - params.get(j) * lambda);
         }
         return gradient;
     }
@@ -68,5 +68,4 @@ public class L2 implements Regularizer {
     public void setNumDimensions(int numParams) {
         this.numParams = numParams ;
     }
-
 }

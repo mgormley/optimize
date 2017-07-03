@@ -12,7 +12,7 @@ import edu.jhu.prim.vector.IntDoubleDenseVector;
 public class AdaGradComidL1Test extends AbstractBatchOptimizerTest {
 
     @Override
-    protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
+    protected Optimizer<DifferentiableBatchFunction> getOptimizer(String id) {
         AdaGradComidL1Prm prm = getOptimizerPrm();
         return new AdaGradComidL1(prm);
     }
@@ -29,10 +29,10 @@ public class AdaGradComidL1Test extends AbstractBatchOptimizerTest {
         return prm;
     }    
 
-    protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(double l1Lambda, double l2Lambda) {
+    protected Optimizer<DifferentiableBatchFunction> getRegularizedOptimizer(double l1Lambda, double l2Lambda, String id) {
         AdaGradComidL1Prm prm = getOptimizerPrm();
         prm.l1Lambda = l1Lambda;
-        if (l2Lambda != 0) { return super.getRegularizedOptimizer(l1Lambda, l2Lambda); }
+        if (l2Lambda != 0) { return super.getRegularizedOptimizer(l1Lambda, l2Lambda, id); }
         return new AdaGradComidL1(prm);
     }
     
@@ -59,12 +59,11 @@ public class AdaGradComidL1Test extends AbstractBatchOptimizerTest {
         prm.autoSelectLr = true;
         AdaGradComidL1 opt = new AdaGradComidL1(prm);
         
-        double[] initial = new double[] { 9, 2, -7};
+        double[] x = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 3, -5, 11};
-        opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
-        double[] max = initial;
+        opt.minimize(bf(new SumSquares(offsets)), new IntDoubleDenseVector(x));
         Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(offsets, max, 1e-1);
+        JUnitUtils.assertArrayEquals(offsets, x, 1e-1);
     }
     
 }

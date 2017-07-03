@@ -19,7 +19,7 @@ import edu.jhu.prim.vector.IntDoubleVector;
 public class SGDTest extends AbstractBatchOptimizerTest {
 
     @Override
-    protected Optimizer<DifferentiableBatchFunction> getOptimizer() {
+    protected Optimizer<DifferentiableBatchFunction> getOptimizer(String id) {
         SGDPrm prm = new SGDPrm();
         prm.sched.setEta0(0.1 * 10);
         prm.numPasses = 100;
@@ -55,12 +55,11 @@ public class SGDTest extends AbstractBatchOptimizerTest {
         prm.autoSelectLr = true;
         SGD opt = new SGD(prm);
         
-        double[] initial = new double[] { 9, 2, -7};
+        double[] x = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 3, -5, 11};
-        opt.maximize(negate(bf(new SumSquares(offsets))), new IntDoubleDenseVector(initial));
-        double[] max = initial;
+        opt.minimize(bf(new SumSquares(offsets)), new IntDoubleDenseVector(x));
         Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(offsets, max, 1e-1);
+        JUnitUtils.assertArrayEquals(offsets, x, 1e-1);
     }
     
     private static class MyFnForAvg extends AbstractDifferentiableBatchFunction implements DifferentiableBatchFunction {
@@ -70,10 +69,10 @@ public class SGDTest extends AbstractBatchOptimizerTest {
             IntDoubleDenseVector g = new IntDoubleDenseVector();
             double val = 0;
             for (int i=0; i<batch.length; i++) {
-                int c = (batch[i] % 2 == 0) ? 1 : -1;
+                int c = (batch[i] % 2 == 0) ? -1 : 1;
                 val += c;
-                g.set(0, c);
-                g.set(1, -c);
+                g.set(0, -c);
+                g.set(1, c);
             }
             return new ValueGradient(val, g);
         }
@@ -119,10 +118,10 @@ public class SGDTest extends AbstractBatchOptimizerTest {
         {
             SGD sgd = new SGD(prm);
             IntDoubleDenseVector point = new IntDoubleDenseVector(2);
-            sgd.optimize(new MyFnForAvg(), point, true, null);
+            sgd.minimize(new MyFnForAvg(), point);
             System.out.println(point);
-            assertEquals(1.0, point.get(0), 1e-13);
-            assertEquals(-1.0, point.get(1), 1e-13);
+            assertEquals(-1.0, point.get(0), 1e-13);
+            assertEquals(1.0, point.get(1), 1e-13);
         }
         
         prm.passToStartAvg = 0;
@@ -130,10 +129,10 @@ public class SGDTest extends AbstractBatchOptimizerTest {
         {
             SGD sgd = new SGD(prm);
             IntDoubleDenseVector point = new IntDoubleDenseVector(2);
-            sgd.optimize(new MyFnForAvg(), point, true, null);
+            sgd.minimize(new MyFnForAvg(), point);
             System.out.println(point);
-            assertEquals(-(1 + 0 + 1 + 0 + 1) / 5.0, point.get(0), 1e-13);
-            assertEquals(-(-1 + -2 + -1 + 0 + 1) / 5.0, point.get(1), 1e-13);
+            assertEquals((1 + 0 + 1 + 0 + 1) / 5.0, point.get(0), 1e-13);
+            assertEquals((-1 + -2 + -1 + 0 + 1) / 5.0, point.get(1), 1e-13);
         }
         
     }
@@ -141,35 +140,18 @@ public class SGDTest extends AbstractBatchOptimizerTest {
     // Below, L1 regularization with SGD doesn't land at the same spot as SGDFobos.
     
     @Test
-    public void testL1RegularizedOffsetNegSumSquaresMax() {
-        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0);
-        double[] initial = new double[] { 9, 2, -7};
-        double[] offsets = new double[] { 0.4, -5, 11};
-        double[] expected = new double[]{-0.00130530530530, 4.5, -10.5};
-        DifferentiableBatchFunction f = negate(bf(new SumSquares(offsets)));
-        JUnitUtils.assertArrayEquals(new double[]{-0.797, 1.0, -1.0},
-                f.getGradient(new IntDoubleDenseVector(expected)).toNativeArray(),
-                1e-3);
-        opt.maximize(f, new IntDoubleDenseVector(initial));
-        double[] max = initial;
-        Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(expected, max, 1e-10);
-    }
-    
-    @Test
-    public void testL1RegularizedOffsetNegSumSquaresMin() {
-        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0);
-        double[] initial = new double[] { 9, 2, -7};
+    public void testL1RegularizedOffsetSumSquares() {
+        Optimizer<DifferentiableBatchFunction> opt = getRegularizedOptimizer(1.0, 0.0, null);
+        double[] x = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
         double[] expected = new double[]{-0.00130530530530, 4.5, -10.5};
         DifferentiableBatchFunction f = bf(new SumSquares(offsets));
         JUnitUtils.assertArrayEquals(new double[]{0.797, -1.0, 1.0},
                 f.getGradient(new IntDoubleDenseVector(expected)).toNativeArray(),
                 1e-3);
-        opt.minimize(f, new IntDoubleDenseVector(initial));
-        double[] max = initial;
+        opt.minimize(f, new IntDoubleDenseVector(x));
         Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(expected, max, 1e-10);
+        JUnitUtils.assertArrayEquals(expected, x, 1e-10);
     }
     
 }

@@ -258,7 +258,7 @@ public class LBFGS_port {
          *  (corrections). The default value is \c 6. Values less than \c 3 are
          *  not recommended. Large values will result in excessive computing time.
          */
-        int             m = 6;
+        public int             m = 6;
 
         /**
          * Epsilon for convergence test.
@@ -268,7 +268,7 @@ public class LBFGS_port {
          *  where ||.|| denotes the Euclidean (L2) norm. The default value is
          *  \c 1e-5.
          */
-        double epsilon = 1e-6;
+        public double epsilon = 1e-6;
 
         /**
          * Distance for delta-based convergence test.
@@ -277,7 +277,7 @@ public class LBFGS_port {
          *  parameter is zero, the library does not perform the delta-based
          *  convergence test. The default value is \c 0.
          */
-        int             past = 0;
+        public int             past = 0;
 
         /**
          * Delta for convergence test.
@@ -289,7 +289,7 @@ public class LBFGS_port {
          *  the objective value of the current iteration.
          *  The default value is \c 0.
          */
-        double delta = 0;
+        public double delta = 0;
 
         /**
          * The maximum number of iterations.
@@ -299,21 +299,21 @@ public class LBFGS_port {
          *  optimization process until a convergence or error. The default value
          *  is \c 0.
          */
-        int             max_iterations = 0;
+        public int             max_iterations = 0;
 
         /**
          * The line search algorithm.
          *  This parameter specifies a line search algorithm to be used by the
          *  L-BFGS routine.
          */
-        LineSearchAlg linesearch = LBFGS_LINESEARCH_MORETHUENTE;
+        public LineSearchAlg linesearch = LBFGS_LINESEARCH_MORETHUENTE;
 
         /**
          * The maximum number of trials for the line search.
          *  This parameter controls the number of function and gradients evaluations
          *  per iteration for the line search routine. The default value is \c 20.
          */
-        int             max_linesearch = 20; // was 40
+        public int             max_linesearch = 20; // was 40
 
         /**
          * The minimum step of the line search routine.
@@ -322,7 +322,7 @@ public class LBFGS_port {
          *  problem is extremely badly scaled (in which case the exponents should
          *  be increased).
          */
-        double min_step = 1e-20;
+        public double min_step = 1e-20;
 
         /**
          * The maximum step of the line search.
@@ -331,14 +331,14 @@ public class LBFGS_port {
          *  problem is extremely badly scaled (in which case the exponents should
          *  be increased).
          */
-        double max_step = 1e20;
+        public double max_step = 1e20;
 
         /**
          * A parameter to control the accuracy of the line search routine.
          *  The default value is \c 1e-4. This parameter should be greater
          *  than zero and smaller than \c 0.5.
          */
-        double ftol = 1e-6;
+        public double ftol = 1e-6;
 
         /**
          * A coefficient for the Wolfe condition.
@@ -349,7 +349,7 @@ public class LBFGS_port {
          *  The default value is \c 0.9. This parameter should be greater
          *  the \ref ftol parameter and smaller than \c 1.0.
          */
-        double wolfe = 0.9;
+        public double wolfe = 0.9;
 
         /**
          * A parameter to control the accuracy of the line search routine.
@@ -361,7 +361,7 @@ public class LBFGS_port {
          *  greater than the \ref ftol parameter (\c 1e-4) and smaller than
          *  \c 1.0.
          */
-        double gtol = 0.9;
+        public double gtol = 0.9;
 
         /**
          * The machine precision for floating-point values.
@@ -370,7 +370,7 @@ public class LBFGS_port {
          *  with the status code (::LBFGSERR_ROUNDING_ERROR) if the relative width
          *  of the interval of uncertainty is less than this parameter.
          */
-        double xtol = 1e-16;
+        public double xtol = 1e-16;
 
         /**
          * Coeefficient for the L1 norm of variables.
@@ -385,7 +385,7 @@ public class LBFGS_port {
          *  the function value F(x) and gradients G(x) as usual. The default value
          *  is zero.
          */
-        double orthantwise_c = 0.0;
+        public double orthantwise_c = 0.0;
 
         /**
          * Start index for computing L1 norm of the variables.
@@ -399,7 +399,7 @@ public class LBFGS_port {
          *  variables, x_1, ..., x_{b-1} (e.g., a bias term of logistic
          *  regression) from being regularized. The default value is zero.
          */
-        int             orthantwise_start = 0;
+        public int             orthantwise_start = 0;
 
         /**
          * End index for computing L1 norm of the variables.
@@ -408,7 +408,7 @@ public class LBFGS_port {
          *  specifies the index number at which the library stops computing the
          *  L1 norm of the variables x,
          */
-        int             orthantwise_end = -1;
+        public int             orthantwise_end = -1;
     }
 
 

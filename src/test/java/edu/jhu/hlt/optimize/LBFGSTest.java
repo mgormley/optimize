@@ -8,4 +8,6 @@ public class LBFGSTest extends AbstractOptimizerTest {
         return new LBFGS();
     }
     
+    protected boolean supportsL1Regularization() { return false; }
+    
 }

@@ -78,7 +78,7 @@ public class SGDFobos extends SGD implements Optimizer<DifferentiableBatchFuncti
 
     @Override
     protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, 
-            final boolean maximize, final int iterCount) {
+            final int iterCount) {
         // Update the cumulative sum of the learning rates.
         // We always assume that the schedule is the same for all parameters.
         accumLr.add(prm.sched.getLearningRate(iterCount, 0) + 
@@ -93,7 +93,7 @@ public class SGDFobos extends SGD implements Optimizer<DifferentiableBatchFuncti
                 iterOfLastStep[index] = iterCount;
                 double w_0 = point.get(index);
                 // Step 1. Eq (2) from Duchi & Singer (2009)
-                double w_1 = maximize ?  w_0 + lr * gr : w_0 - lr * gr;
+                double w_1 = w_0 - lr * gr;
                 // Step 2. Eq (3) from Duchi & Singer (2009)
                 double w_2;
                 if (l1reg) {

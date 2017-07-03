@@ -28,6 +28,8 @@ import edu.jhu.prim.vector.IntDoubleVector;
  */
 public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
+    private static final long serialVersionUID = 1L;
+
     /** Options for this optimizer. */
     public static class SGDPrm extends Prm {
         private static final long serialVersionUID = 1L;
@@ -80,26 +82,18 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
 
     /**
-     * Maximize the function starting at the given initial point.
-     */
-    @Override
-    public boolean maximize(DifferentiableBatchFunction function, IntDoubleVector point) {
-        return optimize(function, point, true, null);
-    }
-
-    /**
      * Minimize the function starting at the given initial point.
      */
+    @Override
     public boolean minimize(DifferentiableBatchFunction function, IntDoubleVector point) {
-        return optimize(function, point, false, null);
+        return minimize(function, point, null);
     }
 
-    public boolean optimize(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, Function devLoss) {
+    public boolean minimize(DifferentiableBatchFunction function, final IntDoubleVector point, Function devLoss) {
         init(function, point);
         final int itersPerEpoch = getItersPerPass(function);
         log.info("Number of batch gradient iterations: " + prm.numPasses * itersPerEpoch);
-        optimizeWithoutInit(function, point, maximize, itersPerEpoch, 0, devLoss);
+        minimizeWithoutInit(function, point, itersPerEpoch, 0, devLoss);
         // We don't test for convergence.
         return false;
     }
@@ -109,8 +103,8 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         return (int) Math.ceil((double) function.getNumExamples() / prm.batchSize);
     }
 
-    private double optimizeWithoutInit(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, final int itersPerPass, int pass, Function devLoss) {
+    private double minimizeWithoutInit(DifferentiableBatchFunction function, final IntDoubleVector point, 
+            final int itersPerPass, int pass, Function devLoss) {
         final int maxIters = prm.numPasses * itersPerPass;
         final int startIter = pass * itersPerPass;
         int iter = startIter;
@@ -118,6 +112,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         Timer passTimer = new Timer();
         Timer tuneTimer = new Timer();
         double bestDevLoss = Double.MAX_VALUE;
+        edu.jhu.prim.Primitives.MutableInt bestDevPass = new edu.jhu.prim.Primitives.MutableInt(-1);
         IntDoubleVector bestPoint = prm.earlyStopping && devLoss != null ? new IntDoubleDenseVector(function.getNumDimensions()) : null;
         IntDoubleVector avgPoint = prm.averaging ? new IntDoubleDenseVector(point) : null;
         assert !prm.averaging || prm.passToStartAvg >= pass;
@@ -139,14 +134,14 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 passTimer.stop();
                 tuneTimer.start();
                 // Auto select every autoSelecFreq epochs.
-                autoSelectLr(function, point, maximize, pass);
+                autoSelectLr(function, point, pass);
                 log.info("Average time (min) per tuning pass: " + tuneTimer.avgSec() / 60.0);
                 tuneTimer.stop();
                 passTimer.start();
             }
             if (prm.computeValueOnNonFinalIter) {
                 bestDevLoss = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter,
-                        iter, bestDevLoss, bestPoint)[1];
+                        iter, bestDevLoss, bestPoint, bestDevPass)[1];
             }
             
             // Make a full pass through the training data.
@@ -165,7 +160,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                 prm.sched.takeNoteOfGradient(gradient);
                 
                 // Step in the direction of the gradient (maximization) or opposite it (minimization).
-                takeGradientStep(point, gradient, maximize, iter);                
+                takeGradientStep(point, gradient, iter);                
                 logAvgLrAndStepSize(point, gradient, iter);
                 logStatsAboutPoint(point);
                 
@@ -192,13 +187,13 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
             log.debug(String.format("Average time per pass (min): %.2g", passTimer.totSec() / 60.0 / (pass + 1)));
         }
         
-        double[] pair = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter, 
-                iter, bestDevLoss, bestPoint);
+        double[] pair = sufferLossAndUpdateBest(function, point, avgPoint, pass, devLoss, startIter,
+                iter, bestDevLoss, bestPoint, bestDevPass);
         double value = pair[0];
         bestDevLoss = pair[1];
         if (prm.earlyStopping && devLoss != null) {
             // Return the best point seen so far.
-            log.debug("Early stopping returning point with dev loss: " + bestDevLoss);
+            log.debug(String.format("Early stopping returning point with dev loss %f from pass %d: ", bestDevLoss, bestDevPass.v));
             for (int m=0; m<function.getNumDimensions(); m++) {
                 point.set(m, bestPoint.get(m));
             }
@@ -213,7 +208,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
 
     protected double[] sufferLossAndUpdateBest(DifferentiableBatchFunction function, IntDoubleVector point,
             IntDoubleVector avgPoint, int pass, Function devLoss, int startIter, int iter, double bestDevLoss, 
-            IntDoubleVector bestPoint) {
+            IntDoubleVector bestPoint, edu.jhu.prim.Primitives.MutableInt bestDevPass) {
         if (prm.averaging) {
             point = avgPoint;
         }
@@ -232,23 +227,20 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
                     bestPoint.set(m, point.get(m));
                 }
                 bestDevLoss = devScore;
+                bestDevPass.v = pass;
             }
         }
         return new double[]{value, bestDevLoss};
     }
 
     protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, 
-            final boolean maximize, final int iterCount) {
+            final int iterCount) {
         // Scale the gradient by the parameter-specific learning rate.
         gradient.apply(new FnIntDoubleToDouble() {
             @Override
             public double call(int index, double value) {
                 double lr = prm.sched.getLearningRate(iterCount, index);
-                if (maximize) {
-                    value = lr * value;
-                } else {
-                    value = - lr * value;
-                }
+                value = - lr * value;
                 assert !Double.isNaN(value);
                 assert !Double.isInfinite(value);
                 return value;
@@ -297,13 +289,13 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
 
     protected void autoSelectLr(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, final int pass) {
-        double eta0 = autoSelectLrStatic(function, point, maximize, this, pass);
+            final int pass) {
+        double eta0 = autoSelectLrStatic(function, point, this, pass);
         this.setEta0(eta0);
     }
     
     private static double autoSelectLrStatic(DifferentiableBatchFunction function, final IntDoubleVector point, 
-            final boolean maximize, SGD orig, int pass) {
+            SGD orig, int pass) {
         log.info("Auto-selecting the best learning rate constant at pass " + pass);
         // Parameters for how we perform auto selection of the initial learning rate.
         // The max number of iterations.
@@ -325,13 +317,13 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         boolean increasing = true;
         double eta = origEta0;
         for (int i=0; i<numEvals; i++) {
-            double obj = evaluateInitialLr(sampFunction, point, maximize, orig, eta, pass);
+            double obj = evaluateInitialLr(sampFunction, point, orig, eta, pass);
             log.info(String.format("Evaluated initial learning rate: eta="+eta+" obj="+obj));
-            if (isBetter(obj, bestObj, maximize)) {
+            if (isBetter(obj, bestObj)) {
                 bestObj = obj;
                 bestEta = eta;
             }
-            if (!isBetter(obj, startObj, maximize) && increasing) {
+            if (!isBetter(obj, startObj) && increasing) {
                 // If training caused the objective to worsen, then switch from
                 // increasing the learning rate to decreasing it.
                 increasing = false;
@@ -353,7 +345,7 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
     }
 
     private static double evaluateInitialLr(DifferentiableBatchFunction sampFunction, IntDoubleVector origPoint, 
-            boolean maximize, SGD orig, double eta, int pass) {
+            SGD orig, double eta, int pass) {
         SGD sgd = orig.copy();
         if (orig.prm == sgd.prm) { throw new IllegalStateException("Copy must create a new prm."); }
         IntDoubleVector point = origPoint.copy();
@@ -372,13 +364,13 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         final int itersPerPass = sgd.getItersPerPass(sampFunction);
         double obj;
         try {
-            obj = sgd.optimizeWithoutInit(sampFunction, point, maximize, itersPerPass, pass, null);
+            obj = sgd.minimizeWithoutInit(sampFunction, point, itersPerPass, pass, null);
         } catch (Throwable t) {
             log.setEnabled(true);
             String msg = (t.getMessage() == null) ? "": " : " + t.getMessage();
             log.error("Failed to evaluate hyperparameter. Caught throwable: " + t.getClass() + msg);
             log.trace("Stacktrace from previous ERROR:\n", t);
-            obj = worstObjValue(maximize);
+            obj = worstObjValue();
         }
         log.setEnabled(true);
         return obj;
@@ -392,12 +384,12 @@ public class SGD implements Optimizer<DifferentiableBatchFunction> {
         prm.sched.setEta0(eta);
     }
 
-    private static boolean isBetter(double obj, double bestObj, boolean maximize) {
-        return maximize ? obj > bestObj : obj < bestObj;
+    private static boolean isBetter(double obj, double bestObj) {
+        return obj < bestObj;
     }
     
-    private static double worstObjValue(boolean maximize) {
-        return maximize ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+    private static double worstObjValue() {
+        return Double.POSITIVE_INFINITY;
     }
     
 }

@@ -14,7 +14,7 @@ import edu.jhu.prim.util.Lambda.FnIntDoubleToVoid;
 import edu.jhu.prim.vector.IntDoubleVector;
 
 /**
- * AdaGrad with a Composite Objective Mirror Descent update and L1 regularizer with lazy updates (Duchi et al., 2011).
+ * AdaGrad with a Composite Objective Mirror Descent update and L2 regularizer with lazy updates (Duchi et al., 2011).
  * 
  * @author mgormley
  */
@@ -84,11 +84,10 @@ public class AdaGradComidL2 extends SGD implements Optimizer<DifferentiableBatch
 
     @Override
     protected void takeGradientStep(final IntDoubleVector point, final IntDoubleVector gradient, 
-            final boolean maximize, final int iterCount) {
+            final int iterCount) {
         gradient.iterate(new FnIntDoubleToVoid() {
             @Override
             public void call(int i, double g_ti) {
-                g_ti = maximize ? -g_ti : g_ti;
                 assert !Double.isNaN(g_ti);
                 // Get the old learning rate.
                 double h_t0ii = prm.constantAddend + Math.sqrt(gradSumSquares[i]);

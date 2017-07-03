@@ -171,24 +171,11 @@ public class BatchFunctionOpts {
             return opt;
         }
         return new Optimizer<DifferentiableBatchFunction>() {
-            
+
             @Override
-            public boolean minimize(DifferentiableBatchFunction function, IntDoubleVector point) {
-                return optimize(function, point, false);
-            }
-            
-            @Override
-            public boolean maximize(DifferentiableBatchFunction function, IntDoubleVector point) {
-                return optimize(function, point, true);
-            }
-            
-            public boolean optimize(DifferentiableBatchFunction objective, IntDoubleVector point, boolean maximize) {
-                DifferentiableBatchFunction fn = getRegularizedFn(objective, maximize, l1Lambda, l2Lambda);                
-                if (!maximize) {
-                    return opt.minimize(fn, point);   
-                } else {
-                    return opt.maximize(fn, point);
-                }
+            public boolean minimize(DifferentiableBatchFunction objective, IntDoubleVector point) {
+                DifferentiableBatchFunction fn = getRegularizedFn(objective, false, l1Lambda, l2Lambda);                
+                return opt.minimize(fn, point);   
             }
 
         };
@@ -197,7 +184,7 @@ public class BatchFunctionOpts {
     public static DifferentiableBatchFunction getRegularizedFn(DifferentiableBatchFunction objective,
             boolean maximize, final double l1Lambda, final double l2Lambda) {
         L1 l1 = new L1(l1Lambda);
-        L2 l2 = new L2(1.0 / l2Lambda);
+        L2 l2 = new L2(l2Lambda);
         l1.setNumDimensions(objective.getNumDimensions());
         l2.setNumDimensions(objective.getNumDimensions());
         DifferentiableFunction reg;

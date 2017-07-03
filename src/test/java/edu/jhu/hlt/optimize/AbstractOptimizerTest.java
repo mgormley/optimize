@@ -20,6 +20,7 @@ public abstract class AbstractOptimizerTest {
     protected abstract Optimizer<DifferentiableFunction> getOptimizer();
 
     protected double getL1EqualityThreshold() { return 1e-13; }
+    protected boolean supportsL1Regularization() { return true; }
 
     public static DifferentiableFunction negate(DifferentiableFunction f) {
         return new DifferentiableFunctionOpts.NegateFunction(f);
@@ -29,102 +30,62 @@ public abstract class AbstractOptimizerTest {
         final Optimizer<DifferentiableFunction> opt = getOptimizer();        
         return DifferentiableFunctionOpts.getRegularizedOptimizer(opt, l1Lambda, l2Lambda);
     }
-    
-    @Test
-    public void testNegXSquared() {
-        Optimizer<DifferentiableFunction> opt = getOptimizer();
-        double[] max = new double[]{ 9.0 };
-        opt.maximize(new NegateFunction(new XSquared()), new IntDoubleDenseVector(max));
-        assertEquals(0.0, max[0], 1e-10);      
-    }
-    
+        
     @Test
     public void testXSquared() {
         Optimizer<DifferentiableFunction> opt = getOptimizer();
-        double[] max = new double[]{ 9.0 };
-        opt.minimize(new XSquared(), new IntDoubleDenseVector(max));
-        assertEquals(0.0, max[0], 1e-10);        
+        double[] x = new double[]{ 9.0 };
+        opt.minimize(new XSquared(), new IntDoubleDenseVector(x));
+        assertEquals(0.0, x[0], 1e-10);        
     }
     
     @Test
-    public void testNegSumSquares() {
+    public void testSumSquares() {
         Optimizer<DifferentiableFunction> opt = getOptimizer();
-        double[] initial = new double[3];
-        initial[0] = 9;
-        initial[1] = 2;
-        initial[2] = -7;
-        opt.maximize(new NegateFunction(new SumSquares(initial.length)), new IntDoubleDenseVector(initial));
-        double[] max = initial;
-        JUnitUtils.assertArrayEquals(new double[] {0.0, 0.0, 0.0} , max, 1e-10);
+        double[] x = new double[3];
+        x[0] = 9;
+        x[1] = 2;
+        x[2] = -7;
+        opt.minimize(new SumSquares(x.length), new IntDoubleDenseVector(x));
+        JUnitUtils.assertArrayEquals(new double[] {0.0, 0.0, 0.0} , x, 1e-10);
     }
     
     @Test
     public void testOffsetNegSumSquares() {
         Optimizer<DifferentiableFunction> opt = getOptimizer();
-        double[] initial = new double[] { 9, 2, -7};
+        double[] x = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 3, -5, 11};
-        opt.maximize(new NegateFunction(new SumSquares(offsets)), new IntDoubleDenseVector(initial));
-        double[] max = initial;
+        opt.minimize(new SumSquares(offsets), new IntDoubleDenseVector(x));
         Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(offsets, max, 1e-10);
-    }
-
-    @Test
-    public void testL1RegularizedOffsetNegSumSquaresMax() {
-        Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(1.0, 0.0);
-        double[] initial = new double[] { 9, 2, -7};
-        double[] offsets = new double[] { 0.4, -5, 11};
-        double[] expected = new double[]{-0.0, 4.5, -10.5};
-        DifferentiableFunction f = negate(new SumSquares(offsets));
-//        JUnitUtils.assertArrayEquals(new double[]{0.0, 0.0, 0.0},
-//                f.getGradient(new IntDoubleDenseVector(expected)).toNativeArray(),
-//                1e-13);
-        opt.maximize(negate(new SumSquares(offsets)), new IntDoubleDenseVector(initial));
-        double[] max = initial;
-        Vectors.scale(offsets, -1.0);
-        assertEquals(expected[0], max[0], getL1EqualityThreshold());
-        assertEquals(expected[1], max[1], 1e-10);
-        assertEquals(expected[2], max[2], 1e-10);
+        JUnitUtils.assertArrayEquals(offsets, x, 1e-10);
     }
     
     @Test
-    public void testL1RegularizedOffsetNegSumSquaresMin() {
+    public void testL1RegularizedOffsetSumSquares() {
+        if (!supportsL1Regularization()) { return; }
         Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(1.0, 0.0);
-        double[] initial = new double[] { 9, 2, -7};
+        double[] x = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
         double[] expected = new double[]{-0.0, 4.5, -10.5};
         SumSquares f = new SumSquares(offsets);
 //        JUnitUtils.assertArrayEquals(new double[]{0.0, 0.0, 0.0},
 //                f.getGradient(new IntDoubleDenseVector(expected)).toNativeArray(),
 //                1e-13);
-        opt.minimize(f, new IntDoubleDenseVector(initial));
-        double[] max = initial;
+        opt.minimize(f, new IntDoubleDenseVector(x));
         Vectors.scale(offsets, -1.0);
-        assertEquals(expected[0], max[0], getL1EqualityThreshold());
-        assertEquals(expected[1], max[1], 1e-10);
-        assertEquals(expected[2], max[2], 1e-10);
+        assertEquals(expected[0], x[0], getL1EqualityThreshold());
+        assertEquals(expected[1], x[1], 1e-10);
+        assertEquals(expected[2], x[2], 1e-10);
     }
     
     @Test
-    public void testL2RegularizedOffsetNegSumSquaresMax() {
+    public void testL2RegularizedOffsetSumSquares() {
         Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(0.0, 1.0);
-        double[] initial = new double[] { 9, 2, -7};
+        double[] x = new double[] { 9, 2, -7};
         double[] offsets = new double[] { 0.4, -5, 11};
-        opt.maximize(negate(new SumSquares(offsets)), new IntDoubleDenseVector(initial));
-        double[] max = initial;
+        opt.minimize(new SumSquares(offsets), new IntDoubleDenseVector(x));
         Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(new double[]{-0.266, 3.333, -7.333}, max, 1e-3);
-    }
-
-    @Test
-    public void testL2RegularizedOffsetNegSumSquaresMin() {
-        Optimizer<DifferentiableFunction> opt = getRegularizedOptimizer(0.0, 1.0);
-        double[] initial = new double[] { 9, 2, -7};
-        double[] offsets = new double[] { 0.4, -5, 11};
-        opt.minimize(new SumSquares(offsets), new IntDoubleDenseVector(initial));
-        double[] max = initial;
-        Vectors.scale(offsets, -1.0);
-        JUnitUtils.assertArrayEquals(new double[]{-0.266, 3.333, -7.333}, max, 1e-3);
+        JUnitUtils.assertArrayEquals(new double[]{-0.266, 3.333, -7.333}, x, 1e-3);
     }
 
     @Test
