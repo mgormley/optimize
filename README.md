@@ -17,13 +17,14 @@ Frank Ferraro, and Travis Wolfe.
 
 ## Using the Library
 
-The latest public version is deployed on Maven Central:
+The latest public version is deployed on 
+[Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22edu.jhu.hlt.optimize%22%20AND%20a%3A%22optimize%22):
 
 ```xml
 <dependency>
     <groupId>edu.jhu.hlt.optimize</groupId>
     <artifactId>optimize</artifactId>
-    <version>3.1.3</version>
+    <version>3.1.5</version>
 </dependency>
 ```
 
